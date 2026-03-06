@@ -1,0 +1,51 @@
+name: Delete Instance
+run-name: Delete '{% raw %}${{ inputs.INSTANCE_NAME }}{% endraw %}'
+
+on:
+  workflow_dispatch:
+    inputs:
+      INSTANCE_NAME:
+        description: "Instance to delete"
+        type: string
+      LAUNCHPAD_CLI_VERSION:
+        description: "Launchpad CLI version"
+        default: "{{ cookiecutter.launchpad_cluster_template_version }}"
+        type: string
+      LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION:
+        description: "Git ref (branch/tag/SHA) to use for applying OpenCraft manifests"
+        required: false
+        default: "main"
+        type: string
+      RUNNER_WORKFLOW_LABEL:
+        description: 'The label of the runner workflow to run'
+        required: false
+        default: "{{ cookiecutter.runner_workflow_label }}"
+        type: string
+
+jobs:
+  delete-instance:
+    permissions:
+      contents: write
+    name: Delete Instance
+    uses: open-craft/launchpad-cluster-template/.github/workflows/delete-instance.yml@main
+    secrets:
+      TERRAFORM_SECRETS: "{% raw %}${{ secrets.TERRAFORM_SECRETS }}{% endraw %}"
+      LAUNCHPAD_MYSQL_HOST: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_HOST }}{% endraw %}"
+      LAUNCHPAD_MYSQL_PORT: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_PORT }}{% endraw %}"
+      LAUNCHPAD_MYSQL_ROOT_USER: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_ROOT_USER }}{% endraw %}"
+      LAUNCHPAD_MYSQL_ROOT_PASSWORD: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_ROOT_PASSWORD }}{% endraw %}"
+      LAUNCHPAD_MONGODB_HOST: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_HOST }}{% endraw %}"
+      LAUNCHPAD_MONGODB_PORT: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_PORT }}{% endraw %}"
+      LAUNCHPAD_MONGODB_PROVIDER: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_PROVIDER }}{% endraw %}"
+      LAUNCHPAD_MONGODB_CLUSTER_ID: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_CLUSTER_ID }}{% endraw %}"
+      LAUNCHPAD_DIGITALOCEAN_TOKEN: "{% raw %}${{ secrets.LAUNCHPAD_DIGITALOCEAN_TOKEN }}{% endraw %}"
+      LAUNCHPAD_STORAGE_TYPE: "{% raw %}${{ secrets.LAUNCHPAD_STORAGE_TYPE }}{% endraw %}"
+      LAUNCHPAD_STORAGE_REGION: "{% raw %}${{ secrets.LAUNCHPAD_STORAGE_REGION }}{% endraw %}"
+      LAUNCHPAD_STORAGE_ACCESS_KEY_ID: "{% raw %}${{ secrets.LAUNCHPAD_STORAGE_ACCESS_KEY_ID }}{% endraw %}"
+      LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY: "{% raw %}${{ secrets.LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY }}{% endraw %}"
+      SSH_PRIVATE_KEY: "{% raw %}${{ secrets.SSH_PRIVATE_KEY }}{% endraw %}"
+    with:
+      INSTANCE_NAME: "{% raw %}${{ inputs.INSTANCE_NAME }}{% endraw %}"
+      LAUNCHPAD_CLI_VERSION: "{% raw %}${{ inputs.LAUNCHPAD_CLI_VERSION }}{% endraw %}"
+      LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION: "{% raw %}${{ inputs.LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION }}{% endraw %}"
+      RUNNER_WORKFLOW_LABEL: "{% raw %}${{ inputs.RUNNER_WORKFLOW_LABEL }}{% endraw %}"

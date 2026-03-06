@@ -21,12 +21,12 @@ repos:
       - id: check-case-conflict
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
-        exclude: ^cluster-template/phd-\{\{cookiecutter\.cluster_slug_normalized\}\}-cluster/activate$
+        exclude: ^cluster-template/launchpad-\{\{cookiecutter\.cluster_slug_normalized\}\}-cluster/activate$
 
       # Check JSON/YAML
       - id: check-yaml
         args: [--allow-multiple-documents]
-        exclude: ^cluster-template/phd-\{\{cookiecutter\.cluster_slug_normalized\}\}-cluster/.github/workflows/(build|build-all|create-instance|delete-instance).yml$|^mkdocs\.yaml$
+        exclude: ^cluster-template/launchpad-\{\{cookiecutter\.cluster_slug_normalized\}\}-cluster/.github/workflows/(build|build-all|create-instance|delete-instance).yml$|^mkdocs\.yaml$
       - id: check-json
       - id: pretty-format-json
         args: [--no-sort-keys]

@@ -1,8 +1,8 @@
 {
   "environment": "production",
-  "cluster_name": "PHD Production Cluster",
+  "cluster_name": "Launchpad Production Cluster",
   "cluster_slug": "{{ cookiecutter.cluster_name.lower().replace(' ', '-') }}",
-  "cluster_slug_normalized": "{{ cookiecutter.cluster_slug|replace('_', '-')|replace('phd-', '')|replace('-cluster', '')|replace(cookiecutter.environment.lower(), '')|trim('-') }}",
+  "cluster_slug_normalized": "{{ cookiecutter.cluster_slug|replace('_', '-')|replace('launchpad-', '')|replace('-cluster', '')|replace(cookiecutter.environment.lower(), '')|trim('-') }}",
   "cluster_domain": "{{ cookiecutter.cluster_slug.lower().replace('_', '-') + '.cluster.domain' }}",
   "short_description": "Kubernetes cluster to host Open edX instances",
   "cloud_provider": [
@@ -16,7 +16,7 @@
   "phd_cluster_template_version": "main",
   "tutor_version": "v20.0.5",
   "github_organization": "open-craft",
-  "github_repository": "git@github.com:{{ cookiecutter.github_organization }}/phd-{{ cookiecutter.cluster_slug_normalized }}-cluster.git",
+  "github_repository": "git@github.com:{{ cookiecutter.github_organization }}/launchpad-{{ cookiecutter.cluster_slug_normalized }}-cluster.git",
   "runner_workflow_label": [
     "ubuntu-latest",
     "self-hosted"

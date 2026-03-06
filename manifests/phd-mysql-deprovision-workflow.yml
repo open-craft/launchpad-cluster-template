@@ -1,8 +1,8 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  name: "mysql-deprovision-{{ PHD_INSTANCE_NAME }}"
-  namespace: "{{ PHD_INSTANCE_NAME }}"
+  name: "mysql-deprovision-{{ LAUNCHPAD_INSTANCE_NAME }}"
+  namespace: "{{ LAUNCHPAD_INSTANCE_NAME }}"
 spec:
   serviceAccountName: workflow-executor
   entrypoint: main
@@ -13,19 +13,19 @@ spec:
   arguments:
     parameters:
       - name: namespace
-        value: "{{ PHD_INSTANCE_NAME }}"
+        value: "{{ LAUNCHPAD_INSTANCE_NAME }}"
       - name: database-name
-        value: "{{ PHD_INSTANCE_MYSQL_DATABASE }}"
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_DATABASE }}"
       - name: username
-        value: "{{ PHD_INSTANCE_MYSQL_USERNAME }}"
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_USERNAME }}"
       - name: mysql-host
-        value: "{{ PHD_INSTANCE_MYSQL_HOST }}"
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_HOST }}"
       - name: mysql-port
-        value: "{{ PHD_INSTANCE_MYSQL_PORT }}"
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_PORT }}"
       - name: mysql-root-user
-        value: "{{ PHD_INSTANCE_MYSQL_ROOT_USER }}"
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_ROOT_USER }}"
       - name: mysql-root-password
-        value: "{{ PHD_INSTANCE_MYSQL_ROOT_PASSWORD }}"
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_ROOT_PASSWORD }}"
   workflowTemplateRef:
     name: mysql-deprovision-template
     clusterScope: true

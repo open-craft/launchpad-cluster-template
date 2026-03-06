@@ -1,6 +1,6 @@
 # Cluster Repository Setup
 
-After generating your cluster configuration with `phd_create_cluster` and deploying the infrastructure, you need to configure the cluster repository for GitHub Actions and ArgoCD. This guide walks through secrets, environment variables, workflows, and ArgoCD repository connection.
+After generating your cluster configuration with `launchpad_create_cluster` and deploying the infrastructure, you need to configure the cluster repository for GitHub Actions and ArgoCD. This guide walks through secrets, environment variables, workflows, and ArgoCD repository connection.
 
 ## Overview
 
@@ -18,14 +18,14 @@ To use these workflows and allow ArgoCD to sync from the repository, you must:
 
 ## Pushing the Repository to GitHub
 
-The `phd_create_cluster` command initializes a git repository and adds a remote. Complete the setup:
+The `launchpad_create_cluster` command initializes a git repository and adds a remote. Complete the setup:
 
-1. Create an empty repository in your GitHub organization (e.g. `your-org/phd-production-cluster`).
+1. Create an empty repository in your GitHub organization (e.g. `your-org/launchpad-production-cluster`).
 
 2. Push the cluster repository:
 
    ```bash
-   cd phd-production-cluster
+   cd launchpad-production-cluster
    git push -u origin main
    ```
 
@@ -45,22 +45,22 @@ Workflows read sensitive values from **repository secrets**. Configure them befo
 | Secret                            | Required for                                                        | Description                                                           |
 | --------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
 | `TERRAFORM_SECRETS`               | Create Instance, Delete Instance                                    | HCL content for `secrets.auto.tfvars` (see below)                     |
-| `PHD_DOCKER_REGISTRY_CREDENTIALS` | Create Instance                                                     | Base64-encoded `username:token` for pulling images                    |
-| `PHD_MYSQL_HOST`                  | Create Instance, Delete Instance                                    | MySQL server hostname                                                 |
-| `PHD_MYSQL_PORT`                  | Create Instance, Delete Instance                                    | MySQL port (default: `3306`)                                          |
-| `PHD_MYSQL_ROOT_USER`             | Create Instance, Delete Instance                                    | MySQL admin username                                                  |
-| `PHD_MYSQL_ROOT_PASSWORD`         | Create Instance, Delete Instance                                    | MySQL admin password                                                  |
-| `PHD_MONGODB_HOST`                | Create Instance, Delete Instance                                    | MongoDB hostname (for direct connection)                              |
-| `PHD_MONGODB_PORT`                | Create Instance, Delete Instance                                    | MongoDB port (default: `27017`)                                       |
-| `PHD_MONGODB_PROVIDER`            | Create Instance, Delete Instance                                    | `digitalocean_api` or `atlas`                                         |
-| `PHD_MONGODB_CLUSTER_ID`          | Create Instance, Delete Instance                                    | DigitalOcean MongoDB cluster ID (or Atlas project ID)                 |
-| `PHD_MONGODB_REPLICA_SET`         | Create Instance, Delete Instance                                    | MongoDB replica set name                                              |
-| `PHD_MONGODB_AUTH_SOURCE`         | Create Instance, Delete Instance                                    | MongoDB auth source (default: `admin`)                                 |
-| `PHD_DIGITALOCEAN_TOKEN`          | Create Instance, Delete Instance                                    | DigitalOcean API token                                                |
-| `PHD_STORAGE_TYPE`                | Create Instance, Delete Instance                                    | `s3` or `spaces`                                                      |
-| `PHD_STORAGE_REGION`              | Create Instance, Delete Instance                                    | Region (e.g. `us-east-1`, `nyc3`)                                     |
-| `PHD_STORAGE_ACCESS_KEY_ID`       | Create Instance, Delete Instance                                    | S3/Spaces access key ID                                               |
-| `PHD_STORAGE_SECRET_ACCESS_KEY`   | Create Instance, Delete Instance                                    | S3/Spaces secret access key                                           |
+| `LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS` | Create Instance                                                     | Base64-encoded `username:token` for pulling images                    |
+| `LAUNCHPAD_MYSQL_HOST`                  | Create Instance, Delete Instance                                    | MySQL server hostname                                                 |
+| `LAUNCHPAD_MYSQL_PORT`                  | Create Instance, Delete Instance                                    | MySQL port (default: `3306`)                                          |
+| `LAUNCHPAD_MYSQL_ROOT_USER`             | Create Instance, Delete Instance                                    | MySQL admin username                                                  |
+| `LAUNCHPAD_MYSQL_ROOT_PASSWORD`         | Create Instance, Delete Instance                                    | MySQL admin password                                                  |
+| `LAUNCHPAD_MONGODB_HOST`                | Create Instance, Delete Instance                                    | MongoDB hostname (for direct connection)                              |
+| `LAUNCHPAD_MONGODB_PORT`                | Create Instance, Delete Instance                                    | MongoDB port (default: `27017`)                                       |
+| `LAUNCHPAD_MONGODB_PROVIDER`            | Create Instance, Delete Instance                                    | `digitalocean_api` or `atlas`                                         |
+| `LAUNCHPAD_MONGODB_CLUSTER_ID`          | Create Instance, Delete Instance                                    | DigitalOcean MongoDB cluster ID (or Atlas project ID)                 |
+| `LAUNCHPAD_MONGODB_REPLICA_SET`         | Create Instance, Delete Instance                                    | MongoDB replica set name                                              |
+| `LAUNCHPAD_MONGODB_AUTH_SOURCE`         | Create Instance, Delete Instance                                    | MongoDB auth source (default: `admin`)                                 |
+| `LAUNCHPAD_DIGITALOCEAN_TOKEN`          | Create Instance, Delete Instance                                    | DigitalOcean API token                                                |
+| `LAUNCHPAD_STORAGE_TYPE`                | Create Instance, Delete Instance                                    | `s3` or `spaces`                                                      |
+| `LAUNCHPAD_STORAGE_REGION`              | Create Instance, Delete Instance                                    | Region (e.g. `us-east-1`, `nyc3`)                                     |
+| `LAUNCHPAD_STORAGE_ACCESS_KEY_ID`       | Create Instance, Delete Instance                                    | S3/Spaces access key ID                                               |
+| `LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY`   | Create Instance, Delete Instance                                    | S3/Spaces secret access key                                           |
 | `SSH_PRIVATE_KEY`                 | Create Instance, Build, Build All, Delete Instance, Update Instance | Private SSH key for cloning the cluster repo and private dependencies |
 
 ### TERRAFORM_SECRETS Format
@@ -86,7 +86,7 @@ Create the secret by copying the full HCL block (including variable names) and p
 
 ### Generating Common Secrets
 
-**Docker registry credentials** (for `PHD_DOCKER_REGISTRY_CREDENTIALS`):
+**Docker registry credentials** (for `LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS`):
 
 ```bash
 # GitHub Container Registry
@@ -141,10 +141,10 @@ The cluster repository includes reusable workflows that you trigger manually.
 | **INSTANCE_NAME**                   | Create, Build, Build All, Delete, Update | Instance identifier (DNS-compliant, e.g. `my-instance`)                                                                           |
 | **STRAIN_REPOSITORY_BRANCH**        | Build, Build All                         | Branch to use for the strain (default: `main`). The strain is the cluster repo; this is the branch containing `instances/<name>/` |
 | **SERVICE**                         | Build                                    | Service to build: `openedx` or `mfe`                                                                                              |
-| **PHD_CLI_VERSION**                 | Create, Build, Build All, Delete         | Git ref (branch/tag/SHA) of phd-cluster-template for the CLI (default: `main`)                                                    |
+| **LAUNCHPAD_CLI_VERSION**                 | Create, Build, Build All, Delete         | Git ref (branch/tag/SHA) of launchpad-cluster-template for the CLI (default: `main`)                                                    |
 | **RUNNER_WORKFLOW_LABEL**           | All                                      | GitHub Actions runner label (default: `ubuntu-latest`). Use `self-hosted` for self-hosted runners                                 |
 | **PICASSO_VERSION**                 | Build, Build All                         | Git ref of Picasso for image builds                                                                                               |
-| **PHD_OPENCRAFT_MANIFESTS_VERSION** | Delete                                   | Git ref for OpenCraft manifests (default: `main`)                                                                                 |
+| **LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION** | Delete                                   | Git ref for OpenCraft manifests (default: `main`)                                                                                 |
 | **EDX_PLATFORM_VERSION**            | Create                                   | edX Platform branch/tag (default: `release/teak.3`)                                                                               |
 | **TUTOR_VERSION**                   | Create                                   | Tutor version (default from cluster template)                                                                                     |
 | **INSTANCE_TEMPLATE_VERSION**       | Create                                   | Instance template version (default: `main`)                                                                                       |
@@ -160,7 +160,7 @@ ArgoCD must be able to clone the cluster repository to sync applications. Config
 
 ### Step 1: Create or Use the Default Project
 
-ArgoCD applications use a project (e.g. `phd-production`). The default project may already exist. To create one:
+ArgoCD applications use a project (e.g. `launchpad-production`). The default project may already exist. To create one:
 
 1. Log into the ArgoCD UI.
 2. Go to **Settings** → **Projects**.
@@ -175,7 +175,7 @@ ArgoCD applications use a project (e.g. `phd-production`). The default project m
 #### GitHub (SSH Deploy Key)
 
 1. **Connection method**: Via SSH
-2. **Repository URL**: `git@github.com:your-org/phd-production-cluster.git`
+2. **Repository URL**: `git@github.com:your-org/launchpad-production-cluster.git`
 3. **SSH private key**: Paste the private key (same content as `SSH_PRIVATE_KEY` if you use it for GitHub Actions)
 
 To add the SSH key to GitHub as a Deploy Key:
@@ -188,7 +188,7 @@ For read-only access, you can create a deploy key with only clone permission. Fo
 #### GitHub (HTTPS with Personal Access Token)
 
 1. **Connection method**: Via HTTPS
-2. **Repository URL**: `https://github.com/your-org/phd-production-cluster.git`
+2. **Repository URL**: `https://github.com/your-org/launchpad-production-cluster.git`
 3. **Username**: Your GitHub username (or `x-access-token` for fine-grained PATs)
 4. **Password**: GitHub Personal Access Token with `repo` scope
 

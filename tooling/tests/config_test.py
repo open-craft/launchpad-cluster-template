@@ -8,7 +8,7 @@ from unittest import mock
 import pytest
 from pydantic import ValidationError
 
-from phd.config import (
+from launchpad.config import (
     ClusterConfig,
     Config,
     InstanceConfig,
@@ -65,7 +65,7 @@ class TestClusterConfig:
             cluster_domain="cluster.domain", opencraft_manifests_version="v1.0.0"
         )
 
-        expected_url = "https://raw.githubusercontent.com/open-craft/phd-cluster-template/v1.0.0/manifests"
+        expected_url = "https://raw.githubusercontent.com/open-craft/launchpad-cluster-template/v1.0.0/manifests"
         assert config.opencraft_manifests_url == expected_url
 
     def test_cluster_config_argocd_install_url(self):
@@ -110,14 +110,14 @@ class TestClusterConfig:
 
     def test_cluster_config_env_prefix(self):
         """
-        Test that environment variables with PHD_ prefix are loaded.
+        Test that environment variables with LAUNCHPAD_ prefix are loaded.
         """
 
         with mock.patch.dict(
             os.environ,
             {
-                "PHD_CLUSTER_DOMAIN": "env.cluster.domain",
-                "PHD_ARGOCD_VERSION": "v2.9.0",
+                "LAUNCHPAD_CLUSTER_DOMAIN": "env.cluster.domain",
+                "LAUNCHPAD_ARGOCD_VERSION": "v2.9.0",
             },
         ):
             config = ClusterConfig()
@@ -227,7 +227,7 @@ class TestConfig:
     Test suite for main Config class.
     """
 
-    @mock.patch.dict(os.environ, {"PHD_CLUSTER_DOMAIN": "test.cluster.domain"})
+    @mock.patch.dict(os.environ, {"LAUNCHPAD_CLUSTER_DOMAIN": "test.cluster.domain"})
     def test_config_creation_with_env(self):
         """
         Test Config creation with environment variables.
@@ -236,10 +236,10 @@ class TestConfig:
         config = Config()
 
         assert config.log_level == "INFO"
-        assert "phd.log" in config.log_file
+        assert "launchpad.log" in config.log_file
         assert config.cluster.cluster_domain == "test.cluster.domain"
 
-    @mock.patch.dict(os.environ, {"PHD_CLUSTER_DOMAIN": "test.cluster.domain"})
+    @mock.patch.dict(os.environ, {"LAUNCHPAD_CLUSTER_DOMAIN": "test.cluster.domain"})
     def test_config_default_values(self):
         """
         Test Config default values.
@@ -248,15 +248,15 @@ class TestConfig:
         config = Config()
 
         assert config.log_level == "INFO"
-        assert "phd.log" in config.log_file
+        assert "launchpad.log" in config.log_file
         assert config.log_format == "%(asctime)s - %(levelname)s - %(message)s"
 
     @mock.patch.dict(
         os.environ,
         {
-            "PHD_LOG_LEVEL": "DEBUG",
-            "PHD_LOG_FILE": "custom.log",
-            "PHD_CLUSTER_DOMAIN": "test.cluster.domain",
+            "LAUNCHPAD_LOG_LEVEL": "DEBUG",
+            "LAUNCHPAD_LOG_FILE": "custom.log",
+            "LAUNCHPAD_CLUSTER_DOMAIN": "test.cluster.domain",
         },
     )
     def test_config_custom_log_values(self):
@@ -269,7 +269,7 @@ class TestConfig:
         assert config.log_level == "DEBUG"
         assert config.log_file == "custom.log"
 
-    @mock.patch.dict(os.environ, {"PHD_CLUSTER_DOMAIN": "test.cluster.domain"})
+    @mock.patch.dict(os.environ, {"LAUNCHPAD_CLUSTER_DOMAIN": "test.cluster.domain"})
     def test_config_nested_configs(self):
         """
         Test that Config contains all nested configuration layers.
@@ -283,7 +283,7 @@ class TestConfig:
         assert isinstance(config.storage, StorageConfig)
         assert isinstance(config.picasso, PicassoConfig)
 
-    @mock.patch.dict(os.environ, {"PHD_CLUSTER_DOMAIN": "test.cluster.domain"})
+    @mock.patch.dict(os.environ, {"LAUNCHPAD_CLUSTER_DOMAIN": "test.cluster.domain"})
     def test_config_frozen(self):
         """
         Test that Config is frozen.
@@ -300,46 +300,46 @@ class TestGetConfig:
     Test suite for get_config function.
     """
 
-    @mock.patch.dict(os.environ, {"PHD_CLUSTER_DOMAIN": "test.cluster.domain"})
+    @mock.patch.dict(os.environ, {"LAUNCHPAD_CLUSTER_DOMAIN": "test.cluster.domain"})
     def test_get_config_returns_config(self):
         """
         Test that get_config returns a Config instance.
         """
 
-        import phd.config
+        import launchpad.config
 
-        phd.config._CONFIG_INSTANCE = None
+        launchpad.config._CONFIG_INSTANCE = None
 
         config = get_config()
 
         assert isinstance(config, Config)
 
-    @mock.patch.dict(os.environ, {"PHD_CLUSTER_DOMAIN": "test.cluster.domain"})
+    @mock.patch.dict(os.environ, {"LAUNCHPAD_CLUSTER_DOMAIN": "test.cluster.domain"})
     def test_get_config_singleton(self):
         """
         Test that get_config returns the same instance (singleton pattern).
         """
 
-        import phd.config
+        import launchpad.config
 
-        phd.config._CONFIG_INSTANCE = None
+        launchpad.config._CONFIG_INSTANCE = None
 
         config1 = get_config()
         config2 = get_config()
 
         assert config1 is config2
 
-    @mock.patch.dict(os.environ, {"PHD_CLUSTER_DOMAIN": "test.cluster.domain"})
+    @mock.patch.dict(os.environ, {"LAUNCHPAD_CLUSTER_DOMAIN": "test.cluster.domain"})
     def test_get_config_lazy_initialization(self):
         """
         Test that get_config uses lazy initialization.
         """
 
-        import phd.config
+        import launchpad.config
 
-        phd.config._CONFIG_INSTANCE = None
+        launchpad.config._CONFIG_INSTANCE = None
 
-        assert phd.config._CONFIG_INSTANCE is None
+        assert launchpad.config._CONFIG_INSTANCE is None
         config = get_config()
-        assert phd.config._CONFIG_INSTANCE is not None
-        assert config is phd.config._CONFIG_INSTANCE
+        assert launchpad.config._CONFIG_INSTANCE is not None
+        assert config is launchpad.config._CONFIG_INSTANCE

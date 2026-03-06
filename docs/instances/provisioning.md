@@ -66,7 +66,7 @@ export LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY="your_secret"
 
 ### Provisioning Process
 
-The provisioning process is automatically executed when creating a new instance using the `phd_create_instance` command or the GitHub Actions workflow (recommended). The process follows these steps:
+The provisioning process is automatically executed when creating a new instance using the `launchpad_create_instance` command or the GitHub Actions workflow (recommended). The process follows these steps:
 
 #### 1. Namespace and RBAC Setup
 

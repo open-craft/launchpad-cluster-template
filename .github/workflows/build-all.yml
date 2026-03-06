@@ -20,8 +20,8 @@ on:
         description: "Picasso version"
         required: true
         type: string
-      PHD_CLI_VERSION:
-        description: "PHD CLI version"
+      LAUNCHPAD_CLI_VERSION:
+        description: "Launchpad CLI version"
         required: true
         type: string
       RUNNER_WORKFLOW_LABEL:
@@ -37,7 +37,7 @@ on:
 jobs:
   build:
     name: Build ${{ matrix.service }} service
-    uses: open-craft/phd-cluster-template/.github/workflows/build.yml@main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/build.yml@main
     strategy:
       matrix:
         service: ["openedx", "mfe"]
@@ -49,13 +49,13 @@ jobs:
       STRAIN_REPOSITORY: ${{ inputs.STRAIN_REPOSITORY }}
       STRAIN_REPOSITORY_BRANCH: ${{ inputs.STRAIN_REPOSITORY_BRANCH }}
       PICASSO_VERSION: ${{ inputs.PICASSO_VERSION }}
-      PHD_CLI_VERSION: ${{ inputs.PHD_CLI_VERSION }}
+      LAUNCHPAD_CLI_VERSION: ${{ inputs.LAUNCHPAD_CLI_VERSION }}
       RUNNER_WORKFLOW_LABEL: ${{ inputs.RUNNER_WORKFLOW_LABEL }}
       UPDATE_ENV_DIR: false
 
   update-env-dir:
     name: Update env directory
-    uses: open-craft/phd-cluster-template/.github/workflows/generate-env-dir.yml@main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/generate-env-dir.yml@main
     needs:
       - build
     secrets:

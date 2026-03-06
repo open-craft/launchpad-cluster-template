@@ -32,30 +32,30 @@ PREVIEW_LMS_HOST: "preview.{{ cookiecutter.instance_domain }}"
 
 # MySQL configuration
 RUN_MYSQL: false
-MYSQL_DATABASE: "phd-{{ cookiecutter.instance_slug }}-openedx"
-MYSQL_USERNAME: "phd-{{ cookiecutter.instance_slug }}"
+MYSQL_DATABASE: "launchpad-{{ cookiecutter.instance_slug }}-openedx"
+MYSQL_USERNAME: "launchpad-{{ cookiecutter.instance_slug }}"
 MYSQL_PASSWORD: "{{ generate_password() }}"
-MYSQL_HOST: "{{ env('PHD_MYSQL_HOST', 'mysql') }}"
-MYSQL_PORT: "{{ env('PHD_MYSQL_PORT', '3306') }}"
+MYSQL_HOST: "{{ env('LAUNCHPAD_MYSQL_HOST', 'mysql') }}"
+MYSQL_PORT: "{{ env('LAUNCHPAD_MYSQL_PORT', '3306') }}"
 
 # MongoDB configuration
 RUN_MONGODB: false
-MONGODB_DATABASE: "phd-{{ cookiecutter.instance_slug }}-openedx"
-MONGODB_USERNAME: "phd-{{ cookiecutter.instance_slug }}"
+MONGODB_DATABASE: "launchpad-{{ cookiecutter.instance_slug }}-openedx"
+MONGODB_USERNAME: "launchpad-{{ cookiecutter.instance_slug }}"
 MONGODB_PASSWORD: "{{ generate_password() }}"
-MONGODB_HOST: "{{ env('PHD_MONGODB_HOST', 'mongodb') }}"
-MONGODB_PORT: "{{ env('PHD_MONGODB_PORT', '27017') }}"
+MONGODB_HOST: "{{ env('LAUNCHPAD_MONGODB_HOST', 'mongodb') }}"
+MONGODB_PORT: "{{ env('LAUNCHPAD_MONGODB_PORT', '27017') }}"
 MONGODB_USE_SSL: true
 MONGODB_AUTH_MECHANISM: "SCRAM-SHA-1"
-MONGODB_AUTH_SOURCE: "{{ env('PHD_MONGODB_AUTH_SOURCE', 'admin') }}"
-MONGODB_REPLICA_SET: "{{ env('PHD_MONGODB_REPLICA_SET', '') }}"
-FORUM_MONGODB_DATABASE: "phd-{{ cookiecutter.instance_slug }}-forum"
+MONGODB_AUTH_SOURCE: "{{ env('LAUNCHPAD_MONGODB_AUTH_SOURCE', 'admin') }}"
+MONGODB_REPLICA_SET: "{{ env('LAUNCHPAD_MONGODB_REPLICA_SET', '') }}"
+FORUM_MONGODB_DATABASE: "launchpad-{{ cookiecutter.instance_slug }}-forum"
 
 # Storage configuration
-STORAGE_BUCKET_NAME: "phd-{{ cookiecutter.instance_slug }}-{{ generate_password() | truncate(7, True, '', 0) }}"
-STORAGE_TYPE: "{{ env('PHD_STORAGE_TYPE') }}"
-STORAGE_REGION: "{{ env('PHD_STORAGE_REGION') }}"
-STORAGE_ENDPOINT_URL: "{{ storage_endpoint_url(env('PHD_STORAGE_TYPE'), env('PHD_STORAGE_REGION')) }}"
+STORAGE_BUCKET_NAME: "launchpad-{{ cookiecutter.instance_slug }}-{{ generate_password() | truncate(7, True, '', 0) }}"
+STORAGE_TYPE: "{{ env('LAUNCHPAD_STORAGE_TYPE') }}"
+STORAGE_REGION: "{{ env('LAUNCHPAD_STORAGE_REGION') }}"
+STORAGE_ENDPOINT_URL: "{{ storage_endpoint_url(env('LAUNCHPAD_STORAGE_TYPE'), env('LAUNCHPAD_STORAGE_REGION')) }}"
 
 # Picasso configuration
 PICASSO_EXTRA_COMMANDS:

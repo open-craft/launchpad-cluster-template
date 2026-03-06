@@ -9,8 +9,8 @@ from unittest import mock
 
 import pytest
 
-from phd.exceptions import CommandNotFoundError, ConfigurationError
-from phd.utils import (
+from launchpad.exceptions import CommandNotFoundError, ConfigurationError
+from launchpad.utils import (
     ColoredFormatter,
     build_instance_config,
     check_command_installed,
@@ -123,7 +123,7 @@ class TestGetLogger:
     Test suite for get_logger function.
     """
 
-    @mock.patch("phd.utils.get_config")
+    @mock.patch("launchpad.utils.get_config")
     def test_get_logger_returns_logger(self, mock_get_config):
         """
         Test that get_logger returns a logging.Logger instance.
@@ -141,7 +141,7 @@ class TestGetLogger:
 
         logger.handlers.clear()
 
-    @mock.patch("phd.utils.get_config")
+    @mock.patch("launchpad.utils.get_config")
     def test_get_logger_sets_log_level(self, mock_get_config):
         """
         Test that get_logger sets the correct log level.
@@ -158,7 +158,7 @@ class TestGetLogger:
 
         logger.handlers.clear()
 
-    @mock.patch("phd.utils.get_config")
+    @mock.patch("launchpad.utils.get_config")
     def test_get_logger_adds_handlers(self, mock_get_config):
         """
         Test that get_logger adds console and file handlers.
@@ -175,7 +175,7 @@ class TestGetLogger:
 
         logger.handlers.clear()
 
-    @mock.patch("phd.utils.get_config")
+    @mock.patch("launchpad.utils.get_config")
     def test_get_logger_reuses_existing_logger(self, mock_get_config):
         """
         Test that get_logger reuses an existing logger with handlers.
@@ -195,7 +195,7 @@ class TestGetLogger:
 
         logger1.handlers.clear()
 
-    @mock.patch("phd.utils.get_config")
+    @mock.patch("launchpad.utils.get_config")
     def test_get_logger_uses_colored_formatter(self, mock_get_config):
         """
         Test that get_logger uses ColoredFormatter for console output.
@@ -220,7 +220,7 @@ class TestLogSuccess:
     Test suite for log_success function.
     """
 
-    @mock.patch("phd.utils.get_config")
+    @mock.patch("launchpad.utils.get_config")
     def test_log_success_creates_success_record(self, mock_get_config):
         """
         Test that log_success creates a log record with SUCCESS level.
@@ -243,7 +243,7 @@ class TestLogSuccess:
 
         logger.handlers.clear()
 
-    @mock.patch("phd.utils.get_config")
+    @mock.patch("launchpad.utils.get_config")
     def test_log_success_uses_info_level(self, mock_get_config):
         """
         Test that log_success uses INFO level internally.
@@ -325,7 +325,7 @@ class TestCheckCommandInstalled:
         ):
             check_command_installed("nonexistent_command_xyz")
 
-    @mock.patch("phd.utils.shutil.which")
+    @mock.patch("launchpad.utils.shutil.which")
     def test_check_command_installed_mock(self, mock_which):
         """
         Test check_command_installed with mocked shutil.which.
@@ -337,7 +337,7 @@ class TestCheckCommandInstalled:
 
         mock_which.assert_called_once_with("test_command")
 
-    @mock.patch("phd.utils.shutil.which")
+    @mock.patch("launchpad.utils.shutil.which")
     def test_check_command_installed_mock_missing(self, mock_which):
         """
         Test check_command_installed raises error when command not found.
@@ -364,7 +364,7 @@ class TestUtilsIntegration:
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = os.path.join(tmpdir, "test.log")
 
-            with mock.patch("phd.utils.get_config") as mock_get_config:
+            with mock.patch("launchpad.utils.get_config") as mock_get_config:
                 mock_config = mock.Mock()
                 mock_config.log_level = "INFO"
                 mock_config.log_file = log_file
@@ -439,14 +439,14 @@ class TestBuildInstanceConfigMongoDB:
 
         result = build_instance_config("inst", config)
 
-        assert result["PHD_INSTANCE_MONGODB_DATABASE"] == "testdb"
-        assert result["PHD_INSTANCE_MONGODB_DATABASE_FORUM"] == "testdb_forum"
-        assert result["PHD_INSTANCE_MONGODB_USERNAME"] == "user"
-        assert result["PHD_INSTANCE_MONGODB_PASSWORD"] == "pass"
-        assert result["PHD_INSTANCE_MONGODB_HOST"] == "mongo.cluster.domain"
-        assert result["PHD_INSTANCE_MONGODB_PORT"] == "27017"
-        assert result["PHD_INSTANCE_MONGODB_AUTH_SOURCE"] == "admin"
-        assert result["PHD_INSTANCE_MONGODB_REPLICA_SET"] == "rs0"
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_DATABASE"] == "testdb"
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_DATABASE_FORUM"] == "testdb_forum"
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_USERNAME"] == "user"
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_PASSWORD"] == "pass"
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_HOST"] == "mongo.cluster.domain"
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_PORT"] == "27017"
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_AUTH_SOURCE"] == "admin"
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_REPLICA_SET"] == "rs0"
 
     def test_mongodb_empty_values_handled(self):
         """
@@ -460,9 +460,9 @@ class TestBuildInstanceConfigMongoDB:
 
         result = build_instance_config("inst", config)
 
-        assert result["PHD_INSTANCE_MONGODB_DATABASE"] == "testdb"
-        assert result["PHD_INSTANCE_MONGODB_HOST"] == ""
-        assert result["PHD_INSTANCE_MONGODB_PORT"] == ""
-        assert result["PHD_INSTANCE_MONGODB_AUTH_SOURCE"] == ""
-        assert result["PHD_INSTANCE_MONGODB_REPLICA_SET"] == ""
-        assert result["PHD_INSTANCE_MONGODB_DATABASE_FORUM"] == ""
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_DATABASE"] == "testdb"
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_HOST"] == ""
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_PORT"] == ""
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_AUTH_SOURCE"] == ""
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_REPLICA_SET"] == ""
+        assert result["LAUNCHPAD_INSTANCE_MONGODB_DATABASE_FORUM"] == ""

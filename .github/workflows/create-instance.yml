@@ -10,7 +10,7 @@ on:
       INSTANCE_TEMPLATE_REPOSITORY:
         description: "Template repository URL"
         required: false
-        default: "https://github.com/open-craft/phd-cluster-template.git"
+        default: "https://github.com/open-craft/launchpad-cluster-template.git"
         type: string
       INSTANCE_TEMPLATE_VERSION:
         description: "Version of the instance template to use"
@@ -36,8 +36,8 @@ on:
         required: false
         default: "latest"
         type: string
-      PHD_CLI_VERSION:
-        description: "PHD CLI version"
+      LAUNCHPAD_CLI_VERSION:
+        description: "Launchpad CLI version"
         required: false
         default: "main"
         type: string
@@ -49,37 +49,37 @@ on:
     secrets:
       TERRAFORM_SECRETS:
         required: true
-      PHD_DOCKER_REGISTRY_CREDENTIALS:
+      LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS:
         required: true
-      PHD_MYSQL_HOST:
+      LAUNCHPAD_MYSQL_HOST:
         required: false
-      PHD_MYSQL_PORT:
+      LAUNCHPAD_MYSQL_PORT:
         required: false
-      PHD_MYSQL_ROOT_USER:
+      LAUNCHPAD_MYSQL_ROOT_USER:
         required: true
-      PHD_MYSQL_ROOT_PASSWORD:
+      LAUNCHPAD_MYSQL_ROOT_PASSWORD:
         required: true
-      PHD_MONGODB_HOST:
+      LAUNCHPAD_MONGODB_HOST:
         required: false
-      PHD_MONGODB_PORT:
+      LAUNCHPAD_MONGODB_PORT:
         required: false
-      PHD_MONGODB_PROVIDER:
+      LAUNCHPAD_MONGODB_PROVIDER:
         required: true
-      PHD_MONGODB_CLUSTER_ID:
+      LAUNCHPAD_MONGODB_CLUSTER_ID:
         required: true
-      PHD_MONGODB_REPLICA_SET:
+      LAUNCHPAD_MONGODB_REPLICA_SET:
         required: false
-      PHD_MONGODB_AUTH_SOURCE:
+      LAUNCHPAD_MONGODB_AUTH_SOURCE:
         required: false
-      PHD_DIGITALOCEAN_TOKEN:
+      LAUNCHPAD_DIGITALOCEAN_TOKEN:
         required: true
-      PHD_STORAGE_TYPE:
+      LAUNCHPAD_STORAGE_TYPE:
         required: true
-      PHD_STORAGE_REGION:
+      LAUNCHPAD_STORAGE_REGION:
         required: true
-      PHD_STORAGE_ACCESS_KEY_ID:
+      LAUNCHPAD_STORAGE_ACCESS_KEY_ID:
         required: true
-      PHD_STORAGE_SECRET_ACCESS_KEY:
+      LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY:
         required: true
       SSH_PRIVATE_KEY:
         required: true
@@ -117,11 +117,11 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-      - name: Install PHD CLI
+      - name: Install Launchpad CLI
         env:
-          PHD_CLI_VERSION: ${{ inputs.PHD_CLI_VERSION }}
+          LAUNCHPAD_CLI_VERSION: ${{ inputs.LAUNCHPAD_CLI_VERSION }}
         run: |
-          uv tool install git+https://github.com/open-craft/phd-cluster-template.git@${{ inputs.PHD_CLI_VERSION }}#subdirectory=tooling
+          uv tool install git+https://github.com/open-craft/launchpad-cluster-template.git@${{ inputs.LAUNCHPAD_CLI_VERSION }}#subdirectory=tooling
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
@@ -142,38 +142,38 @@ jobs:
         working-directory: "infrastructure"
         env:
           TF_CLI_ARGS: "-no-color"
-          AWS_ACCESS_KEY_ID: ${{ secrets.PHD_STORAGE_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.PHD_STORAGE_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.LAUNCHPAD_STORAGE_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY }}
         run: |
           tofu init -input=false
           tofu refresh
 
       - name: Create instance
         env:
-          PHD_LOG_LEVEL: DEBUG
-          PHD_DOCKER_REGISTRY_CREDENTIALS: ${{ secrets.PHD_DOCKER_REGISTRY_CREDENTIALS }}
-          PHD_MYSQL_HOST: ${{ secrets.PHD_MYSQL_HOST }}
-          PHD_MYSQL_PORT: ${{ secrets.PHD_MYSQL_PORT }}
-          PHD_MYSQL_ROOT_USER: ${{ secrets.PHD_MYSQL_ROOT_USER }}
-          PHD_MYSQL_ROOT_PASSWORD: ${{ secrets.PHD_MYSQL_ROOT_PASSWORD }}
-          PHD_MONGODB_HOST: ${{ secrets.PHD_MONGODB_HOST }}
-          PHD_MONGODB_PORT: ${{ secrets.PHD_MONGODB_PORT }}
-          PHD_MONGODB_PROVIDER: ${{ secrets.PHD_MONGODB_PROVIDER }}
-          PHD_MONGODB_CLUSTER_ID: ${{ secrets.PHD_MONGODB_CLUSTER_ID }}
-          PHD_MONGODB_REPLICA_SET: ${{ secrets.PHD_MONGODB_REPLICA_SET }}
-          PHD_MONGODB_AUTH_SOURCE: ${{ secrets.PHD_MONGODB_AUTH_SOURCE }}
-          PHD_DIGITALOCEAN_TOKEN: ${{ secrets.PHD_DIGITALOCEAN_TOKEN }}
-          PHD_STORAGE_TYPE: ${{ secrets.PHD_STORAGE_TYPE }}
-          PHD_STORAGE_REGION: ${{ secrets.PHD_STORAGE_REGION }}
-          PHD_STORAGE_ACCESS_KEY_ID: ${{ secrets.PHD_STORAGE_ACCESS_KEY_ID }}
-          PHD_STORAGE_SECRET_ACCESS_KEY: ${{ secrets.PHD_STORAGE_SECRET_ACCESS_KEY }}
+          LAUNCHPAD_LOG_LEVEL: DEBUG
+          LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS: ${{ secrets.LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS }}
+          LAUNCHPAD_MYSQL_HOST: ${{ secrets.LAUNCHPAD_MYSQL_HOST }}
+          LAUNCHPAD_MYSQL_PORT: ${{ secrets.LAUNCHPAD_MYSQL_PORT }}
+          LAUNCHPAD_MYSQL_ROOT_USER: ${{ secrets.LAUNCHPAD_MYSQL_ROOT_USER }}
+          LAUNCHPAD_MYSQL_ROOT_PASSWORD: ${{ secrets.LAUNCHPAD_MYSQL_ROOT_PASSWORD }}
+          LAUNCHPAD_MONGODB_HOST: ${{ secrets.LAUNCHPAD_MONGODB_HOST }}
+          LAUNCHPAD_MONGODB_PORT: ${{ secrets.LAUNCHPAD_MONGODB_PORT }}
+          LAUNCHPAD_MONGODB_PROVIDER: ${{ secrets.LAUNCHPAD_MONGODB_PROVIDER }}
+          LAUNCHPAD_MONGODB_CLUSTER_ID: ${{ secrets.LAUNCHPAD_MONGODB_CLUSTER_ID }}
+          LAUNCHPAD_MONGODB_REPLICA_SET: ${{ secrets.LAUNCHPAD_MONGODB_REPLICA_SET }}
+          LAUNCHPAD_MONGODB_AUTH_SOURCE: ${{ secrets.LAUNCHPAD_MONGODB_AUTH_SOURCE }}
+          LAUNCHPAD_DIGITALOCEAN_TOKEN: ${{ secrets.LAUNCHPAD_DIGITALOCEAN_TOKEN }}
+          LAUNCHPAD_STORAGE_TYPE: ${{ secrets.LAUNCHPAD_STORAGE_TYPE }}
+          LAUNCHPAD_STORAGE_REGION: ${{ secrets.LAUNCHPAD_STORAGE_REGION }}
+          LAUNCHPAD_STORAGE_ACCESS_KEY_ID: ${{ secrets.LAUNCHPAD_STORAGE_ACCESS_KEY_ID }}
+          LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY: ${{ secrets.LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY }}
           # OpenCraft manifests version override
-          PHD_OPENCRAFT_MANIFESTS_VERSION: ${{ inputs.INSTANCE_TEMPLATE_VERSION }}
+          LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION: ${{ inputs.INSTANCE_TEMPLATE_VERSION }}
           # Backend credentials for Terraform state access
-          AWS_ACCESS_KEY_ID: ${{ secrets.PHD_STORAGE_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.PHD_STORAGE_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.LAUNCHPAD_STORAGE_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY }}
         run: |
-          phd_create_instance \
+          launchpad_create_instance \
             "${{ inputs.INSTANCE_NAME }}" \
             --template-repository "${{ inputs.INSTANCE_TEMPLATE_REPOSITORY }}" \
             --template-version "${{ inputs.INSTANCE_TEMPLATE_VERSION }}" \

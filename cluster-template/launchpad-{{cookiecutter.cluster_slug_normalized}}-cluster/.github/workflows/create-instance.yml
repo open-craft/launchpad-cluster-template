@@ -1,0 +1,78 @@
+name: Create Instance
+run-name: Create '{% raw %}${{ inputs.INSTANCE_NAME }}{% endraw %}' on '{% raw %}${{ inputs.EDX_PLATFORM_VERSION }}{% endraw %}'
+
+on:
+  workflow_dispatch:
+    inputs:
+      INSTANCE_NAME:
+        description: "Instance to create"
+        type: string
+      PLATFORM_NAME:
+        description: "Platform name"
+        default: "My Open edX Instance"
+        type: string
+      INSTANCE_TEMPLATE_REPOSITORY:
+        description: "Repository containing the instance template"
+        default: "https://github.com/open-craft/launchpad-cluster-template.git"
+        type: string
+      INSTANCE_TEMPLATE_VERSION:
+        description: "Version of the instance template to use"
+        default: "main"
+        type: string
+      EDX_PLATFORM_REPOSITORY:
+        description: "Repository to clone the edx-platform from"
+        default: "https://github.com/openedx/edx-platform.git"
+        type: string
+      EDX_PLATFORM_VERSION:
+        description: "Version of the edx-platform to use"
+        default: "release/teak.3"
+        type: string
+      TUTOR_VERSION:
+        description: "Version of the tutor to use"
+        default: "{{ cookiecutter.tutor_version }}"
+        type: string
+      LAUNCHPAD_CLI_VERSION:
+        description: "Launchpad CLI version"
+        default: "{{ cookiecutter.launchpad_cluster_template_version }}"
+        type: string
+      RUNNER_WORKFLOW_LABEL:
+        description: 'The label of the runner workflow to run'
+        required: false
+        default: "{{ cookiecutter.runner_workflow_label }}"
+        type: string
+
+jobs:
+  create-instance:
+    permissions:
+      contents: write
+    name: Create Instance
+    uses: open-craft/launchpad-cluster-template/.github/workflows/create-instance.yml@main
+    secrets:
+      TERRAFORM_SECRETS: "{% raw %}${{ secrets.TERRAFORM_SECRETS }}{% endraw %}"
+      LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS: "{% raw %}${{ secrets.LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS }}{% endraw %}"
+      LAUNCHPAD_MYSQL_HOST: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_HOST }}{% endraw %}"
+      LAUNCHPAD_MYSQL_PORT: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_PORT }}{% endraw %}"
+      LAUNCHPAD_MYSQL_ROOT_USER: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_ROOT_USER }}{% endraw %}"
+      LAUNCHPAD_MYSQL_ROOT_PASSWORD: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_ROOT_PASSWORD }}{% endraw %}"
+      LAUNCHPAD_MONGODB_HOST: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_HOST }}{% endraw %}"
+      LAUNCHPAD_MONGODB_PORT: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_PORT }}{% endraw %}"
+      LAUNCHPAD_MONGODB_PROVIDER: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_PROVIDER }}{% endraw %}"
+      LAUNCHPAD_MONGODB_CLUSTER_ID: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_CLUSTER_ID }}{% endraw %}"
+      LAUNCHPAD_DIGITALOCEAN_TOKEN: "{% raw %}${{ secrets.LAUNCHPAD_DIGITALOCEAN_TOKEN }}{% endraw %}"
+      LAUNCHPAD_MONGODB_REPLICA_SET: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_REPLICA_SET }}{% endraw %}"
+      LAUNCHPAD_MONGODB_AUTH_SOURCE: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_AUTH_SOURCE }}{% endraw %}"
+      LAUNCHPAD_STORAGE_TYPE: "{% raw %}${{ secrets.LAUNCHPAD_STORAGE_TYPE }}{% endraw %}"
+      LAUNCHPAD_STORAGE_REGION: "{% raw %}${{ secrets.LAUNCHPAD_STORAGE_REGION }}{% endraw %}"
+      LAUNCHPAD_STORAGE_ACCESS_KEY_ID: "{% raw %}${{ secrets.LAUNCHPAD_STORAGE_ACCESS_KEY_ID }}{% endraw %}"
+      LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY: "{% raw %}${{ secrets.LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY }}{% endraw %}"
+      SSH_PRIVATE_KEY: "{% raw %}${{ secrets.SSH_PRIVATE_KEY }}{% endraw %}"
+    with:
+      INSTANCE_NAME: "{% raw %}${{ inputs.INSTANCE_NAME }}{% endraw %}"
+      PLATFORM_NAME: "{% raw %}${{ inputs.PLATFORM_NAME }}{% endraw %}"
+      INSTANCE_TEMPLATE_REPOSITORY: "{% raw %}${{ inputs.INSTANCE_TEMPLATE_REPOSITORY }}{% endraw %}"
+      INSTANCE_TEMPLATE_VERSION: "{% raw %}${{ inputs.INSTANCE_TEMPLATE_VERSION }}{% endraw %}"
+      EDX_PLATFORM_REPOSITORY: "{% raw %}${{ inputs.EDX_PLATFORM_REPOSITORY }}{% endraw %}"
+      EDX_PLATFORM_VERSION: "{% raw %}${{ inputs.EDX_PLATFORM_VERSION }}{% endraw %}"
+      TUTOR_VERSION: "{% raw %}${{ inputs.TUTOR_VERSION }}{% endraw %}"
+      LAUNCHPAD_CLI_VERSION: "{% raw %}${{ inputs.LAUNCHPAD_CLI_VERSION }}{% endraw %}"
+      RUNNER_WORKFLOW_LABEL: "{% raw %}${{ inputs.RUNNER_WORKFLOW_LABEL }}{% endraw %}"

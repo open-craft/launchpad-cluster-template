@@ -24,7 +24,7 @@ Before deprovisioning an instance, ensure:
 
 ### Deprovisioning Process
 
-The deprovisioning process is automatically executed when deleting an instance using the `phd_delete_instance` command or the GitHub Actions workflow. The process follows these steps:
+The deprovisioning process is automatically executed when deleting an instance using the `launchpad_delete_instance` command or the GitHub Actions workflow. The process follows these steps:
 
 #### 1. Provision Workflow Cleanup
 
@@ -105,7 +105,7 @@ kubectl logs -n <instance-name> \
 If normal deletion fails, you can use the `--force` flag to skip confirmation prompts:
 
 ```bash
-phd_delete_instance <instance-name> --force
+launchpad_delete_instance <instance-name> --force
 ```
 
 **Warning**: Force deletion bypasses safety checks and should only be used when you are certain you want to delete the instance.

@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "phd"
+name = "launchpad"
 version = "0.1.0"
-description = "PHD helper commands"
+description = "Launchpad helper commands"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -29,17 +29,17 @@ dev = [
 ]
 
 [project.scripts]
-phd_install_argo = "phd.cli.argo_install:main"
-phd_create_cluster = "phd.cli.cluster_create:main"
-phd_create_instance = "phd.cli.instance_create:main"
-phd_delete_instance = "phd.cli.instance_delete:main"
-phd_create_argo_user = "phd.cli.argo_user_create:main"
-phd_delete_argo_user = "phd.cli.argo_user_delete:main"
-phd_update_argo_user = "phd.cli.argo_user_update:main"
+launchpad_install_argo = "launchpad.cli.argo_install:main"
+launchpad_create_cluster = "launchpad.cli.cluster_create:main"
+launchpad_create_instance = "launchpad.cli.instance_create:main"
+launchpad_delete_instance = "launchpad.cli.instance_delete:main"
+launchpad_create_argo_user = "launchpad.cli.argo_user_create:main"
+launchpad_delete_argo_user = "launchpad.cli.argo_user_delete:main"
+launchpad_update_argo_user = "launchpad.cli.argo_user_update:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["phd*"]
+include = ["launchpad*"]
 exclude = ["tests*"]
 
 [tool.pytest.ini_options]
@@ -50,7 +50,7 @@ python_functions = ["test_*"]
 
 [tool.coverage.run]
 omit = [
-    "phd/cli/*",
+    "launchpad/cli/*",
     "tests/*",
 ]
 
@@ -94,7 +94,7 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 skip_glob = ["**/migrations/*"]
-known_first_party = ["phd"]
+known_first_party = ["launchpad"]
 known_third_party = [
     "bcrypt",
     "cookiecutter",

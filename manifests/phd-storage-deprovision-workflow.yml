@@ -1,8 +1,8 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  name: "storage-deprovision-{{ PHD_INSTANCE_NAME }}"
-  namespace: "{{ PHD_INSTANCE_NAME }}"
+  name: "storage-deprovision-{{ LAUNCHPAD_INSTANCE_NAME }}"
+  namespace: "{{ LAUNCHPAD_INSTANCE_NAME }}"
 spec:
   serviceAccountName: workflow-executor
   entrypoint: main
@@ -13,19 +13,19 @@ spec:
   arguments:
     parameters:
       - name: namespace
-        value: "{{ PHD_INSTANCE_NAME }}"
+        value: "{{ LAUNCHPAD_INSTANCE_NAME }}"
       - name: bucket-name
-        value: "{{ PHD_INSTANCE_STORAGE_BUCKET_NAME }}"
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_BUCKET_NAME }}"
       - name: storage-type
-        value: "{{ PHD_INSTANCE_STORAGE_TYPE }}"
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_TYPE }}"
       - name: region
-        value: "{{ PHD_INSTANCE_STORAGE_REGION }}"
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_REGION }}"
       - name: access-key-id
-        value: "{{ PHD_INSTANCE_STORAGE_ACCESS_KEY_ID }}"
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_ACCESS_KEY_ID }}"
       - name: secret-access-key
-        value: "{{ PHD_INSTANCE_STORAGE_SECRET_ACCESS_KEY }}"
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_SECRET_ACCESS_KEY }}"
       - name: endpoint-url
-        value: "{{ PHD_INSTANCE_STORAGE_ENDPOINT_URL }}"
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_ENDPOINT_URL }}"
       - name: force-delete
         value: "true"
   workflowTemplateRef:

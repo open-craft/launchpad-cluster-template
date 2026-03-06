@@ -215,11 +215,11 @@ spec:
             -H "Content-Type: application/json" \
             -H "Authorization: $K8s_API_BEARER_TOKEN" \
             --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
-            -d "{\"apiVersion\": \"v1\",\"kind\": \"Secret\",\"metadata\": {\"name\": \"phd-mongodb-user-password\",\"namespace\": \"$NAMESPACE\"},\"type\": \"Opaque\",\"stringData\": {\"phd-mongodb-user-password\": \"$PASSWORD\"}}" \
+            -d "{\"apiVersion\": \"v1\",\"kind\": \"Secret\",\"metadata\": {\"name\": \"launchpad-mongodb-user-password\",\"namespace\": \"$NAMESPACE\"},\"type\": \"Opaque\",\"stringData\": {\"launchpad-mongodb-user-password\": \"$PASSWORD\"}}" \
             "https://kubernetes.default.svc/api/v1/namespaces/$NAMESPACE/secrets")
 
           if echo "$K8S_RESPONSE" | grep -q "\"kind\": \"Secret\""; then
-            echo "MongoDB user password saved to kubernetes secret \"phd-mongodb-user-password\" in namespace $NAMESPACE"
+            echo "MongoDB user password saved to kubernetes secret \"launchpad-mongodb-user-password\" in namespace $NAMESPACE"
           else
             echo "Failed to save MongoDB user password in secret"
             echo "⚠ Note: The MongoDB user password in config may differ."
@@ -394,11 +394,11 @@ spec:
             -H "Content-Type: application/json" \
             -H "Authorization: $K8s_API_BEARER_TOKEN" \
             --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
-            -d "{\"apiVersion\": \"v1\",\"kind\": \"Secret\",\"metadata\": {\"name\": \"phd-mongodb-user-password\",\"namespace\": \"$NAMESPACE\"},\"type\": \"Opaque\",\"stringData\": {\"phd-mongodb-user-password\": \"$PASSWORD\"}}" \
+            -d "{\"apiVersion\": \"v1\",\"kind\": \"Secret\",\"metadata\": {\"name\": \"launchpad-mongodb-user-password\",\"namespace\": \"$NAMESPACE\"},\"type\": \"Opaque\",\"stringData\": {\"launchpad-mongodb-user-password\": \"$PASSWORD\"}}" \
             "https://kubernetes.default.svc/api/v1/namespaces/$NAMESPACE/secrets")
 
           if echo "$K8S_RESPONSE" | grep -q "\"kind\": \"Secret\""; then
-            echo "MongoDB Atlas user password saved to kubernetes secret \"phd-mongodb-user-password\" in namespace $NAMESPACE"
+            echo "MongoDB Atlas user password saved to kubernetes secret \"launchpad-mongodb-user-password\" in namespace $NAMESPACE"
           else
             echo "Failed to save MongoDB Atlas user password in secret"
             echo "⚠ Note: The MongoDB Atlas user password in config may differ."

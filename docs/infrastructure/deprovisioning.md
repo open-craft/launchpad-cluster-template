@@ -37,7 +37,7 @@ kubectl get applications -n argocd
 kubectl get namespaces | grep -v "kube-\|argocd\|argo\|default"
 ```
 
-If any instances remain, delete them first using `phd_delete_instance`, the GitHub Actions workflow, or manually.
+If any instances remain, delete them first using `launchpad_delete_instance`, the GitHub Actions workflow, or manually.
 
 ### Step 2: Uninstall ArgoCD and Argo Workflows
 
@@ -141,7 +141,7 @@ Destroy the infrastructure using Terraform or OpenTofu. This will remove the Kub
 **Navigate to Infrastructure Directory**:
 
 ```bash
-cd phd-production-cluster/infrastructure-aws  # or infrastructure-digitalocean
+cd launchpad-production-cluster/infrastructure-aws  # or infrastructure-digitalocean
 ```
 
 **Configure Backend Credentials**:
@@ -188,7 +188,7 @@ After infrastructure is destroyed, you can optionally remove local cluster confi
 cd ../..
 
 # Remove cluster configuration directory
-rm -rf phd-production-cluster
+rm -rf launchpad-production-cluster
 ```
 
 **Remove kubeconfig**:

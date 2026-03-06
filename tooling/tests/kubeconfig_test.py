@@ -11,11 +11,11 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-# Set required environment variable before importing anything from phd
-os.environ.setdefault("PHD_CLUSTER_DOMAIN", "test.cluster.domain")
+# Set required environment variable before importing anything from launchpad
+os.environ.setdefault("LAUNCHPAD_CLUSTER_DOMAIN", "test.cluster.domain")
 
-from phd.exceptions import ConfigurationError
-from phd.kubeconfig import (
+from launchpad.exceptions import ConfigurationError
+from launchpad.kubeconfig import (
     get_kubeconfig_from_env,
     get_kubeconfig_from_terraform,
     setup_kubeconfig,
@@ -27,9 +27,9 @@ class TestGetKubeconfigFromTerraform:
     Tests for get_kubeconfig_from_terraform function.
     """
 
-    @patch("phd.kubeconfig.shutil.which")
-    @patch("phd.kubeconfig.subprocess.run")
-    @patch("phd.kubeconfig.Path")
+    @patch("launchpad.kubeconfig.shutil.which")
+    @patch("launchpad.kubeconfig.subprocess.run")
+    @patch("launchpad.kubeconfig.Path")
     def test_with_tofu_command(self, mock_path, mock_run, mock_check_command):
         """
         Test retrieval using tofu command.
@@ -62,9 +62,9 @@ class TestGetKubeconfigFromTerraform:
             check=False,
         )
 
-    @patch("phd.kubeconfig.shutil.which")
-    @patch("phd.kubeconfig.subprocess.run")
-    @patch("phd.kubeconfig.Path")
+    @patch("launchpad.kubeconfig.shutil.which")
+    @patch("launchpad.kubeconfig.subprocess.run")
+    @patch("launchpad.kubeconfig.Path")
     def test_with_terraform_command(self, mock_path, mock_run, mock_check_command):
         """
         Test retrieval using terraform command when tofu not available.
@@ -97,7 +97,7 @@ class TestGetKubeconfigFromTerraform:
             check=False,
         )
 
-    @patch("phd.kubeconfig.shutil.which")
+    @patch("launchpad.kubeconfig.shutil.which")
     def test_no_command_available(self, mock_check_command):
         """
         Test when neither tofu nor terraform is available.
@@ -109,9 +109,9 @@ class TestGetKubeconfigFromTerraform:
 
         assert result is None
 
-    @patch("phd.kubeconfig.shutil.which")
-    @patch("phd.kubeconfig.subprocess.run")
-    @patch("phd.kubeconfig.Path")
+    @patch("launchpad.kubeconfig.shutil.which")
+    @patch("launchpad.kubeconfig.subprocess.run")
+    @patch("launchpad.kubeconfig.Path")
     def test_with_working_directory(self, mock_path, mock_run, mock_check_command):
         """
         Test with custom working directory.
@@ -138,8 +138,8 @@ class TestGetKubeconfigFromTerraform:
         mock_run.assert_called_once()
         assert mock_run.call_args[1]["cwd"] == mock_infrastructure
 
-    @patch("phd.kubeconfig.shutil.which")
-    @patch("phd.kubeconfig.subprocess.run")
+    @patch("launchpad.kubeconfig.shutil.which")
+    @patch("launchpad.kubeconfig.subprocess.run")
     def test_command_fails(self, mock_run, mock_check_command):
         """
         Test when command execution fails.
@@ -158,8 +158,8 @@ class TestGetKubeconfigFromTerraform:
 
         assert result is None
 
-    @patch("phd.kubeconfig.shutil.which")
-    @patch("phd.kubeconfig.subprocess.run")
+    @patch("launchpad.kubeconfig.shutil.which")
+    @patch("launchpad.kubeconfig.subprocess.run")
     def test_empty_output(self, mock_run, mock_check_command):
         """
         Test when command returns empty output.
@@ -178,9 +178,9 @@ class TestGetKubeconfigFromTerraform:
 
         assert result is None
 
-    @patch("phd.kubeconfig.shutil.which")
-    @patch("phd.kubeconfig.subprocess.run")
-    @patch("phd.kubeconfig.Path")
+    @patch("launchpad.kubeconfig.shutil.which")
+    @patch("launchpad.kubeconfig.subprocess.run")
+    @patch("launchpad.kubeconfig.Path")
     def test_subprocess_error(self, mock_path, mock_run, mock_check_command):
         """
         Test when subprocess raises an error.
@@ -201,9 +201,9 @@ class TestGetKubeconfigFromTerraform:
         with pytest.raises(ConfigurationError, match="Failed to execute tofu command"):
             get_kubeconfig_from_terraform()
 
-    @patch("phd.kubeconfig.shutil.which")
-    @patch("phd.kubeconfig.subprocess.run")
-    @patch("phd.kubeconfig.Path")
+    @patch("launchpad.kubeconfig.shutil.which")
+    @patch("launchpad.kubeconfig.subprocess.run")
+    @patch("launchpad.kubeconfig.Path")
     def test_whitespace_trimming(self, mock_path, mock_run, mock_check_command):
         """
         Test that whitespace is trimmed from output.
@@ -328,7 +328,7 @@ class TestSetupKubeconfig:
     Tests for setup_kubeconfig function.
     """
 
-    @patch("phd.kubeconfig.get_kubeconfig_from_terraform")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
     def test_with_terraform_kubeconfig(self, mock_get_terraform):
         """
         Test setup using kubeconfig from Terraform.
@@ -336,7 +336,7 @@ class TestSetupKubeconfig:
         mock_get_terraform.return_value = "kubeconfig from terraform"
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("phd.kubeconfig.Path.home") as mock_home:
+            with patch("launchpad.kubeconfig.Path.home") as mock_home:
                 mock_home.return_value = Path(tmpdir)
 
                 setup_kubeconfig()
@@ -349,8 +349,8 @@ class TestSetupKubeconfig:
 
         mock_get_terraform.assert_called_once_with(None)
 
-    @patch("phd.kubeconfig.get_kubeconfig_from_terraform")
-    @patch("phd.kubeconfig.get_kubeconfig_from_env")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_env")
     def test_with_env_kubeconfig(self, mock_get_env, mock_get_terraform):
         """
         Test setup using kubeconfig from environment when Terraform fails.
@@ -359,7 +359,7 @@ class TestSetupKubeconfig:
         mock_get_env.return_value = "kubeconfig from env"
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("phd.kubeconfig.Path.home") as mock_home:
+            with patch("launchpad.kubeconfig.Path.home") as mock_home:
                 mock_home.return_value = Path(tmpdir)
 
                 setup_kubeconfig()
@@ -373,8 +373,8 @@ class TestSetupKubeconfig:
         mock_get_terraform.assert_called_once()
         mock_get_env.assert_called_once()
 
-    @patch("phd.kubeconfig.get_kubeconfig_from_terraform")
-    @patch("phd.kubeconfig.get_kubeconfig_from_env")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_env")
     def test_with_existing_kubeconfig(self, mock_get_env, mock_get_terraform):
         """
         Test when existing kubeconfig is available and no new one is provided.
@@ -383,7 +383,7 @@ class TestSetupKubeconfig:
         mock_get_terraform.return_value = None
         mock_get_env.return_value = None
 
-        with patch("phd.kubeconfig.Path") as mock_path_class:
+        with patch("launchpad.kubeconfig.Path") as mock_path_class:
             mock_home = MagicMock()
             mock_kubeconfig_path = MagicMock()
             mock_kubeconfig_path.exists.return_value = True
@@ -396,8 +396,8 @@ class TestSetupKubeconfig:
         mock_get_terraform.assert_called_once()
         mock_get_env.assert_called_once()
 
-    @patch("phd.kubeconfig.get_kubeconfig_from_terraform")
-    @patch("phd.kubeconfig.get_kubeconfig_from_env")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_env")
     def test_no_kubeconfig_available(self, mock_get_env, mock_get_terraform):
         """
         Test when no kubeconfig is available from any source.
@@ -407,14 +407,14 @@ class TestSetupKubeconfig:
         mock_get_env.return_value = None
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("phd.kubeconfig.Path.home") as mock_home:
+            with patch("launchpad.kubeconfig.Path.home") as mock_home:
                 mock_home.return_value = Path(tmpdir)
 
                 with pytest.raises(ConfigurationError, match="No kubeconfig available"):
                     setup_kubeconfig()
 
-    @patch("phd.kubeconfig.get_kubeconfig_from_terraform")
-    @patch("phd.kubeconfig.get_kubeconfig_from_env")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_env")
     def test_force_env_skips_terraform(self, mock_get_env, mock_get_terraform):
         """
         Test that when terraform returns None, env is used as fallback.
@@ -423,7 +423,7 @@ class TestSetupKubeconfig:
         mock_get_env.return_value = "kubeconfig from env"
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("phd.kubeconfig.Path.home") as mock_home:
+            with patch("launchpad.kubeconfig.Path.home") as mock_home:
                 mock_home.return_value = Path(tmpdir)
 
                 setup_kubeconfig()
@@ -436,7 +436,7 @@ class TestSetupKubeconfig:
 
         mock_get_env.assert_called_once()
 
-    @patch("phd.kubeconfig.get_kubeconfig_from_terraform")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
     def test_with_custom_terraform_dir(self, mock_get_terraform):
         """
         Test setup with custom Terraform directory.
@@ -445,7 +445,7 @@ class TestSetupKubeconfig:
         terraform_dir = Path("/custom/terraform/dir")
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("phd.kubeconfig.Path.home") as mock_home:
+            with patch("launchpad.kubeconfig.Path.home") as mock_home:
                 mock_home.return_value = Path(tmpdir)
 
                 setup_kubeconfig(terraform_dir=terraform_dir)
@@ -456,7 +456,7 @@ class TestSetupKubeconfig:
 
         mock_get_terraform.assert_called_once_with(terraform_dir)
 
-    @patch("phd.kubeconfig.get_kubeconfig_from_terraform")
+    @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
     def test_write_error_handling(self, mock_get_terraform):
         """
         Test error handling when writing kubeconfig fails.
@@ -464,7 +464,7 @@ class TestSetupKubeconfig:
         mock_get_terraform.return_value = "kubeconfig content"
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("phd.kubeconfig.Path.home") as mock_home:
+            with patch("launchpad.kubeconfig.Path.home") as mock_home:
                 mock_home.return_value = Path(tmpdir)
 
                 kube_dir = Path(tmpdir) / ".kube"
@@ -487,11 +487,11 @@ class TestSetupKubeconfig:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             with patch(
-                "phd.kubeconfig.get_kubeconfig_from_terraform"
+                "launchpad.kubeconfig.get_kubeconfig_from_terraform"
             ) as mock_terraform:
                 mock_terraform.return_value = kubeconfig_content
 
-                with patch("phd.kubeconfig.Path.home") as mock_home:
+                with patch("launchpad.kubeconfig.Path.home") as mock_home:
                     mock_home.return_value = Path(tmpdir)
 
                     setup_kubeconfig()

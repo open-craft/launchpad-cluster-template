@@ -24,7 +24,7 @@ This page summarizes common issues and debugging steps for Open edX instances on
 ## Image Not Found or Pull Errors
 
 - Confirm the image name and tag in `config.yml` match what was built and pushed (e.g. by Picasso).
-- Ensure the namespace has the correct `imagePullSecrets` (Launchpad sets this on instance creation and during `phd_install_argo`).
+- Ensure the namespace has the correct `imagePullSecrets` (Launchpad sets this on instance creation and during `launchpad_install_argo`).
 - Check registry credentials (e.g. `LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS`) in the environment that created the instance or runs the workflows.
 
 ## Slow or Failing Sync
