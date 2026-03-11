@@ -1,5 +1,5 @@
 site_name: Launchpad Documentation
-site_url: https://picasso-harmony-drydock.opencraft.com
+site_url: https://launchpad.opencraft.com
 site_dir: public
 nav:
   - Introduction: index.md
