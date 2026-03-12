@@ -79,7 +79,7 @@ jobs:
   update-env-dir:
     if: ${{ inputs.UPDATE_ENV_DIR }}
     name: Update env directory
-    uses: open-craft/phd-cluster-template/.github/workflows/generate-env-dir.yml@gabor/experiment
+    uses: open-craft/phd-cluster-template/.github/workflows/generate-env-dir.yml@main
     needs:
       - build
     secrets:
