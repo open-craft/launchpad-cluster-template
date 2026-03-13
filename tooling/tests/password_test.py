@@ -9,8 +9,8 @@ from unittest import mock
 import bcrypt
 import pytest
 
-from phd.exceptions import PasswordError
-from phd.password import (
+from launchpad.exceptions import PasswordError
+from launchpad.password import (
     bcrypt_password,
     generate_password,
     get_password_mtime,
@@ -189,7 +189,7 @@ class TestBcryptPassword:
 
         assert bcrypt.checkpw(unicode_password.encode("utf-8"), hashed.encode("utf-8"))
 
-    @mock.patch("phd.password.bcrypt.hashpw")
+    @mock.patch("launchpad.password.bcrypt.hashpw")
     def test_bcrypt_password_bcrypt_error(self, mock_hashpw):
         """
         Test that bcrypt errors are properly handled.
@@ -202,7 +202,7 @@ class TestBcryptPassword:
         ):
             bcrypt_password("test_password")
 
-    @mock.patch("phd.password.bcrypt.gensalt")
+    @mock.patch("launchpad.password.bcrypt.gensalt")
     def test_bcrypt_password_gensalt_error(self, mock_gensalt):
         """
         Test that gensalt errors are properly handled.
@@ -266,7 +266,7 @@ class TestGetPasswordMtime:
 
         assert parsed.tzinfo == timezone.utc
 
-    @mock.patch("phd.password.datetime")
+    @mock.patch("launchpad.password.datetime")
     def test_get_password_mtime_mocked_time(self, mock_datetime):
         """
         Test mtime with mocked datetime.
@@ -358,7 +358,7 @@ class TestResolvePlaintextPassword:
 
         assert result1 != result2
 
-    @mock.patch("phd.password.generate_password")
+    @mock.patch("launchpad.password.generate_password")
     def test_resolve_plaintext_password_calls_generate_when_empty(self, mock_generate):
         """
         Test that empty input calls generate_password.
@@ -371,7 +371,7 @@ class TestResolvePlaintextPassword:
         mock_generate.assert_called_once()
         assert result == "generated_password"
 
-    @mock.patch("phd.password.generate_password")
+    @mock.patch("launchpad.password.generate_password")
     def test_resolve_plaintext_password_does_not_call_generate_when_provided(
         self, mock_generate
     ):

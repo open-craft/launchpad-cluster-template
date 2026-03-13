@@ -23,7 +23,7 @@ Before provisioning infrastructure, ensure you have:
 
 ### Step 1: Create Cluster Configuration
 
-The first step is to generate the cluster configuration using the `phd_create_cluster` command. This creates a directory structure with Terraform modules, GitHub Actions workflows, and configuration files.
+The first step is to generate the cluster configuration using the `launchpad_create_cluster` command. This creates a directory structure with Terraform modules, GitHub Actions workflows, and configuration files.
 
 **Install the CLI** (if not already installed):
 
@@ -31,18 +31,18 @@ The first step is to generate the cluster configuration using the `phd_create_cl
 # Install uv (if needed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install PHD CLI as a tool (persistent)
-uv tool install git+https://github.com/open-craft/phd-cluster-template.git#subdirectory=tooling
+# Install Launchpad CLI as a tool (persistent)
+uv tool install git+https://github.com/open-craft/launchpad-cluster-template.git#subdirectory=tooling
 
 # Or run without installing (one-off)
-uvx --from git+https://github.com/open-craft/phd-cluster-template.git#subdirectory=tooling phd_create_cluster --help
+uvx --from git+https://github.com/open-craft/launchpad-cluster-template.git#subdirectory=tooling launchpad_create_cluster --help
 ```
 
 **Create cluster configuration**:
 
 ```bash
 # Create cluster with custom options
-phd_create_cluster "Launchpad Production Cluster" "cluster.domain" \
+launchpad_create_cluster "Launchpad Production Cluster" "cluster.domain" \
   --environment production \
   --cloud-provider aws \
   --cloud-region us-east-1 \
@@ -67,7 +67,7 @@ phd_create_cluster "Launchpad Production Cluster" "cluster.domain" \
 
 **What This Creates**:
 
-- Cluster directory with normalized name (e.g., `phd-production-cluster`)
+- Cluster directory with normalized name (e.g., `launchpad-production-cluster`)
 - Terraform infrastructure modules for AWS or DigitalOcean
 - GitHub Actions workflows for building images and managing instances
 - Instance template directory structure
@@ -82,7 +82,7 @@ After generating the cluster configuration, deploy the infrastructure using Terr
 **Navigate to Infrastructure Directory**:
 
 ```bash
-cd phd-production-cluster/infrastructure
+cd launchpad-production-cluster/infrastructure
 ```
 
 **Configure Backend Credentials**:
@@ -146,17 +146,17 @@ export LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS="base64 encoded docker registry cre
 
 ```bash
 # Install both ArgoCD and Argo Workflows
-phd_install_argo
+launchpad_install_argo
 ```
 
 **Or, Install Selectively**:
 
 ```bash
 # Install only ArgoCD
-phd_install_argo --argocd-only
+launchpad_install_argo --argocd-only
 
 # Install only Argo Workflows
-phd_install_argo --workflows-only
+launchpad_install_argo --workflows-only
 ```
 
 **What Gets Installed**:
@@ -216,7 +216,7 @@ kubectl get ingress -n argo
 
 ## Creating ArgoCD Users
 
-After installing ArgoCD and Argo Workflows, you can create ArgoCD users using the `phd_create_argo_user` command.
+After installing ArgoCD and Argo Workflows, you can create ArgoCD users using the `launchpad_create_argo_user` command.
 
 ### Basic Usage
 
@@ -227,24 +227,24 @@ After installing ArgoCD and Argo Workflows, you can create ArgoCD users using th
 export LAUNCHPAD_CLUSTER_DOMAIN="cluster.domain"
 
 # Create user (will prompt for password)
-phd_create_argo_user john.doe
+launchpad_create_argo_user john.doe
 ```
 
 **Create a user with specific role and password**:
 
 ```bash
 # Create admin user
-phd_create_argo_user admin.user \
+launchpad_create_argo_user admin.user \
   --role admin \
   --password "secure-password"
 
 # Create developer user
-phd_create_argo_user developer.user \
+launchpad_create_argo_user developer.user \
   --role developer \
   --password "secure-password"
 
 # Create readonly user
-phd_create_argo_user viewer.user \
+launchpad_create_argo_user viewer.user \
   --role readonly \
   --password "secure-password"
 ```
@@ -286,20 +286,20 @@ kubectl delete pod -n argocd -l app.kubernetes.io/name=argocd-server
 
 ```bash
 # Update user role
-phd_update_argo_user john.doe --role admin
+launchpad_update_argo_user john.doe --role admin
 
 # Update user password
-phd_update_argo_user john.doe --password "new-password"
+launchpad_update_argo_user john.doe --password "new-password"
 ```
 
 **Delete a user**:
 
 ```bash
 # Delete user (will prompt for confirmation)
-phd_delete_argo_user john.doe
+launchpad_delete_argo_user john.doe
 
 # Force delete without confirmation
-phd_delete_argo_user john.doe --force
+launchpad_delete_argo_user john.doe --force
 ```
 
 ### User Access
@@ -413,14 +413,14 @@ kubectl logs -n argo -l app=argo-server
 kubectl get clusterworkflowtemplates
 
 # Re-install templates
-phd_install_argo --workflows-only
+launchpad_install_argo --workflows-only
 ```
 
 **Password Issues**:
 
 - If password was auto-generated, check the CLI output for the generated password
 - To set a custom password: `export LAUNCHPAD_ARGO_ADMIN_PASSWORD="your-password"`
-- To reset password, re-run `phd_install_argo` with a new password
+- To reset password, re-run `launchpad_install_argo` with a new password
 
 ### Registry Credentials Issues
 
@@ -440,7 +440,7 @@ kubectl get secrets -n argo
 After successfully provisioning infrastructure:
 
 1. **Configure ArgoCD Projects**: Set up projects for each environment
-2. **Create First Instance**: Use `phd_create_instance` to create your first Open edX instance
+2. **Create First Instance**: Use `launchpad_create_instance` to create your first Open edX instance
 3. **Set Up Monitoring**: Configure monitoring and alerting if not done during infrastructure deployment
 4. **Backup Configuration**: Set up backup schedules if Velero was installed
 

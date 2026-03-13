@@ -1,0 +1,411 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: mongodb-provision-template
+spec:
+  serviceAccountName: workflow-executor
+  entrypoint: main
+  volumes:
+    - name: service-account-token
+      secret:
+        secretName: workflow-executor-token
+  podGC:
+    strategy: OnWorkflowSuccess
+    deleteDelayDuration: 24h
+  arguments:
+    parameters:
+      - name: namespace
+        description: "Target namespace for deployment"
+      - name: database-name
+        description: "Name of the database to create"
+      - name: forum-database-name
+        description: "Name of the forum database to create"
+      - name: username
+        description: "Database username to create"
+      - name: password
+        description: "Password for the database user"
+      - name: mongodb-provider
+        description: "MongoDB provider type (digitalocean_api, atlas)"
+        value: "digitalocean_api"
+      - name: mongodb-cluster-id
+        description: "MongoDB cluster ID (for DigitalOcean API provider)"
+        value: ""
+      - name: digitalocean-token
+        description: "DigitalOcean API token (for DigitalOcean API provider)"
+        value: ""
+      - name: atlas-public-key
+        description: "MongoDB Atlas API public key (for Atlas provider)"
+        value: ""
+      - name: atlas-private-key
+        description: "MongoDB Atlas API private key (for Atlas provider)"
+        value: ""
+      - name: atlas-project-id
+        description: "MongoDB Atlas project ID (for Atlas provider)"
+        value: ""
+      - name: atlas-cluster-name
+        description: "MongoDB Atlas cluster name (for Atlas provider)"
+        value: ""
+      - name: k8s-api-bearer-token
+        description: "Kubernetes API bearer token"
+        value: ""
+
+  templates:
+    - name: main
+      steps:
+        # Choose provisioning strategy based on provider
+        - - name: provision-digitalocean
+            template: provision-digitalocean-api
+            when: "{{workflow.parameters.mongodb-provider}} == 'digitalocean_api'"
+        - - name: provision-atlas
+            template: provision-atlas
+            when: "{{workflow.parameters.mongodb-provider}} == 'atlas'"
+
+    #############################################################################
+    # DigitalOcean Managed MongoDB (API-based)
+    #############################################################################
+    - name: provision-digitalocean-api
+      steps:
+        - - name: validate-do-config
+            template: validate-digitalocean-config
+        - - name: create-databases-do
+            template: create-databases-digitalocean
+        - - name: create-user-do
+            template: create-user-digitalocean
+
+    - name: validate-digitalocean-config
+      script:
+        image: alpine:3.18
+        command: [sh]
+        source: |
+          #!/bin/sh
+          set -e
+
+          CLUSTER_ID="{{workflow.parameters.mongodb-cluster-id}}"
+          TOKEN="{{workflow.parameters.digitalocean-token}}"
+
+          if [ -z "$CLUSTER_ID" ]; then
+            echo "Error: mongodb-cluster-id is required for digitalocean_api provider"
+            exit 1
+          fi
+
+          if [ -z "$TOKEN" ]; then
+            echo "Error: digitalocean-token is required for digitalocean_api provider"
+            exit 1
+          fi
+
+          echo "DigitalOcean configuration validated"
+
+    - name: create-databases-digitalocean
+      script:
+        image: curlimages/curl:8.1.2
+        command: [sh]
+        env:
+          - name: DIGITALOCEAN_TOKEN
+            value: "{{workflow.parameters.digitalocean-token}}"
+        source: |
+          #!/bin/sh
+          set -e
+
+          DATABASE_NAME="{{workflow.parameters.database-name}}"
+          FORUM_DATABASE_NAME="{{workflow.parameters.forum-database-name}}"
+          MONGODB_CLUSTER_ID="{{workflow.parameters.mongodb-cluster-id}}"
+
+          for DB in "$DATABASE_NAME" "$FORUM_DATABASE_NAME"; do
+            if [ -z "$DB" ]; then
+              continue
+            fi
+            echo "Creating database via DigitalOcean API: $DB"
+
+            RESPONSE=$(curl -s -X POST \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
+              -d "{\"name\": \"$DB\"}" \
+              "https://api.digitalocean.com/v2/databases/$MONGODB_CLUSTER_ID/dbs")
+
+            if echo "$RESPONSE" | grep -q "\"name\":\"$DB\""; then
+              echo "Database $DB created successfully"
+            elif echo "$RESPONSE" | grep -q "already exists"; then
+              echo "Database $DB already exists"
+            else
+              echo "Failed to create database $DB: $RESPONSE"
+              exit 1
+            fi
+          done
+
+    - name: create-user-digitalocean
+      script:
+        image: curlimages/curl:8.1.2
+        command: [sh]
+        env:
+          - name: DIGITALOCEAN_TOKEN
+            value: "{{workflow.parameters.digitalocean-token}}"
+        source: |
+          #!/bin/sh
+          set -e
+
+          NAMESPACE="{{workflow.parameters.namespace}}"
+          DATABASE_NAME="{{workflow.parameters.database-name}}"
+          FORUM_DATABASE_NAME="{{workflow.parameters.forum-database-name}}"
+          USERNAME="{{workflow.parameters.username}}"
+          PASSWORD="{{workflow.parameters.password}}"
+          MONGODB_CLUSTER_ID="{{workflow.parameters.mongodb-cluster-id}}"
+          K8s_API_BEARER_TOKEN="{{workflow.parameters.k8s-api-bearer-token}}"
+
+          echo "Ensuring MongoDB user via DigitalOcean API: $USERNAME"
+
+          RESPONSE=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
+            -d "{\"name\": \"$USERNAME\", \"settings\": {\"mongo_user_settings\": {\"databases\": [\"$DATABASE_NAME\", \"$FORUM_DATABASE_NAME\"], \"role\": \"readWrite\"}}}" \
+            "https://api.digitalocean.com/v2/databases/$MONGODB_CLUSTER_ID/users")
+
+          if echo "$RESPONSE" | grep -q "\"name\":\"$USERNAME\""; then
+            echo "User $USERNAME created successfully"
+            PASSWORD=$(echo "$RESPONSE" | grep -o '"password":"[^"]*"' | cut -d'"' -f4)
+          elif echo "$RESPONSE" | grep -q "already exists"; then
+            echo "User $USERNAME already exists; verifying it has access to $DATABASE_NAME and $FORUM_DATABASE_NAME"
+
+            USER_RESPONSE=$(curl -s -X GET \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
+              "https://api.digitalocean.com/v2/databases/$MONGODB_CLUSTER_ID/users/$USERNAME")
+
+            # DigitalOcean managed databases are the source of truth; if the user does not
+            # have the expected databases/role, recreate it (DigitalOcean API does not reliably
+            # support in-place role updates for MongoDB users across all accounts/versions).
+            if echo "$USER_RESPONSE" | grep -q "$DATABASE_NAME" \
+              && echo "$USER_RESPONSE" | grep -q "$FORUM_DATABASE_NAME" \
+              && echo "$USER_RESPONSE" | grep -qi "readwrite"; then
+              echo "User $USERNAME already has the expected access; leaving it unchanged."
+            else
+              echo "User $USERNAME does not match expected access; recreating user via DigitalOcean API..."
+
+              DELETE_RESPONSE=$(curl -s -X DELETE \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
+                "https://api.digitalocean.com/v2/databases/$MONGODB_CLUSTER_ID/users/$USERNAME")
+
+              # Give DigitalOcean a moment to finalize deletion before recreating.
+              sleep 3
+
+              RESPONSE=$(curl -s -X POST \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
+                -d "{\"name\": \"$USERNAME\", \"settings\": {\"mongo_user_settings\": {\"databases\": [\"$DATABASE_NAME\", \"$FORUM_DATABASE_NAME\"], \"role\": \"readWrite\"}}}" \
+                "https://api.digitalocean.com/v2/databases/$MONGODB_CLUSTER_ID/users")
+
+              if echo "$RESPONSE" | grep -q "\"name\":\"$USERNAME\""; then
+                echo "User $USERNAME recreated successfully"
+                PASSWORD=$(echo "$RESPONSE" | grep -o '"password":"[^"]*"' | cut -d'"' -f4)
+              else
+                echo "Failed to recreate user $USERNAME: $RESPONSE"
+                echo "User inspection response was: $USER_RESPONSE"
+                echo "User deletion response was: $DELETE_RESPONSE"
+                exit 1
+              fi
+            fi
+          else
+            echo "Failed to create user $USERNAME: $RESPONSE"
+            exit 1
+          fi
+
+          echo "Saving MongoDB user password to kubernetes secret"
+
+          K8S_RESPONSE=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: $K8s_API_BEARER_TOKEN" \
+            --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+            -d "{\"apiVersion\": \"v1\",\"kind\": \"Secret\",\"metadata\": {\"name\": \"launchpad-mongodb-user-password\",\"namespace\": \"$NAMESPACE\"},\"type\": \"Opaque\",\"stringData\": {\"launchpad-mongodb-user-password\": \"$PASSWORD\"}}" \
+            "https://kubernetes.default.svc/api/v1/namespaces/$NAMESPACE/secrets")
+
+          if echo "$K8S_RESPONSE" | grep -q "\"kind\": \"Secret\""; then
+            echo "MongoDB user password saved to kubernetes secret \"launchpad-mongodb-user-password\" in namespace $NAMESPACE"
+          else
+            echo "Failed to save MongoDB user password in secret"
+            echo "⚠ Note: The MongoDB user password in config may differ."
+          fi
+
+          echo ""
+          echo "MongoDB provisioning completed (DigitalOcean API)"
+
+
+    #############################################################################
+    # MongoDB Atlas
+    #############################################################################
+    - name: provision-atlas
+      steps:
+        - - name: validate-atlas-config
+            template: validate-atlas-config
+        - - name: create-database-atlas
+            template: create-database-atlas
+        - - name: create-user-atlas
+            template: create-user-atlas
+
+    - name: validate-atlas-config
+      script:
+        image: alpine:3.18
+        command: [sh]
+        source: |
+          #!/bin/sh
+          set -e
+
+          PUBLIC_KEY="{{workflow.parameters.atlas-public-key}}"
+          PRIVATE_KEY="{{workflow.parameters.atlas-private-key}}"
+          PROJECT_ID="{{workflow.parameters.atlas-project-id}}"
+          CLUSTER_NAME="{{workflow.parameters.atlas-cluster-name}}"
+
+          if [ -z "$PUBLIC_KEY" ]; then
+            echo "Error: atlas-public-key is required for atlas provider"
+            exit 1
+          fi
+
+          if [ -z "$PRIVATE_KEY" ]; then
+            echo "Error: atlas-private-key is required for atlas provider"
+            exit 1
+          fi
+
+          if [ -z "$PROJECT_ID" ]; then
+            echo "Error: atlas-project-id is required for atlas provider"
+            exit 1
+          fi
+
+          if [ -z "$CLUSTER_NAME" ]; then
+            echo "Error: atlas-cluster-name is required for atlas provider"
+            exit 1
+          fi
+
+          echo "MongoDB Atlas configuration validated"
+          echo "- Project ID: $PROJECT_ID"
+          echo "- Cluster: $CLUSTER_NAME"
+
+    - name: create-database-atlas
+      script:
+        image: debian:bookworm-slim
+        command: [bash]
+        env:
+          - name: MCLI_PUBLIC_API_KEY
+            value: "{{workflow.parameters.atlas-public-key}}"
+          - name: MCLI_PRIVATE_API_KEY
+            value: "{{workflow.parameters.atlas-private-key}}"
+          - name: MCLI_PROJECT_ID
+            value: "{{workflow.parameters.atlas-project-id}}"
+          - name: MCLI_OPS_MANAGER_URL
+            value: "https://cloud.mongodb.com"
+        source: |
+          #!/bin/bash
+          set -euo pipefail
+
+          DATABASE_NAME="{{workflow.parameters.database-name}}"
+          PROJECT_ID="{{workflow.parameters.atlas-project-id}}"
+          CLUSTER_NAME="{{workflow.parameters.atlas-cluster-name}}"
+
+          # Install Atlas CLI from official MongoDB package
+          echo "Installing MongoDB Atlas CLI..."
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -y
+          apt-get install -y curl ca-certificates
+
+          # Detect architecture
+          ARCH=$(dpkg --print-architecture)
+          VERSION="1.28.0"
+          DEB_URL="https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_${VERSION}_linux_${ARCH}.deb"
+
+          curl -fsSL "$DEB_URL" -o /tmp/atlas-cli.deb
+          dpkg -i /tmp/atlas-cli.deb
+          atlas --version
+
+          echo ""
+          echo "Verifying Atlas cluster: $CLUSTER_NAME"
+          atlas clusters describe "$CLUSTER_NAME" \
+            --projectId "$PROJECT_ID" \
+            --output json >/dev/null
+
+          echo ""
+          echo "Cluster verified: $CLUSTER_NAME"
+          echo "Database '$DATABASE_NAME' will be created automatically on first write."
+
+    - name: create-user-atlas
+      script:
+        image: debian:bookworm-slim
+        command: [bash]
+        env:
+          - name: MCLI_PUBLIC_API_KEY
+            value: "{{workflow.parameters.atlas-public-key}}"
+          - name: MCLI_PRIVATE_API_KEY
+            value: "{{workflow.parameters.atlas-private-key}}"
+          - name: MCLI_PROJECT_ID
+            value: "{{workflow.parameters.atlas-project-id}}"
+          - name: MCLI_OPS_MANAGER_URL
+            value: "https://cloud.mongodb.com"
+        source: |
+          #!/bin/bash
+          set -euo pipefail
+
+          NAMESPACE="{{workflow.parameters.namespace}}"
+          USERNAME="{{workflow.parameters.username}}"
+          PASSWORD="{{workflow.parameters.password}}"
+          DATABASE_NAME="{{workflow.parameters.database-name}}"
+          PROJECT_ID="{{workflow.parameters.atlas-project-id}}"
+          K8s_API_BEARER_TOKEN="{{workflow.parameters.k8s-api-bearer-token}}"
+
+          # Install Atlas CLI from official MongoDB package
+          echo "Installing MongoDB Atlas CLI..."
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -y
+          apt-get install -y curl ca-certificates
+
+          ARCH=$(dpkg --print-architecture)
+          VERSION="1.28.0"
+          DEB_URL="https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_${VERSION}_linux_${ARCH}.deb"
+
+          curl -fsSL "$DEB_URL" -o /tmp/atlas-cli.deb
+          dpkg -i /tmp/atlas-cli.deb
+          atlas --version
+
+          echo ""
+          echo "Creating Atlas database user: $USERNAME"
+
+          # Try to create the user
+          if atlas dbusers create \
+            --username "$USERNAME" \
+            --password "$PASSWORD" \
+            --role "readWrite@$DATABASE_NAME" \
+            --projectId "$PROJECT_ID" \
+            --output json 2>&1; then
+            echo "User $USERNAME created successfully"
+          else
+            # User might already exist, try to update
+            echo "User may exist, attempting update..."
+            if atlas dbusers update "$USERNAME" \
+              --password "$PASSWORD" \
+              --role "readWrite@$DATABASE_NAME" \
+              --projectId "$PROJECT_ID" \
+              --output json 2>&1; then
+              echo "User $USERNAME updated successfully"
+            else
+              echo "✗ Failed to create/update user $USERNAME"
+              exit 1
+            fi
+          fi
+
+          echo "Saving MongoDB Atlas user password to kubernetes secret"
+
+          K8S_RESPONSE=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: $K8s_API_BEARER_TOKEN" \
+            --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+            -d "{\"apiVersion\": \"v1\",\"kind\": \"Secret\",\"metadata\": {\"name\": \"launchpad-mongodb-user-password\",\"namespace\": \"$NAMESPACE\"},\"type\": \"Opaque\",\"stringData\": {\"launchpad-mongodb-user-password\": \"$PASSWORD\"}}" \
+            "https://kubernetes.default.svc/api/v1/namespaces/$NAMESPACE/secrets")
+
+          if echo "$K8S_RESPONSE" | grep -q "\"kind\": \"Secret\""; then
+            echo "MongoDB Atlas user password saved to kubernetes secret \"launchpad-mongodb-user-password\" in namespace $NAMESPACE"
+          else
+            echo "Failed to save MongoDB Atlas user password in secret"
+            echo "⚠ Note: The MongoDB Atlas user password in config may differ."
+          fi
+
+          echo ""
+          echo "MongoDB Atlas provisioning completed"
+          echo "- Project: $PROJECT_ID"
+          echo "- Database: $DATABASE_NAME"
+          echo "- User: $USERNAME (readWrite)"

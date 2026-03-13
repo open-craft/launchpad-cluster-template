@@ -1,0 +1,40 @@
+name: Build All Images
+run-name: Build all service images for '{% raw %}${{ inputs.INSTANCE_NAME }}{% endraw %}' on '{% raw %}${{ inputs.STRAIN_REPOSITORY_BRANCH }}{% endraw %}' branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      INSTANCE_NAME:
+        description: "Instance to build"
+        type: string
+      STRAIN_REPOSITORY_BRANCH:
+        description: "Branch to clone the strain from"
+        default: "main"
+        type: string
+      PICASSO_VERSION:
+        description: "Picasso version"
+        default: "{{ cookiecutter.picasso_version }}"
+        type: string
+      LAUNCHPAD_CLI_VERSION:
+        description: "Launchpad CLI version"
+        default: "{{ cookiecutter.launchpad_cluster_template_version }}"
+        type: string
+      RUNNER_WORKFLOW_LABEL:
+        description: 'The label of the runner workflow to run'
+        required: false
+        default: "{{ cookiecutter.runner_workflow_label }}"
+        type: string
+
+jobs:
+  build-all:
+    name: Build all services
+    uses: open-craft/launchpad-cluster-template/.github/workflows/build-all.yml@main
+    secrets:
+      SSH_PRIVATE_KEY: {% raw %}${{ secrets.SSH_PRIVATE_KEY }}{% endraw %}
+    with:
+      INSTANCE_NAME: {% raw %}${{ inputs.INSTANCE_NAME }}{% endraw %}
+      STRAIN_REPOSITORY: {% raw %}${{ github.repository }}{% endraw %}
+      STRAIN_REPOSITORY_BRANCH: {% raw %}${{ inputs.STRAIN_REPOSITORY_BRANCH }}{% endraw %}
+      PICASSO_VERSION: {% raw %}${{ inputs.PICASSO_VERSION }}{% endraw %}
+      LAUNCHPAD_CLI_VERSION: {% raw %}${{ inputs.LAUNCHPAD_CLI_VERSION }}{% endraw %}
+      RUNNER_WORKFLOW_LABEL: {% raw %}${{ inputs.RUNNER_WORKFLOW_LABEL }}{% endraw %}

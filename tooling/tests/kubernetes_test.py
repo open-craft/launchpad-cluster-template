@@ -9,8 +9,8 @@ import pytest
 import requests
 from kubernetes import client
 
-from phd.exceptions import KubernetesError, ManifestError
-from phd.kubernetes import KubernetesClient, build_dockerconfigjson
+from launchpad.exceptions import KubernetesError, ManifestError
+from launchpad.kubernetes import KubernetesClient, build_dockerconfigjson
 
 
 class TestKubernetesClient:
@@ -18,12 +18,12 @@ class TestKubernetesClient:
     Test suite for KubernetesClient.
     """
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_init(
         self,
         _mock_get_logger,
@@ -51,13 +51,13 @@ class TestKubernetesClient:
         assert k8s_client._apps_v1 is not None
         assert k8s_client._rbac_v1 is not None
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
-    @mock.patch("phd.kubernetes.requests.get")
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.requests.get")
     def test_get_manifest_from_url_success(
         self,
         mock_get,
@@ -86,13 +86,13 @@ class TestKubernetesClient:
         mock_response.raise_for_status.assert_called_once()
         assert result == manifest_content
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
-    @mock.patch("phd.kubernetes.requests.get")
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.requests.get")
     def test_get_manifest_from_url_http_error(
         self,
         mock_get,
@@ -115,12 +115,12 @@ class TestKubernetesClient:
         with pytest.raises(ManifestError, match="Failed to fetch manifest"):
             k8s_client._KubernetesClient__get_manifest_from_url(url)
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_render_manifest_success(
         self,
         _mock_get_logger,
@@ -143,12 +143,12 @@ class TestKubernetesClient:
         assert "test-config" in result
         assert "{{ NAME }}" not in result
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_render_manifest_undefined_variables(
         self,
         _mock_get_logger,
@@ -171,14 +171,14 @@ class TestKubernetesClient:
         assert "{{ UNDEFINED }}" not in result
         assert "name: " in result
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
-    @mock.patch("phd.kubernetes.subprocess.run")
-    @mock.patch("phd.kubernetes.yaml.safe_load_all")
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.subprocess.run")
+    @mock.patch("launchpad.kubernetes.yaml.safe_load_all")
     def test_apply_manifest_success(
         self,
         mock_yaml_load,
@@ -228,14 +228,14 @@ class TestKubernetesClient:
             "test-ns",
         ]
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
-    @mock.patch("phd.kubernetes.subprocess.run")
-    @mock.patch("phd.kubernetes.yaml.safe_load_all")
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.subprocess.run")
+    @mock.patch("launchpad.kubernetes.yaml.safe_load_all")
     def test_apply_manifest_with_variables(
         self,
         mock_yaml_load,
@@ -275,14 +275,14 @@ class TestKubernetesClient:
 
         mock_subprocess_run.assert_called_once()
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
-    @mock.patch("phd.kubernetes.subprocess.run")
-    @mock.patch("phd.kubernetes.yaml.safe_load_all")
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.subprocess.run")
+    @mock.patch("launchpad.kubernetes.yaml.safe_load_all")
     def test_apply_manifest_multiple_documents(
         self,
         mock_yaml_load,
@@ -318,14 +318,14 @@ class TestKubernetesClient:
 
         assert mock_subprocess_run.call_count == 2
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
-    @mock.patch("phd.kubernetes.subprocess.run")
-    @mock.patch("phd.kubernetes.yaml.safe_load_all")
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.subprocess.run")
+    @mock.patch("launchpad.kubernetes.yaml.safe_load_all")
     def test_apply_manifest_failure(
         self,
         mock_yaml_load,
@@ -358,15 +358,15 @@ class TestKubernetesClient:
         with pytest.raises(KubernetesError, match="Failed to apply"):
             k8s_client.apply_manifest(manifest, namespace="test-ns")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
-    @mock.patch("phd.kubernetes.requests.get")
-    @mock.patch("phd.kubernetes.subprocess.run")
-    @mock.patch("phd.kubernetes.yaml.safe_load_all")
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.requests.get")
+    @mock.patch("launchpad.kubernetes.subprocess.run")
+    @mock.patch("launchpad.kubernetes.yaml.safe_load_all")
     def test_apply_manifest_from_url_success(
         self,
         mock_yaml_load,
@@ -409,15 +409,15 @@ class TestKubernetesClient:
         mock_get.assert_called_once_with(url, timeout=30)
         mock_subprocess_run.assert_called_once()
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
-    @mock.patch("phd.kubernetes.requests.get")
-    @mock.patch("phd.kubernetes.subprocess.run")
-    @mock.patch("phd.kubernetes.yaml.safe_load_all")
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.requests.get")
+    @mock.patch("launchpad.kubernetes.subprocess.run")
+    @mock.patch("launchpad.kubernetes.yaml.safe_load_all")
     def test_apply_manifest_from_url_with_variables(
         self,
         mock_yaml_load,
@@ -469,13 +469,13 @@ class TestKubernetesClient:
         mock_get.assert_called_once_with(url, timeout=30)
         mock_subprocess_run.assert_called_once()
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
-    @mock.patch("phd.kubernetes.requests.get")
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.requests.get")
     def test_apply_manifest_from_url_fetch_failure(
         self,
         mock_get,
@@ -498,12 +498,12 @@ class TestKubernetesClient:
         with pytest.raises(ManifestError, match="Failed to fetch manifest"):
             k8s_client.apply_manifest_from_url(url, namespace="test-ns")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_create_namespace_success(
         self,
         _mock_get_logger,
@@ -525,12 +525,12 @@ class TestKubernetesClient:
 
         mock_core_v1_instance.create_namespace.assert_called_once()
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_create_namespace_already_exists(
         self,
         _mock_get_logger,
@@ -553,12 +553,12 @@ class TestKubernetesClient:
         k8s_client = KubernetesClient()
         k8s_client.create_namespace("test-namespace")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_create_namespace_api_error(
         self,
         _mock_get_logger,
@@ -583,12 +583,12 @@ class TestKubernetesClient:
         with pytest.raises(KubernetesError, match="Failed to create namespace"):
             k8s_client.create_namespace("test-namespace")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_create_namespace_generic_error(
         self,
         _mock_get_logger,
@@ -614,12 +614,12 @@ class TestKubernetesClient:
         with pytest.raises(KubernetesError, match="Failed to create namespace"):
             k8s_client.create_namespace("test-namespace")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_patch_secret_success(
         self,
         _mock_get_logger,
@@ -649,12 +649,12 @@ class TestKubernetesClient:
             body={"data": {"key": "dmFsdWU="}},
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_patch_secret_with_string_data(
         self,
         _mock_get_logger,
@@ -684,12 +684,12 @@ class TestKubernetesClient:
             body={"stringData": {"key": "value"}},
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_patch_secret_failure(
         self,
         _mock_get_logger,
@@ -717,12 +717,12 @@ class TestKubernetesClient:
                 name="test-secret", namespace="test-ns", data={"key": "value"}
             )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_patch_config_map_success(
         self,
         _mock_get_logger,
@@ -752,12 +752,12 @@ class TestKubernetesClient:
             body={"data": {"key": "value"}},
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_patch_config_map_failure(
         self,
         _mock_get_logger,
@@ -801,12 +801,12 @@ class TestKubernetesClient:
         ):
             build_dockerconfigjson(registry="ghcr.io", auth="")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_ensure_service_account_image_pull_secret_patches_when_missing(
         self,
         _mock_get_logger,
@@ -827,22 +827,22 @@ class TestKubernetesClient:
         updated = k8s_client.ensure_service_account_image_pull_secret(
             namespace="test-ns",
             service_account_name="default",
-            secret_name="phd-docker-registry",
+            secret_name="launchpad-docker-registry",
         )
 
         assert updated is True
         mock_core_v1_instance.patch_namespaced_service_account.assert_called_once_with(
             name="default",
             namespace="test-ns",
-            body={"imagePullSecrets": [{"name": "phd-docker-registry"}]},
+            body={"imagePullSecrets": [{"name": "launchpad-docker-registry"}]},
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_ensure_service_account_image_pull_secret_noop_if_already_present(
         self,
         _mock_get_logger,
@@ -856,25 +856,25 @@ class TestKubernetesClient:
         mock_core_v1_class.return_value = mock_core_v1_instance
 
         sa = mock.Mock()
-        sa.image_pull_secrets = [{"name": "phd-docker-registry"}]
+        sa.image_pull_secrets = [{"name": "launchpad-docker-registry"}]
         mock_core_v1_instance.read_namespaced_service_account.return_value = sa
 
         k8s_client = KubernetesClient()
         updated = k8s_client.ensure_service_account_image_pull_secret(
             namespace="test-ns",
             service_account_name="default",
-            secret_name="phd-docker-registry",
+            secret_name="launchpad-docker-registry",
         )
 
         assert updated is False
         mock_core_v1_instance.patch_namespaced_service_account.assert_not_called()
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_ensure_service_account_image_pull_secret_returns_false_if_sa_missing(
         self,
         _mock_get_logger,
@@ -895,18 +895,18 @@ class TestKubernetesClient:
         updated = k8s_client.ensure_service_account_image_pull_secret(
             namespace="test-ns",
             service_account_name="missing",
-            secret_name="phd-docker-registry",
+            secret_name="launchpad-docker-registry",
         )
 
         assert updated is False
         mock_core_v1_instance.patch_namespaced_service_account.assert_not_called()
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_read_config_map_success(
         self,
         _mock_get_logger,
@@ -935,12 +935,12 @@ class TestKubernetesClient:
             name="test-cm", namespace="test-ns"
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_read_config_map_failure(
         self,
         _mock_get_logger,
@@ -966,12 +966,12 @@ class TestKubernetesClient:
         with pytest.raises(KubernetesError, match="Failed to read config map"):
             k8s_client.read_config_map(name="test-cm", namespace="test-ns")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_read_secret_success(
         self,
         _mock_get_logger,
@@ -1000,12 +1000,12 @@ class TestKubernetesClient:
             name="test-secret", namespace="test-ns"
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_read_secret_failure(
         self,
         _mock_get_logger,
@@ -1031,12 +1031,12 @@ class TestKubernetesClient:
         with pytest.raises(KubernetesError, match="Failed to read secret"):
             k8s_client.read_secret(name="test-secret", namespace="test-ns")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_service_account_success(
         self,
         _mock_get_logger,
@@ -1060,12 +1060,12 @@ class TestKubernetesClient:
             name="test-sa", namespace="test-ns"
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_service_account_not_found(
         self,
         _mock_get_logger,
@@ -1090,12 +1090,12 @@ class TestKubernetesClient:
         k8s_client = KubernetesClient()
         k8s_client.delete_service_account(name="test-sa", namespace="test-ns")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_service_account_api_error(
         self,
         _mock_get_logger,
@@ -1122,12 +1122,12 @@ class TestKubernetesClient:
         with pytest.raises(KubernetesError, match="Failed to delete service account"):
             k8s_client.delete_service_account(name="test-sa", namespace="test-ns")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_secret_success(
         self,
         _mock_get_logger,
@@ -1151,12 +1151,12 @@ class TestKubernetesClient:
             name="test-secret", namespace="test-ns"
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_secret_not_found(
         self,
         _mock_get_logger,
@@ -1179,12 +1179,12 @@ class TestKubernetesClient:
         k8s_client = KubernetesClient()
         k8s_client.delete_secret(name="test-secret", namespace="test-ns")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_role_success(
         self,
         _mock_get_logger,
@@ -1208,12 +1208,12 @@ class TestKubernetesClient:
             name="test-role", namespace="test-ns"
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_role_not_found(
         self,
         _mock_get_logger,
@@ -1236,12 +1236,12 @@ class TestKubernetesClient:
         k8s_client = KubernetesClient()
         k8s_client.delete_role(name="test-role", namespace="test-ns")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_role_binding_success(
         self,
         _mock_get_logger,
@@ -1265,12 +1265,12 @@ class TestKubernetesClient:
             name="test-rb", namespace="test-ns"
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_role_binding_not_found(
         self,
         _mock_get_logger,
@@ -1293,12 +1293,12 @@ class TestKubernetesClient:
         k8s_client = KubernetesClient()
         k8s_client.delete_role_binding(name="test-rb", namespace="test-ns")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_cluster_role_success(
         self,
         _mock_get_logger,
@@ -1322,12 +1322,12 @@ class TestKubernetesClient:
             name="test-cr"
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_cluster_role_not_found(
         self,
         _mock_get_logger,
@@ -1350,12 +1350,12 @@ class TestKubernetesClient:
         k8s_client = KubernetesClient()
         k8s_client.delete_cluster_role(name="test-cr")
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_cluster_role_binding_success(
         self,
         _mock_get_logger,
@@ -1379,12 +1379,12 @@ class TestKubernetesClient:
             name="test-crb"
         )
 
-    @mock.patch("phd.kubernetes.client.RbacAuthorizationV1Api")
-    @mock.patch("phd.kubernetes.client.CoreV1Api")
-    @mock.patch("phd.kubernetes.client.AppsV1Api")
-    @mock.patch("phd.kubernetes.client.ApiClient")
-    @mock.patch("phd.kubernetes.config.load_kube_config")
-    @mock.patch("phd.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     def test_delete_cluster_role_binding_not_found(
         self,
         _mock_get_logger,

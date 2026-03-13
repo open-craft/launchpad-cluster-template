@@ -82,18 +82,18 @@ The new infrastructure uses proper permissions for the instance resources, but t
 
 The new infrastructure grants:
 
-- **MySQL**: `ALL PRIVILEGES` on the instance database only (e.g. `GRANT ALL PRIVILEGES ON \`phd-instance-openedx\`.* TO 'phd-instance'@'%'`), not on `*.*`
+- **MySQL**: `ALL PRIVILEGES` on the instance database only (e.g. `GRANT ALL PRIVILEGES ON \`launchpad-instance-openedx\`.* TO 'launchpad-instance'@'%'`), not on `*.*`
 - **MongoDB**: `readWrite` role on the instance’s main and forum databases only, not `readWriteAnyDatabase` or other cluster-wide roles
 
 ### Step 1: Identify instance database values
 
 -[ ] From the migrated instance `config.yml` or Kubernetes configmaps, note:
 
-- `MYSQL_DATABASE` (e.g. `phd-instance-openedx`)
-- `MYSQL_USERNAME` (e.g. `phd-instance`)
-- `MONGODB_DATABASE` (e.g. `phd-instance-openedx`)
-- `FORUM_MONGODB_DATABASE` (e.g. `phd-instance-forum`)
-- `MONGODB_USERNAME` (e.g. `phd-instance`)
+- `MYSQL_DATABASE` (e.g. `launchpad-instance-openedx`)
+- `MYSQL_USERNAME` (e.g. `launchpad-instance`)
+- `MONGODB_DATABASE` (e.g. `launchpad-instance-openedx`)
+- `FORUM_MONGODB_DATABASE` (e.g. `launchpad-instance-forum`)
+- `MONGODB_USERNAME` (e.g. `launchpad-instance`)
 
 _Note: example values will be used below._
 
@@ -113,8 +113,8 @@ _Note: example values will be used below._
 
    ```sql
    -- List all users matching the instance username to find the correct host
-   SELECT user, host FROM mysql.user WHERE user = 'phd-instance';
-   SHOW GRANTS FOR 'phd-instance'@'%';
+   SELECT user, host FROM mysql.user WHERE user = 'launchpad-instance';
+   SHOW GRANTS FOR 'launchpad-instance'@'%';
    ```
 
    Use the actual `user@host` from `mysql.user` if it differs from `'%'`. If you see `GRANT ALL PRIVILEGES ON *.*`, the user has cluster-wide access and should be restricted.
@@ -123,10 +123,10 @@ _Note: example values will be used below._
 
    ```sql
    -- Revoke global privileges (adjust if the user has different grants)
-   REVOKE ALL PRIVILEGES ON *.* FROM 'phd-instance'@'%';
+   REVOKE ALL PRIVILEGES ON *.* FROM 'launchpad-instance'@'%';
 
    -- Grant access only to the instance database
-   GRANT ALL PRIVILEGES ON `phd-instance-openedx`.* TO 'phd-instance'@'%';
+   GRANT ALL PRIVILEGES ON `launchpad-instance-openedx`.* TO 'launchpad-instance'@'%';
 
    FLUSH PRIVILEGES;
    ```
@@ -134,10 +134,10 @@ _Note: example values will be used below._
 4. Confirm the grants:
 
    ```sql
-   SHOW GRANTS FOR 'phd-instance'@'%';
+   SHOW GRANTS FOR 'launchpad-instance'@'%';
    ```
 
-   Expected: `GRANT ALL PRIVILEGES ON \`phd-instance-openedx\`.* TO 'phd-instance'@'%'`.
+   Expected: `GRANT ALL PRIVILEGES ON \`launchpad-instance-openedx\`.* TO 'launchpad-instance'@'%'`.
 
 ### Step 3: Restrict MongoDB permissions
 
@@ -170,7 +170,7 @@ Use the DigitalOcean API to ensure the user has `readWrite` only on the instance
    curl -s -X POST \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
-     -d '{"name": "USERNAME", "settings": {"mongo_user_settings": {"databases": ["phd-instance-openedx", "phd-instance-forum"], "role": "readWrite"}}}' \
+     -d '{"name": "USERNAME", "settings": {"mongo_user_settings": {"databases": ["launchpad-instance-openedx", "launchpad-instance-forum"], "role": "readWrite"}}}' \
      "https://api.digitalocean.com/v2/databases/CLUSTER_ID/users"
    ```
 
@@ -184,17 +184,17 @@ Use the Atlas UI or CLI to give the user `readWrite` only on the instance databa
 
 2. Ensure the user has roles:
 
-   - `readWrite` on the main database (e.g. `phd-instance-openedx`)
-   - `readWrite` on the forum database (e.g. `phd-instance-forum`)
+   - `readWrite` on the main database (e.g. `launchpad-instance-openedx`)
+   - `readWrite` on the forum database (e.g. `launchpad-instance-forum`)
 
 3. Remove any cluster-wide roles such as `readWriteAnyDatabase` or `readAnyDatabase`.
 
 Or via Atlas CLI:
 
 ```bash
-atlas dbusers update phd-instance \
-  --role "readWrite@phd-instance-openedx" \
-  --role "readWrite@phd-instance-forum" \
+atlas dbusers update launchpad-instance \
+  --role "readWrite@launchpad-instance-openedx" \
+  --role "readWrite@launchpad-instance-forum" \
   --projectId <PROJECT_ID>
 ```
 
@@ -212,17 +212,17 @@ Use `mongosh` (MongoDB 5.0+). On older setups, use `mongo` if `mongosh` is not a
 
    ```javascript
    use admin
-   db.getUser("phd-instance")
+   db.getUser("launchpad-instance")
    ```
 
 3. Replace roles with scoped `readWrite` (adjust usernames and database names):
 
    ```javascript
    use admin
-   db.updateUser("phd-instance", {
+   db.updateUser("launchpad-instance", {
      roles: [
-       { role: "readWrite", db: "phd-instance-openedx" },
-       { role: "readWrite", db: "phd-instance-forum" }
+       { role: "readWrite", db: "launchpad-instance-openedx" },
+       { role: "readWrite", db: "launchpad-instance-forum" }
      ]
    })
    ```
@@ -232,11 +232,11 @@ Use `mongosh` (MongoDB 5.0+). On older setups, use `mongo` if `mongosh` is not a
    ```javascript
    use admin
    db.createUser({
-     user: "phd-instance",
+     user: "launchpad-instance",
      pwd: "<PASSWORD_FROM_CONFIG>",
      roles: [
-       { role: "readWrite", db: "phd-instance-openedx" },
-       { role: "readWrite", db: "phd-instance-forum" }
+       { role: "readWrite", db: "launchpad-instance-openedx" },
+       { role: "readWrite", db: "launchpad-instance-forum" }
      ]
    })
    ```

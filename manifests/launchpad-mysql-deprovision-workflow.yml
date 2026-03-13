@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: "mysql-deprovision-{{ LAUNCHPAD_INSTANCE_NAME }}"
+  namespace: "{{ LAUNCHPAD_INSTANCE_NAME }}"
+spec:
+  serviceAccountName: workflow-executor
+  entrypoint: main
+  volumes:
+    - name: service-account-token
+      secret:
+        secretName: workflow-executor-token
+  arguments:
+    parameters:
+      - name: namespace
+        value: "{{ LAUNCHPAD_INSTANCE_NAME }}"
+      - name: database-name
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_DATABASE }}"
+      - name: username
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_USERNAME }}"
+      - name: mysql-host
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_HOST }}"
+      - name: mysql-port
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_PORT }}"
+      - name: mysql-root-user
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_ROOT_USER }}"
+      - name: mysql-root-password
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_ROOT_PASSWORD }}"
+  workflowTemplateRef:
+    name: mysql-deprovision-template
+    clusterScope: true

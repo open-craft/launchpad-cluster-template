@@ -41,11 +41,11 @@ jobs:
       - name: Run tests
         working-directory: tooling
         env:
-          PHD_CLUSTER_DOMAIN: test.cluster.domain
-        run: uv run pytest -v --cov=phd --cov-report=term --cov-report=xml
+          LAUNCHPAD_CLUSTER_DOMAIN: test.cluster.domain
+        run: uv run pytest -v --cov=launchpad --cov-report=term --cov-report=xml
 
       - name: Run pylint
         working-directory: tooling
         env:
-          PHD_CLUSTER_DOMAIN: test.cluster.domain
-        run: uv run pylint phd/
+          LAUNCHPAD_CLUSTER_DOMAIN: test.cluster.domain
+        run: uv run pylint launchpad/

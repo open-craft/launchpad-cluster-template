@@ -21,9 +21,9 @@ Another option for ensuring the Kubernetes access is provided is by running `sou
 
 Users for ArgoCD are created with the Launchpad CLI. See [Creating ArgoCD Users](../infrastructure/provisioning.md#creating-argocd-users) in the Infrastructure Provisioning guide for:
 
-- `phd_create_argo_user` -  Create users with roles (admin, developer, readonly)
-- `phd_update_argo_user` -  Update role or password
-- `phd_delete_argo_user` -  Remove a user
+- `launchpad_create_argo_user` -  Create users with roles (admin, developer, readonly)
+- `launchpad_update_argo_user` -  Update role or password
+- `launchpad_delete_argo_user` -  Remove a user
 
 After creating or updating users, restart the ArgoCD server so changes take effect:
 
@@ -35,7 +35,7 @@ kubectl delete pod -n argocd -l app.kubernetes.io/name=argocd-server
 
 - **ArgoCD**: `https://argocd.<cluster-domain>`
 
-Use the credentials created with `phd_create_argo_user` or the admin password set (or generated) during `phd_install_argo`.
+Use the credentials created with `launchpad_create_argo_user` or the admin password set (or generated) during `launchpad_install_argo`.
 
 ## Related Documentation
 

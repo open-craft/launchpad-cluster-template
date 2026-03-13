@@ -1,10 +1,10 @@
-# PHD Tooling
+# Launchpad Tooling
 
-The PHD (Picasso, Harmony, Drydock) tooling provides a Python CLI for managing Open edX clusters and instances. This tooling automates the creation, configuration, and management of Kubernetes-based Open edX deployments.
+The Launchpad tooling provides a Python CLI for managing Open edX clusters and instances. This tooling automates the creation, configuration, and management of Kubernetes-based Open edX deployments.
 
 ## Overview
 
-The PHD tooling consists of several command-line utilities that work together to:
+The Launchpad tooling consists of several command-line utilities that work together to:
 
 - **Create and manage clusters**: Bootstrap new Kubernetes clusters with ArgoCD and Argo Workflows installed
 - **Deploy Open edX instances**: Automate the creation of isolated Open edX instances with proper RBAC
@@ -23,8 +23,8 @@ The PHD tooling consists of several command-line utilities that work together to
 
 ```bash
 # Clone the repository
-git clone https://github.com/open-craft/phd-cluster-template.git
-cd phd-cluster-template/tooling
+git clone https://github.com/open-craft/launchpad-cluster-template.git
+cd launchpad-cluster-template/tooling
 
 # Install using uv (recommended)
 uv sync --all-groups
@@ -40,19 +40,19 @@ Commands can be executed using uvx as follows:
 ```bash
 # using remote source (recommended)
 
-uvx --from git+https://github.com/open-craft/phd-cluster-template/tooling command
+uvx --from git+https://github.com/open-craft/launchpad-cluster-template/tooling command
 
 # or using local repository
-uvx --from ./phd-cluster-template/tooling command
+uvx --from ./launchpad-cluster-template/tooling command
 ```
 
 ### Cluster Management
 
-#### `phd_create_cluster`
+#### `launchpad_create_cluster`
 Creates a new cluster configuration using cookiecutter templates.
 
 ```bash
-phd_create_cluster "My Production Cluster" "cluster.cluster.domain" \
+launchpad_create_cluster "My Production Cluster" "cluster.cluster.domain" \
   --environment production \
   --cloud-provider aws \
   --output-dir ./clusters
@@ -64,18 +64,18 @@ phd_create_cluster "My Production Cluster" "cluster.cluster.domain" \
 - `--harmony-module-version`: Harmony module version/commit hash
 - `--opencraft-module-version`: OpenCraft module version
 - `--picasso-version`: Picasso version
-- `--template-version`: PHD cluster template version
+- `--template-version`: Launchpad cluster template version
 - `--git-organization`: Git organization name
 - `--git-repository`: Git repository URL (auto-generated if not provided)
 - `--output-dir`: Directory where cluster config will be created
 
 ### Instance Management
 
-#### `phd_create_instance`
+#### `launchpad_create_instance`
 Creates a new Open edX instance with all required resources.
 
 ```bash
-phd_create_instance my-instance \
+launchpad_create_instance my-instance \
   --platform-name "My Learning Platform" \
   --edx-platform-version "release/teak.3" \
   --tutor-version "v20.0.1"
@@ -88,52 +88,52 @@ phd_create_instance my-instance \
 - `--edx-platform-version`: Version/branch of edx-platform to use
 - `--tutor-version`: Version of Tutor to use
 
-#### `phd_delete_instance`
+#### `launchpad_delete_instance`
 Deletes an Open edX instance and cleans up all associated resources.
 
 ```bash
-phd_delete_instance my-instance
+launchpad_delete_instance my-instance
 ```
 
 ### Argo Management
 
-#### `phd_install_argo`
+#### `launchpad_install_argo`
 Installs ArgoCD and/or Argo Workflows in the Kubernetes cluster.
 
 ```bash
 # Install both ArgoCD and Argo Workflows
-phd_install_argo
+launchpad_install_argo
 
 # Install only ArgoCD
-phd_install_argo --argocd-only
+launchpad_install_argo --argocd-only
 
 # Install only Argo Workflows
-phd_install_argo --workflows-only
+launchpad_install_argo --workflows-only
 ```
 
-#### `phd_create_argo_user`
+#### `launchpad_create_argo_user`
 Creates a new ArgoCD user with specified permissions.
 
 ```bash
-phd_create_argo_user john.doe \
+launchpad_create_argo_user john.doe \
   --role admin \
   --password "secure-password"
 ```
 
-#### `phd_update_argo_user`
+#### `launchpad_update_argo_user`
 Updates an existing ArgoCD user.
 
 ```bash
-phd_update_argo_user john.doe \
+launchpad_update_argo_user john.doe \
   --role developer \
   --password "new-password"
 ```
 
-#### `phd_delete_argo_user`
+#### `launchpad_delete_argo_user`
 Deletes an ArgoCD user.
 
 ```bash
-phd_delete_argo_user john.doe
+launchpad_delete_argo_user john.doe
 ```
 
 ## Configuration
@@ -142,7 +142,7 @@ The tooling uses environment variables and configuration files for cluster-speci
 
 ### Environment Variables
 
-- `PHD_ARGO_ADMIN_PASSWORD`: Admin password for ArgoCD/Argo Workflows (optional, auto-generated if not provided)
+- `LAUNCHPAD_ARGO_ADMIN_PASSWORD`: Admin password for ArgoCD/Argo Workflows (optional, auto-generated if not provided)
 - `KUBECONFIG`: Path to your Kubernetes configuration file
 
 ### Configuration Files
@@ -157,7 +157,7 @@ The tooling automatically detects and uses configuration from:
 The tooling follows a modular architecture:
 
 ```
-phd/
+launchpad/
 ├── cli/                    # Command-line interfaces
 │   ├── argo_install.py     # ArgoCD/Workflows installation
 │   ├── cluster_create.py   # Cluster creation
@@ -180,14 +180,14 @@ phd/
 uv sync --all-groups
 
 # Run tests
-uv run pytest -v --cov=phd
+uv run pytest -v --cov=launchpad
 
 # Run linting
-uv run pylint phd/
+uv run pylint launchpad/
 
 # Format code
-uv run black phd/
-uv run isort phd/
+uv run black launchpad/
+uv run isort launchpad/
 ```
 
 ### Testing
@@ -199,7 +199,7 @@ The project includes comprehensive tests for all modules:
 uv run pytest
 
 # Run tests with coverage
-uv run pytest --cov=phd --cov-report=html
+uv run pytest --cov=launchpad --cov-report=html
 
 # Run specific test file
 uv run pytest tests/test_kubernetes.py
@@ -236,21 +236,21 @@ The project enforces code quality through:
 Enable debug logging by setting the log level:
 
 ```bash
-export PHD_LOG_LEVEL=DEBUG
-phd_create_instance my-instance
+export LAUNCHPAD_LOG_LEVEL=DEBUG
+launchpad_create_instance my-instance
 ```
 
 ### Log Files
 
-By default, PHD writes logs to the system temp directory:
-- **macOS/Linux**: `/tmp/phd.log` (or `/var/folders/.../phd.log` on macOS)
-- **Windows**: `%TEMP%\phd.log`
+By default, Launchpad writes logs to the system temp directory:
+- **macOS/Linux**: `/tmp/launchpad.log` (or `/var/folders/.../launchpad.log` on macOS)
+- **Windows**: `%TEMP%\launchpad.log`
 
 You can customize the log file location:
 
 ```bash
-export PHD_LOG_FILE=/path/to/my-logs.log
-phd_create_instance my-instance
+export LAUNCHPAD_LOG_FILE=/path/to/my-logs.log
+launchpad_create_instance my-instance
 ```
 
 ## Contributing

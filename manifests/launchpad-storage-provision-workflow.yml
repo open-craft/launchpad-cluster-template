@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: "storage-provision-{{ LAUNCHPAD_INSTANCE_NAME }}"
+  namespace: "{{ LAUNCHPAD_INSTANCE_NAME }}"
+spec:
+  serviceAccountName: workflow-executor
+  entrypoint: main
+  volumes:
+    - name: service-account-token
+      secret:
+        secretName: workflow-executor-token
+  arguments:
+    parameters:
+      - name: namespace
+        value: "{{ LAUNCHPAD_INSTANCE_NAME }}"
+      - name: bucket-name
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_BUCKET_NAME }}"
+      - name: storage-type
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_TYPE }}"
+      - name: region
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_REGION }}"
+      - name: access-key-id
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_ACCESS_KEY_ID }}"
+      - name: secret-access-key
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_SECRET_ACCESS_KEY }}"
+      - name: endpoint-url
+        value: "{{ LAUNCHPAD_INSTANCE_STORAGE_ENDPOINT_URL }}"
+      - name: make-public
+        value: "false"
+  workflowTemplateRef:
+    name: storage-provision-template
+    clusterScope: true

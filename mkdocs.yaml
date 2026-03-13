@@ -1,5 +1,5 @@
 site_name: Launchpad Documentation
-site_url: https://picasso-harmony-drydock.opencraft.com
+site_url: https://launchpad.opencraft.com
 site_dir: public
 nav:
   - Introduction: index.md
@@ -40,7 +40,7 @@ theme:
   name: material
   logo: images/opencraft-logo.svg
   custom_dir: docs/theme_overrides
-repo_url: https://github.com/open-craft/phd-cluster-template
+repo_url: https://github.com/open-craft/launchpad-cluster-template
 edit_uri: tree/main/docs/
 extra_css:
   - css/opencraft-branding.css

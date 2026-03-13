@@ -1,8 +1,8 @@
 {
   "instance_name": "demo",
   "instance_slug": "{{ cookiecutter.instance_name.lower().replace(' ', '-') }}",
-  "instance_domain": "{{ cookiecutter.instance_slug.lower().replace('_', '-') + '.' + (env('PHD_CLUSTER_DOMAIN') or 'cluster.domain') }}",
-  "environment": "{{ env('PHD_ENVIRONMENT') or 'production' }}",
+  "instance_domain": "{{ cookiecutter.instance_slug.lower().replace('_', '-') + '.' + (env('LAUNCHPAD_CLUSTER_DOMAIN') or 'cluster.domain') }}",
+  "environment": "{{ env('LAUNCHPAD_ENVIRONMENT') or 'production' }}",
   "platform_description": "Open edX Instance for {{ cookiecutter.instance_name }}",
   "platform_repository": "https://github.com/openedx/edx-platform.git",
   "platform_version": "release/teak.3",
@@ -11,8 +11,8 @@
   "cluster_repository_branch": "main",
   "cluster_repository_owner": "",
   "cluster_repository_name": "",
-  "docker_registry": "{{ env('PHD_DOCKER_REGISTRY') or 'ghcr.io' }}",
-  "docker_registry_credentials": "{{ env('PHD_DOCKER_REGISTRY_CREDENTIALS') or '' }}",
+  "docker_registry": "{{ env('LAUNCHPAD_DOCKER_REGISTRY') or 'ghcr.io' }}",
+  "docker_registry_credentials": "{{ env('LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS') or '' }}",
   "_extensions": [
     "extensions.EnvVarExtension",
     "extensions.PasswordExtension",

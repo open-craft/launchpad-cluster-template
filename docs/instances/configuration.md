@@ -23,7 +23,7 @@ Regenerate manifests with Tutor from the instance config and commit the result t
 Database passwords and similar values will be:
 
 - Generated at instance creation (e.g. stored in `config.yml`)
-- Injected via environment variables in CI (e.g. GitHub Actions secrets) when running `phd_create_instance`
+- Injected via environment variables in CI (e.g. GitHub Actions secrets) when running `launchpad_create_instance`
 
 Keep `config.yml` and any files containing secrets in a private repository and restrict access.
 

@@ -20,7 +20,7 @@ To change the version of ArgoCD or Argo Workflows:
 
 1. Set the desired version (e.g. `export LAUNCHPAD_ARGOCD_VERSION="v2.x.x"`).
 2. Re-run the install so that manifests point to the new version:
-   - `phd_install_argo` (or `--argocd-only` / `--workflows-only`).
+   - `launchpad_install_argo` (or `--argocd-only` / `--workflows-only`).
 
 Manifests are pulled from the configured install URLs; ensure the new version is available there.
 

@@ -16,11 +16,11 @@ Open edX instances run in dedicated Kubernetes namespaces and are managed via Ar
 
 ## Lifecycle
 
-1. **Create** -  `phd_create_instance` or GitHub Actions “Create Instance” workflow
+1. **Create** -  `launchpad_create_instance` or GitHub Actions “Create Instance” workflow
 2. **Build** -  Trigger image builds (e.g. openedx, MFE) via Picasso/GitHub Actions
 3. **Deploy** -  ArgoCD syncs the instance application from the cluster repo
 4. **Operate** -  Configure, scale, monitor, and debug as needed
-5. **Delete** -  `phd_delete_instance` or “Delete Instance” workflow when the instance is no longer needed
+5. **Delete** -  `launchpad_delete_instance` or “Delete Instance” workflow when the instance is no longer needed
 
 ## Related Documentation
 

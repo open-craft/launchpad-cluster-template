@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#
+# Launchpad cluster activation script. This script sets up the environment for working
+# with a Launchpad cluster, including Kubernetes configuration and helper functions.
+#
+# DO NOT RUN THIS FILE DIRECTLY; IT IS INTENTIONALLY NOT EXECUTABLE.
+# TO USE THIS FILE SOURCE THE CONTENT OF IT BY EXECUTING "source activate".
+
+set -uo pipefail
+
+################################################################################
+# Constants and configuration
+################################################################################
+
+# Store current directory and determine infrastructure path
+pushd . > '/dev/null' || {
+    echo "Failed to store current directory" >&2
+    return 1
+}
+
+readonly ROOT_DIR=$(realpath "$(dirname "${BASH_SOURCE[0]:-$0}")") || {
+    echo "Failed to determine infrastructure directory path" >&2
+    popd > '/dev/null'
+    return 1
+}
+
+################################################################################
+# Deactivation function
+################################################################################
+
+function deactivate_launchpad() {
+    # Restore original directory
+    popd > '/dev/null' 2>/dev/null || true
+
+    # Restore original Kubernetes config
+    if [[ -n "${_OLD_KUBECONFIG:-}" ]]; then
+        export KUBECONFIG="$_OLD_KUBECONFIG"
+        unset _OLD_KUBECONFIG
+    else
+        unset KUBECONFIG
+    fi
+
+    # Unset functions
+    unset -f deactivate_launchpad
+}
+
+################################################################################
+# Main activation logic
+################################################################################
+
+# Configure Kubernetes access
+if [[ -z "${_OLD_KUBECONFIG:-}" ]]; then
+    export _OLD_KUBECONFIG="${KUBECONFIG:-}"
+fi
+
+export KUBECONFIG="${ROOT_DIR}/infrastructure/.kubeconfig"

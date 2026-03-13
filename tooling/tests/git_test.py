@@ -1,12 +1,12 @@
 """
-Unit tests for phd.git helpers.
+Unit tests for launchpad.git helpers.
 """
 
 from unittest.mock import Mock, patch
 
 import pytest
 
-from phd.git import (
+from launchpad.git import (
     get_git_repo_branch,
     get_git_repo_url,
     parse_repo_name,

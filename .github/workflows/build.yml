@@ -23,8 +23,8 @@ on:
         description: "Picasso version"
         required: true
         type: string
-      PHD_CLI_VERSION:
-        description: "PHD CLI version"
+      LAUNCHPAD_CLI_VERSION:
+        description: "Launchpad CLI version"
         required: true
         type: string
       RUNNER_WORKFLOW_LABEL:
@@ -79,7 +79,7 @@ jobs:
   update-env-dir:
     if: ${{ inputs.UPDATE_ENV_DIR }}
     name: Update env directory
-    uses: open-craft/phd-cluster-template/.github/workflows/generate-env-dir.yml@main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/generate-env-dir.yml@main
     needs:
       - build
     secrets:

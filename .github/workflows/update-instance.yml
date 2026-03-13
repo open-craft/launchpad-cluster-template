@@ -34,7 +34,7 @@ jobs:
       - name: Checkout workflow scripts
         uses: actions/checkout@v4
         with:
-          repository: open-craft/phd-cluster-template
+          repository: open-craft/launchpad-cluster-template
           ref: main
           path: workflow-scripts
 

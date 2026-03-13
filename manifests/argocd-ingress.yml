@@ -16,7 +16,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: argocd.{{ PHD_CLUSTER_DOMAIN }}
+    - host: argocd.{{ LAUNCHPAD_CLUSTER_DOMAIN }}
       http:
         paths:
           - path: /
@@ -28,5 +28,5 @@ spec:
                   name: https
   tls:
     - hosts:
-        - argocd.{{ PHD_CLUSTER_DOMAIN }}
+        - argocd.{{ LAUNCHPAD_CLUSTER_DOMAIN }}
       secretName: argocd-tls
