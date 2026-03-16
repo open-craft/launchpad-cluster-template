@@ -22,6 +22,7 @@ nav:
     - Provisioning: instances/provisioning.md
     - Deprovisioning: instances/deprovisioning.md
     - Configuration: instances/configuration.md
+    - Theming: instances/theming.md
     - Docker Images: instances/docker-images.md
     - Auto-scaling: instances/auto-scaling.md
     - Tracking Logs: instances/tracking-logs.md
