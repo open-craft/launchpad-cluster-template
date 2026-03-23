@@ -37,6 +37,7 @@ nav:
     - Pull Request Sandboxes: user-guides/pull-request-sandboxes.md
     - Multi-Domain Setup: user-guides/multi-domain-setup.md
     - Migrating Instances from Grove: user-guides/migrating-instances-from-grove.md
+    - Use More Performant Runners: user-guides/use-more-performant-runners.md
 theme:
   name: material
   logo: images/opencraft-logo.svg

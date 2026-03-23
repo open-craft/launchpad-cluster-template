@@ -7,6 +7,7 @@ This section contains step-by-step guides for specific tasks and scenarios when 
 - **[Using AWS WAF and ALB](using-aws-waf-and-alb.md)** -  Configuring AWS WAF and Application Load Balancer with your cluster
 - **[Instance Maintenance Mode](instance-maintenance-mode.md)** -  Putting an instance into maintenance mode
 - **[Setting Up Cron Jobs](setting-up-cron-jobs.md)** -  Configuring cron jobs for Open edX instances
+- **[Use More Performant Runners](use-more-performant-runners.md)** -  Using Blacksmith runners for faster builds
 - **[Pull Request Sandboxes](pull-request-sandboxes.md)** -  Using sandbox environments for pull requests
 - **[Multi-Domain Setup](multi-domain-setup.md)** -  Serving an instance under multiple domains
 - **[Migrating Instances from Grove](migrating-instances-from-grove.md)** - Step-by-step checklist to help instance migration
