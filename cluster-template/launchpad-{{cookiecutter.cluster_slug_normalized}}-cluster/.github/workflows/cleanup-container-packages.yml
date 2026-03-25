@@ -1,0 +1,23 @@
+name: Cleanup Container Packages
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # Sunday 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup-container-packages:
+    name: Cleanup container packages
+    permissions:
+      contents: read
+      packages: write
+    uses: open-craft/launchpad-cluster-template/.github/workflows/cleanup-container-packages.yml@main
+    with:
+      RUNNER_WORKFLOW_LABEL: "{{ cookiecutter.runner_workflow_label }}"
+      CLEANUP_POLICY: "max_count"
+      MAX_IMAGES_PER_INSTANCE: 5
+      # RETENTION_DAYS: 30 # uncomment to use retention days policy
+      PACKAGE_SUFFIXES_JSON: '["openedx","mfe"]'
+      INSTANCE_MARKER_FILE: "config.yml"
+      HASH_LENGTH: 8
+      DRY_RUN: false
