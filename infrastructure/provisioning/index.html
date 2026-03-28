@@ -1,0 +1,2489 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://launchpad.opencraft.com/infrastructure/provisioning/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../cluster-repository-setup/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Provisioning - Launchpad Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/opencraft-branding.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/mermaid@8/dist/mermaid.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+<style>
+    .md-header__button.md-logo img { width: auto !important; }
+</style>
+
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#infrastructure-provisioning" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Launchpad Documentation" class="md-header__button md-logo" aria-label="Launchpad Documentation" data-md-component="logo">
+      
+  <img src="../../images/opencraft-logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Launchpad Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Provisioning
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/open-craft/launchpad-cluster-template" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+        <ul class="md-tabs__list">
+            <li class="md-tabs__item">
+                <a href="https://launchpad.opencraft.com/" class="md-tabs__link md-tabs__link--active">Launchpad Documentation</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Launchpad Documentation" class="md-nav__button md-logo" aria-label="Launchpad Documentation" data-md-component="logo">
+      
+  <img src="../../images/opencraft-logo.svg" alt="logo">
+
+    </a>
+    Launchpad Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/open-craft/launchpad-cluster-template" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked="">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Infrastructure
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provisioning
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provisioning-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provisioning Steps
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provisioning Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-cluster-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Create Cluster Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-deploy-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Deploy Infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-configure-kubectl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Configure kubectl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-install-argocd-and-argo-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Install ArgoCD and Argo Workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-configure-argocd-projects-and-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Configure ArgoCD Projects and Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-verify-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Verify Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-argocd-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating ArgoCD Users
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating ArgoCD Users">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-gets-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Gets Created
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#after-user-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        After User Creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Users
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#terraform-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terraform Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cluster-configuration-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cluster Configuration Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#infrastructure-deployment-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Infrastructure Deployment Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocdargo-workflows-installation-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD/Argo Workflows Installation Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registry-credentials-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registry Credentials Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cluster-repository-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cluster Repository Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deprovisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deprovisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cluster
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cluster
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/backup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/restore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Restore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instances
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Instances
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/deprovisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deprovisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/theming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/docker-images/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Images
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/auto-scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto-scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/tracking-logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracking Logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debugging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/using-aws-waf-and-alb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using AWS WAF and ALB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/instance-maintenance-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instance Maintenance Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/setting-up-cron-jobs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting Up Cron Jobs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/pull-request-sandboxes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pull Request Sandboxes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/multi-domain-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Domain Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/migrating-instances-from-grove/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating Instances from Grove
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/use-more-performant-runners/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use More Performant Runners
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provisioning-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provisioning Steps
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provisioning Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-cluster-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Create Cluster Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-deploy-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Deploy Infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-configure-kubectl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Configure kubectl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-install-argocd-and-argo-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Install ArgoCD and Argo Workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-configure-argocd-projects-and-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Configure ArgoCD Projects and Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-verify-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Verify Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-argocd-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating ArgoCD Users
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating ArgoCD Users">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-gets-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Gets Created
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#after-user-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        After User Creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Users
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#terraform-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terraform Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cluster-configuration-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cluster Configuration Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#infrastructure-deployment-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Infrastructure Deployment Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocdargo-workflows-installation-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD/Argo Workflows Installation Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registry-credentials-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registry Credentials Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="infrastructure-provisioning">Infrastructure Provisioning<a class="headerlink" href="#infrastructure-provisioning" title="Permanent link">¶</a></h1>
+<p>Infrastructure provisioning sets up a complete Kubernetes cluster environment for hosting Open edX instances. This includes creating the cluster configuration, deploying the underlying infrastructure (Kubernetes cluster, databases, storage), and installing ArgoCD and Argo Workflows.</p>
+<p>The provisioning process consists of three main phases:</p>
+<ol>
+<li><strong>Cluster Configuration</strong>: Generate cluster configuration files using cookiecutter templates</li>
+<li><strong>Infrastructure Deployment</strong>: Deploy Kubernetes cluster and supporting infrastructure using Terraform/OpenTofu</li>
+<li><strong>GitOps Tools Installation</strong>: Install and configure ArgoCD and Argo Workflows for automated deployments</li>
+</ol>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
+<p>Before provisioning infrastructure, ensure you have:</p>
+<ul>
+<li><strong>Launchpad CLI</strong>: Installed and configured (see <a href="../../#quick-start">Quick Start</a>)</li>
+<li><strong>Cookiecutter</strong>: Installed for cluster template generation (<code>pip install cookiecutter</code>)</li>
+<li><strong>Cloud Provider Access</strong>: Valid credentials for AWS or DigitalOcean</li>
+<li><strong>Terraform/OpenTofu</strong>: Installed (OpenTofu is recommended)</li>
+<li><strong>kubectl</strong>: Installed</li>
+<li><strong>Git Repository</strong>: Access to a GitHub organization with repository create access (will create the repository during provisioning)</li>
+</ul>
+<h2 id="provisioning-steps">Provisioning Steps<a class="headerlink" href="#provisioning-steps" title="Permanent link">¶</a></h2>
+<h3 id="step-1-create-cluster-configuration">Step 1: Create Cluster Configuration<a class="headerlink" href="#step-1-create-cluster-configuration" title="Permanent link">¶</a></h3>
+<p>The first step is to generate the cluster configuration using the <code>launchpad_create_cluster</code> command. This creates a directory structure with Terraform modules, GitHub Actions workflows, and configuration files.</p>
+<p><strong>Install the CLI</strong> (if not already installed):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install uv (if needed)</span>
+curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+
+<span class="c1"># Install Launchpad CLI as a tool (persistent)</span>
+uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>git+https://github.com/open-craft/launchpad-cluster-template.git#subdirectory<span class="o">=</span>tooling
+
+<span class="c1"># Or run without installing (one-off)</span>
+uvx<span class="w"> </span>--from<span class="w"> </span>git+https://github.com/open-craft/launchpad-cluster-template.git#subdirectory<span class="o">=</span>tooling<span class="w"> </span>launchpad_create_cluster<span class="w"> </span>--help
+</code></pre></div>
+<p><strong>Create cluster configuration</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create cluster with custom options</span>
+launchpad_create_cluster<span class="w"> </span><span class="s2">"Launchpad Production Cluster"</span><span class="w"> </span><span class="s2">"cluster.domain"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--environment<span class="w"> </span>production<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cloud-provider<span class="w"> </span>aws<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cloud-region<span class="w"> </span>us-east-1<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--github-organization<span class="w"> </span>your-org<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output-dir<span class="w"> </span>./clusters
+</code></pre></div>
+<p><strong>Command Options</strong>:</p>
+<ul>
+<li><code>cluster_name</code>: Display name for the cluster</li>
+<li><code>cluster_domain</code>: Domain name for the cluster (e.g., <code>cluster.domain</code>)</li>
+<li><code>--environment</code>: Environment name (default: <code>production</code>)</li>
+<li><code>--cloud-provider</code>: Cloud provider - <code>aws</code> or <code>digitalocean</code></li>
+<li><code>--cloud-region</code>: Region for the cloud provider</li>
+<li><code>--harmony-module-version</code>: Harmony Terraform module version/commit hash</li>
+<li><code>--opencraft-module-version</code>: OpenCraft Terraform module version</li>
+<li><code>--picasso-version</code>: Picasso version for image building</li>
+<li><code>--tutor-version</code>: Tutor version to use</li>
+<li><code>--github-organization</code>: GitHub organization name</li>
+<li><code>--github-repository</code>: Custom GitHub repository URL (auto-generated if not provided)</li>
+<li><code>--output-dir</code>: Directory where cluster configuration will be created</li>
+</ul>
+<p><strong>What This Creates</strong>:</p>
+<ul>
+<li>Cluster directory with normalized name (e.g., <code>launchpad-production-cluster</code>)</li>
+<li>Terraform infrastructure modules for AWS or DigitalOcean</li>
+<li>GitHub Actions workflows for building images and managing instances</li>
+<li>Instance template directory structure</li>
+<li>Configuration files and documentation</li>
+</ul>
+<p>After pushing the repository to GitHub, configure <a href="../cluster-repository-setup/">GitHub Actions secrets and ArgoCD</a> before creating instances.</p>
+<h3 id="step-2-deploy-infrastructure">Step 2: Deploy Infrastructure<a class="headerlink" href="#step-2-deploy-infrastructure" title="Permanent link">¶</a></h3>
+<p>After generating the cluster configuration, deploy the infrastructure using Terraform or OpenTofu.</p>
+<p><strong>Navigate to Infrastructure Directory</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>launchpad-production-cluster/infrastructure
+</code></pre></div>
+<p><strong>Configure Backend Credentials</strong>:</p>
+<p>Backend credentials must be provided via environment variables or <code>backend.hcl</code> (recommended) to avoid storing them in state files:</p>
+<div class="highlight"><pre><span></span><code><span class="na">bucket</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"tfstate-bucket-name"</span>
+<span class="na">key</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"terraform.tfstate"</span>
+<span class="na">access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"access-key"</span>
+<span class="na">secret_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"secret-key"</span>
+</code></pre></div>
+<p><strong>Initialize and Deploy</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Initialize Terraform/OpenTofu</span>
+tofu<span class="w"> </span>init<span class="w"> </span>-backend-config<span class="o">=</span>backend.hcl
+
+<span class="c1"># Review the deployment plan</span>
+tofu<span class="w"> </span>plan
+
+<span class="c1"># Apply the infrastructure</span>
+tofu<span class="w"> </span>apply
+</code></pre></div>
+<p><strong>What Gets Deployed</strong>:</p>
+<ul>
+<li><strong>Kubernetes Cluster</strong>: EKS (AWS) or DOKS (DigitalOcean)</li>
+<li><strong>Databases</strong>: Managed MySQL and MongoDB instances</li>
+<li><strong>Storage</strong>: S3 buckets or DigitalOcean Spaces</li>
+<li><strong>Networking</strong>: VPC with private/public subnets, load balancers</li>
+<li><strong>Harmony Components</strong>: Ingress controllers, monitoring (optional), backups (optional)</li>
+</ul>
+<p><strong>Important</strong>: After deployment completes, note the <code>.kubeconfig</code>will be created. You'll need this to access the cluster.</p>
+<h3 id="step-3-configure-kubectl">Step 3: Configure kubectl<a class="headerlink" href="#step-3-configure-kubectl" title="Permanent link">¶</a></h3>
+<p>Configure <code>kubectl</code> to access your newly created cluster:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Activate the configuration</span>
+<span class="nb">source</span><span class="w"> </span>../activate
+
+<span class="c1"># Verify cluster access</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>nodes
+</code></pre></div>
+<h3 id="step-4-install-argocd-and-argo-workflows">Step 4: Install ArgoCD and Argo Workflows<a class="headerlink" href="#step-4-install-argocd-and-argo-workflows" title="Permanent link">¶</a></h3>
+<p>Install the GitOps tools required for managing Open edX instances.</p>
+<p><strong>Set Required Environment Variable</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">LAUNCHPAD_CLUSTER_DOMAIN</span><span class="o">=</span><span class="s2">"cluster.domain"</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS</span><span class="o">=</span><span class="s2">"base64 encoded docker registry credentials"</span>
+</code></pre></div>
+<p><strong>Install Both Tools</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install both ArgoCD and Argo Workflows</span>
+launchpad_install_argo
+</code></pre></div>
+<p><strong>Or, Install Selectively</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install only ArgoCD</span>
+launchpad_install_argo<span class="w"> </span>--argocd-only
+
+<span class="c1"># Install only Argo Workflows</span>
+launchpad_install_argo<span class="w"> </span>--workflows-only
+</code></pre></div>
+<p><strong>What Gets Installed</strong>:</p>
+<p><strong>ArgoCD</strong>:
+- ArgoCD namespace and core components
+- Ingress configuration for web UI access
+- Admin password (auto-generated if not provided via <code>LAUNCHPAD_ARGO_ADMIN_PASSWORD</code>)
+- Base configuration
+- Docker registry pull credentials</p>
+<p><strong>Argo Workflows</strong>:
+- Argo Workflows namespace and core components
+- Ingress configuration for workflow UI
+- Admin authentication setup
+- Workflow executor service account and token
+- Provisioning/deprovisioning workflow templates (MySQL, MongoDB, Storage)
+- Docker registry pull credentials</p>
+<p><strong>Access the UIs</strong>:</p>
+<p>After installation, you can access:</p>
+<ul>
+<li><strong>ArgoCD</strong>: <code>https://argocd.cluster.domain</code></li>
+<li><strong>Argo Workflows</strong>: <code>http://localhost:2746</code> (after <code>kubectl port-forward svc/argo-server 2746:2746 -n argo</code>)</li>
+</ul>
+<p>Use the admin password (displayed during installation or set via <code>LAUNCHPAD_ARGO_ADMIN_PASSWORD</code>) to log in.</p>
+<h3 id="step-5-configure-argocd-projects-and-repository">Step 5: Configure ArgoCD Projects and Repository<a class="headerlink" href="#step-5-configure-argocd-projects-and-repository" title="Permanent link">¶</a></h3>
+<p>ArgoCD must be able to clone the cluster repository to sync applications. Configure the repository connection and project before creating instances.</p>
+<p>See <a href="../cluster-repository-setup/#argocd-project-and-repository-connection">Cluster Repository Setup</a> for detailed instructions on:</p>
+<ul>
+<li>Connecting the repository via SSH (GitHub deploy key)</li>
+<li>Configuring the ArgoCD project</li>
+<li>Verifying the connection</li>
+</ul>
+<h3 id="step-6-verify-installation">Step 6: Verify Installation<a class="headerlink" href="#step-6-verify-installation" title="Permanent link">¶</a></h3>
+<p>Verify that all components are installed and functioning:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check ArgoCD pods</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>argocd
+
+<span class="c1"># Check Argo Workflows pods</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>argo
+
+<span class="c1"># Check workflow templates</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>clusterworkflowtemplates
+
+<span class="c1"># Verify ingress</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>-n<span class="w"> </span>argocd
+kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>-n<span class="w"> </span>argo
+</code></pre></div>
+<h2 id="creating-argocd-users">Creating ArgoCD Users<a class="headerlink" href="#creating-argocd-users" title="Permanent link">¶</a></h2>
+<p>After installing ArgoCD and Argo Workflows, you can create ArgoCD users using the <code>launchpad_create_argo_user</code> command.</p>
+<h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">¶</a></h3>
+<p><strong>Create a user with default role (developer)</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Set required environment variable</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">LAUNCHPAD_CLUSTER_DOMAIN</span><span class="o">=</span><span class="s2">"cluster.domain"</span>
+
+<span class="c1"># Create user (will prompt for password)</span>
+launchpad_create_argo_user<span class="w"> </span>john.doe
+</code></pre></div>
+<p><strong>Create a user with specific role and password</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create admin user</span>
+launchpad_create_argo_user<span class="w"> </span>admin.user<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--role<span class="w"> </span>admin<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--password<span class="w"> </span><span class="s2">"secure-password"</span>
+
+<span class="c1"># Create developer user</span>
+launchpad_create_argo_user<span class="w"> </span>developer.user<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--role<span class="w"> </span>developer<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--password<span class="w"> </span><span class="s2">"secure-password"</span>
+
+<span class="c1"># Create readonly user</span>
+launchpad_create_argo_user<span class="w"> </span>viewer.user<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--role<span class="w"> </span><span class="nb">readonly</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--password<span class="w"> </span><span class="s2">"secure-password"</span>
+</code></pre></div>
+<h3 id="user-roles">User Roles<a class="headerlink" href="#user-roles" title="Permanent link">¶</a></h3>
+<p>The system supports three user roles with different ArgoCD permission levels:</p>
+<p><strong>Admin Role</strong>:
+- Full access to all applications and projects
+- Create, read, update, delete all applications and projects</p>
+<p><strong>Developer Role</strong>:
+- Access to assigned applications and projects
+- Create, read, update, delete assigned applications and projects</p>
+<p><strong>Readonly Role</strong>:
+- Read-only access to applications and projects
+- View applications and projects only</p>
+<h3 id="what-gets-created">What Gets Created<a class="headerlink" href="#what-gets-created" title="Permanent link">¶</a></h3>
+<p>When you create a user, the following resources are created:</p>
+<ol>
+<li><strong>ArgoCD Account</strong>: User account configured in ArgoCD with login capability</li>
+<li><strong>ArgoCD RBAC</strong>: Role-based access control policies for ArgoCD</li>
+</ol>
+<h3 id="after-user-creation">After User Creation<a class="headerlink" href="#after-user-creation" title="Permanent link">¶</a></h3>
+<p>After creating a user, restart the ArgoCD server pod to apply the login changes:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>delete<span class="w"> </span>pod<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/name<span class="o">=</span>argocd-server
+</code></pre></div>
+<h3 id="managing-users">Managing Users<a class="headerlink" href="#managing-users" title="Permanent link">¶</a></h3>
+<p><strong>Update user permissions</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Update user role</span>
+launchpad_update_argo_user<span class="w"> </span>john.doe<span class="w"> </span>--role<span class="w"> </span>admin
+
+<span class="c1"># Update user password</span>
+launchpad_update_argo_user<span class="w"> </span>john.doe<span class="w"> </span>--password<span class="w"> </span><span class="s2">"new-password"</span>
+</code></pre></div>
+<p><strong>Delete a user</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Delete user (will prompt for confirmation)</span>
+launchpad_delete_argo_user<span class="w"> </span>john.doe
+
+<span class="c1"># Force delete without confirmation</span>
+launchpad_delete_argo_user<span class="w"> </span>john.doe<span class="w"> </span>--force
+</code></pre></div>
+<h3 id="user-access">User Access<a class="headerlink" href="#user-access" title="Permanent link">¶</a></h3>
+<p>Users can access ArgoCD via:</p>
+<ul>
+<li><strong>ArgoCD Web UI</strong>: <code>https://argocd.cluster.domain</code> (or your cluster domain)</li>
+</ul>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
+<h3 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">¶</a></h3>
+<p><strong>Required</strong>:
+- <code>LAUNCHPAD_CLUSTER_DOMAIN</code>: Cluster domain name (e.g., <code>cluster.domain</code>)</p>
+<p><strong>Optional</strong>:</p>
+<ul>
+<li><code>LAUNCHPAD_ARGO_ADMIN_PASSWORD</code>: Admin password for ArgoCD and Argo Workflows (auto-generated if not set)</li>
+<li><code>LAUNCHPAD_ARGOCD_VERSION</code>: ArgoCD version (default: <code>stable</code>)</li>
+<li><code>LAUNCHPAD_ARGO_WORKFLOWS_VERSION</code>: Argo Workflows version (default: <code>stable</code>)</li>
+<li><code>LAUNCHPAD_OPENCRAFT_MANIFESTS_URL</code>: Base URL for OpenCraft manifests (default: GitHub raw content URL)</li>
+<li><code>LAUNCHPAD_DOCKER_REGISTRY</code>: Docker registry hostname (default: <code>ghcr.io</code>)</li>
+<li><code>LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS</code>: Base64-encoded registry credentials for private image pulls</li>
+</ul>
+<h3 id="terraform-variables">Terraform Variables<a class="headerlink" href="#terraform-variables" title="Permanent link">¶</a></h3>
+<p>The infrastructure modules require various variables. See the <code>variables.tf</code> file in your infrastructure directory for a complete list. Common variables include:</p>
+<ul>
+<li>Cloud provider credentials</li>
+<li>Cluster name and domain</li>
+<li>Resource sizing (node pools, database instances)</li>
+<li>Monitoring and backup configuration</li>
+<li>Network configuration</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<h3 id="cluster-configuration-issues">Cluster Configuration Issues<a class="headerlink" href="#cluster-configuration-issues" title="Permanent link">¶</a></h3>
+<p><strong>Template Generation Fails</strong>:</p>
+<ul>
+<li>Ensure cookiecutter is installed (see <a href="#prerequisites">Prerequisites</a>)</li>
+<li>Check that the template repository is accessible</li>
+<li>Review error messages for missing required variables</li>
+</ul>
+<p><strong>Missing Configuration Files</strong>:</p>
+<ul>
+<li>Ensure you're in the correct directory after cluster creation</li>
+<li>Verify all required files were generated in the cluster directory</li>
+</ul>
+<h3 id="infrastructure-deployment-issues">Infrastructure Deployment Issues<a class="headerlink" href="#infrastructure-deployment-issues" title="Permanent link">¶</a></h3>
+<p><strong>Terraform/OpenTofu Errors</strong>:</p>
+<ul>
+<li><strong>Backend Connection</strong>: Verify backend credentials are set correctly</li>
+<li><strong>Provider Credentials</strong>: Ensure cloud provider credentials are valid</li>
+<li><strong>Resource Limits</strong>: Check if you've hit cloud provider quotas</li>
+<li><strong>Network Issues</strong>: Verify network connectivity to cloud provider APIs</li>
+</ul>
+<p><strong>Common Solutions</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Re-initialize if backend configuration changed</span>
+tofu<span class="w"> </span>init<span class="w"> </span>-backend-config<span class="o">=</span>backend.hcl<span class="w"> </span>-reconfigure
+
+<span class="c1"># Check Terraform state</span>
+tofu<span class="w"> </span>state<span class="w"> </span>list
+
+<span class="c1"># Validate configuration</span>
+tofu<span class="w"> </span>validate
+</code></pre></div>
+<p><strong>Kubernetes Cluster Not Accessible</strong>:</p>
+<ul>
+<li>Verify the cluster was created successfully in your cloud provider console</li>
+<li>Check that kubeconfig was generated correctly</li>
+<li>Ensure network connectivity to the cluster API server</li>
+<li>Check that DNS records are pointing to the Kubernetes cluster</li>
+</ul>
+<h3 id="argocdargo-workflows-installation-issues">ArgoCD/Argo Workflows Installation Issues<a class="headerlink" href="#argocdargo-workflows-installation-issues" title="Permanent link">¶</a></h3>
+<p><strong>Installation Fails</strong>:</p>
+<ul>
+<li><strong>kubectl Access</strong>: Verify <code>kubectl</code> can access the cluster</li>
+<li><strong>Namespace Conflicts</strong>: Check if namespaces already exist</li>
+<li><strong>Manifest URLs</strong>: Verify manifest URLs are accessible</li>
+<li><strong>Resource Quotas</strong>: Ensure cluster has sufficient resources</li>
+</ul>
+<p><strong>Check Installation Status</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check ArgoCD installation</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>argocd
+kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/name<span class="o">=</span>argocd-server
+
+<span class="c1"># Check Argo Workflows installation</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>argo
+kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>argo<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>argo-server
+</code></pre></div>
+<p><strong>UI Not Accessible</strong>:</p>
+<ul>
+<li><strong>Ingress Issues</strong>: Check ingress controller is running</li>
+<li><strong>DNS Configuration</strong>: Verify DNS records point to the ingress</li>
+<li><strong>TLS Certificates</strong>: Check Let's Encrypt certificate status</li>
+<li><strong>Firewall Rules</strong>: Ensure ports 80/443 are accessible</li>
+</ul>
+<p><strong>Workflow Templates Not Found</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Verify templates were installed</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>clusterworkflowtemplates
+
+<span class="c1"># Re-install templates</span>
+launchpad_install_argo<span class="w"> </span>--workflows-only
+</code></pre></div>
+<p><strong>Password Issues</strong>:</p>
+<ul>
+<li>If password was auto-generated, check the CLI output for the generated password</li>
+<li>To set a custom password: <code>export LAUNCHPAD_ARGO_ADMIN_PASSWORD="your-password"</code></li>
+<li>To reset password, re-run <code>launchpad_install_argo</code> with a new password</li>
+</ul>
+<h3 id="registry-credentials-issues">Registry Credentials Issues<a class="headerlink" href="#registry-credentials-issues" title="Permanent link">¶</a></h3>
+<p><strong>Private Image Pull Failures</strong>:</p>
+<ul>
+<li>Verify <code>LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS</code> is set correctly (base64-encoded)</li>
+<li>Check that credentials are valid and have appropriate permissions</li>
+<li>Verify secrets were created in namespaces:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>secrets<span class="w"> </span>-n<span class="w"> </span>argocd
+kubectl<span class="w"> </span>get<span class="w"> </span>secrets<span class="w"> </span>-n<span class="w"> </span>argo
+</code></pre></div>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<p>After successfully provisioning infrastructure:</p>
+<ol>
+<li><strong>Configure ArgoCD Projects</strong>: Set up projects for each environment</li>
+<li><strong>Create First Instance</strong>: Use <code>launchpad_create_instance</code> to create your first Open edX instance</li>
+<li><strong>Set Up Monitoring</strong>: Configure monitoring and alerting if not done during infrastructure deployment</li>
+<li><strong>Backup Configuration</strong>: Set up backup schedules if Velero was installed</li>
+</ol>
+<p>See the <a href="../../instances/provisioning/">Instance Provisioning</a> documentation for creating Open edX instances.</p>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="../">Infrastructure Overview</a> -  Core components (Kubernetes, ArgoCD, Argo Workflows)</li>
+<li><a href="../deprovisioning/">Deprovisioning</a> -  Removing cluster infrastructure</li>
+<li><a href="../../cluster/">Cluster Overview</a> -  Post-provisioning cluster operations</li>
+<li><a href="../../instances/provisioning/">Instance Provisioning</a> -  Creating Open edX instances</li>
+</ul>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="../../cluster/authentication/">Cluster Authentication</a> -  kubeconfig and Argo users</li>
+<li><a href="../../cluster/configuration/">Cluster Configuration</a> -  Environment variables and Terraform</li>
+<li><a href="../custom-resources/">Custom Resources</a> -  Workflow templates and manifests</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@8/dist/mermaid.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

@@ -1,0 +1,2337 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://launchpad.opencraft.com/infrastructure/cluster-repository-setup/">
+      
+      
+        <link rel="prev" href="../provisioning/">
+      
+      
+        <link rel="next" href="../deprovisioning/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Cluster Repository Setup - Launchpad Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/opencraft-branding.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/mermaid@8/dist/mermaid.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+<style>
+    .md-header__button.md-logo img { width: auto !important; }
+</style>
+
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cluster-repository-setup" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Launchpad Documentation" class="md-header__button md-logo" aria-label="Launchpad Documentation" data-md-component="logo">
+      
+  <img src="../../images/opencraft-logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Launchpad Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Cluster Repository Setup
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/open-craft/launchpad-cluster-template" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+        <ul class="md-tabs__list">
+            <li class="md-tabs__item">
+                <a href="https://launchpad.opencraft.com/" class="md-tabs__link md-tabs__link--active">Launchpad Documentation</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Launchpad Documentation" class="md-nav__button md-logo" aria-label="Launchpad Documentation" data-md-component="logo">
+      
+  <img src="../../images/opencraft-logo.svg" alt="logo">
+
+    </a>
+    Launchpad Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/open-craft/launchpad-cluster-template" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked="">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Infrastructure
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cluster Repository Setup
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cluster Repository Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pushing-the-repository-to-github" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pushing the Repository to GitHub
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-github-actions-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring GitHub Actions Secrets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuring GitHub Actions Secrets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-to-add-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to Add Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#terraform_secrets-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TERRAFORM_SECRETS Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-common-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating Common Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#github-actions-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub Actions Workflows
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GitHub Actions Workflows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-trigger-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Trigger Workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-workflow-inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Workflow Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strain-and-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strain and Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#argocd-project-and-repository-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Project and Repository Connection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ArgoCD Project and Repository Connection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-or-use-the-default-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Create or Use the Default Project
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-connect-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Connect the Repository
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Connect the Repository">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-ssh-deploy-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub (SSH Deploy Key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#github-https-with-personal-access-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub (HTTPS with Personal Access Token)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-verify-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Verify Connection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-project-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Project Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deprovisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deprovisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cluster
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cluster
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/backup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/restore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Restore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instances
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Instances
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/deprovisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deprovisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/theming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/docker-images/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Images
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/auto-scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto-scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/tracking-logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracking Logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debugging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/using-aws-waf-and-alb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using AWS WAF and ALB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/instance-maintenance-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instance Maintenance Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/setting-up-cron-jobs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting Up Cron Jobs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/pull-request-sandboxes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pull Request Sandboxes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/multi-domain-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Domain Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/migrating-instances-from-grove/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating Instances from Grove
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guides/use-more-performant-runners/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use More Performant Runners
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pushing-the-repository-to-github" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pushing the Repository to GitHub
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-github-actions-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring GitHub Actions Secrets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuring GitHub Actions Secrets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-to-add-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to Add Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#terraform_secrets-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TERRAFORM_SECRETS Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-common-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating Common Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#github-actions-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub Actions Workflows
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GitHub Actions Workflows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-trigger-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Trigger Workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-workflow-inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Workflow Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strain-and-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strain and Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#argocd-project-and-repository-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Project and Repository Connection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ArgoCD Project and Repository Connection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-or-use-the-default-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Create or Use the Default Project
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-connect-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Connect the Repository
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Connect the Repository">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-ssh-deploy-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub (SSH Deploy Key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#github-https-with-personal-access-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub (HTTPS with Personal Access Token)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-verify-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Verify Connection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-project-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Project Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cluster-repository-setup">Cluster Repository Setup<a class="headerlink" href="#cluster-repository-setup" title="Permanent link">¶</a></h1>
+<p>After generating your cluster configuration with <code>launchpad_create_cluster</code> and deploying the infrastructure, you need to configure the cluster repository for GitHub Actions and ArgoCD. This guide walks through secrets, environment variables, workflows, and ArgoCD repository connection.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>The cluster repository contains:</p>
+<ul>
+<li>Terraform infrastructure code</li>
+<li>Instance configurations (<code>instances/&lt;name&gt;/</code>)</li>
+<li>GitHub Actions workflows for instance lifecycle and image builds</li>
+</ul>
+<p>To use these workflows and allow ArgoCD to sync from the repository, you must:</p>
+<ol>
+<li>Push the repository to GitHub</li>
+<li>Configure GitHub Actions secrets</li>
+<li>Set up the ArgoCD project and connect the repository</li>
+</ol>
+<h2 id="pushing-the-repository-to-github">Pushing the Repository to GitHub<a class="headerlink" href="#pushing-the-repository-to-github" title="Permanent link">¶</a></h2>
+<p>The <code>launchpad_create_cluster</code> command initializes a git repository and adds a remote. Complete the setup:</p>
+<ol>
+<li>
+<p>Create an empty repository in your GitHub organization (e.g. <code>your-org/launchpad-production-cluster</code>).</p>
+</li>
+<li>
+<p>Push the cluster repository:</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>launchpad-production-cluster
+git<span class="w"> </span>push<span class="w"> </span>-u<span class="w"> </span>origin<span class="w"> </span>main
+</code></pre></div>
+<h2 id="configuring-github-actions-secrets">Configuring GitHub Actions Secrets<a class="headerlink" href="#configuring-github-actions-secrets" title="Permanent link">¶</a></h2>
+<p>Workflows read sensitive values from <strong>repository secrets</strong>. Configure them before running Create Instance, Build, or Delete Instance workflows.</p>
+<h3 id="where-to-add-secrets">Where to Add Secrets<a class="headerlink" href="#where-to-add-secrets" title="Permanent link">¶</a></h3>
+<ol>
+<li>Open your cluster repository on GitHub.</li>
+<li>Go to <strong>Settings</strong> → <strong>Secrets and variables</strong> → <strong>Actions</strong>.</li>
+<li>Click <strong>New repository secret</strong>.</li>
+<li>Enter the <strong>Name</strong> and <strong>Value</strong> for each secret.</li>
+</ol>
+<h3 id="required-secrets">Required Secrets<a class="headerlink" href="#required-secrets" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Secret</th>
+<th>Required for</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TERRAFORM_SECRETS</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>HCL content for <code>secrets.auto.tfvars</code> (see below)</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS</code></td>
+<td>Create Instance</td>
+<td>Base64-encoded <code>username:token</code> for pulling images</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MYSQL_HOST</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>MySQL server hostname</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MYSQL_PORT</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>MySQL port (default: <code>3306</code>)</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MYSQL_ROOT_USER</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>MySQL admin username</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MYSQL_ROOT_PASSWORD</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>MySQL admin password</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MONGODB_HOST</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>MongoDB hostname (for direct connection)</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MONGODB_PORT</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>MongoDB port (default: <code>27017</code>)</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MONGODB_PROVIDER</code></td>
+<td>Create Instance, Delete Instance</td>
+<td><code>digitalocean_api</code> or <code>atlas</code></td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MONGODB_CLUSTER_ID</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>DigitalOcean MongoDB cluster ID (or Atlas project ID)</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MONGODB_REPLICA_SET</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>MongoDB replica set name</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_MONGODB_AUTH_SOURCE</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>MongoDB auth source (default: <code>admin</code>)</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_DIGITALOCEAN_TOKEN</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>DigitalOcean API token</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_STORAGE_TYPE</code></td>
+<td>Create Instance, Delete Instance</td>
+<td><code>s3</code> or <code>spaces</code></td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_STORAGE_REGION</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>Region (e.g. <code>us-east-1</code>, <code>nyc3</code>)</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_STORAGE_ACCESS_KEY_ID</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>S3/Spaces access key ID</td>
+</tr>
+<tr>
+<td><code>LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY</code></td>
+<td>Create Instance, Delete Instance</td>
+<td>S3/Spaces secret access key</td>
+</tr>
+<tr>
+<td><code>SSH_PRIVATE_KEY</code></td>
+<td>Create Instance, Build, Build All, Delete Instance, Update Instance</td>
+<td>Private SSH key for cloning the cluster repo and private dependencies</td>
+</tr>
+</tbody>
+</table>
+<h3 id="terraform_secrets-format">TERRAFORM_SECRETS Format<a class="headerlink" href="#terraform_secrets-format" title="Permanent link">¶</a></h3>
+<p><code>TERRAFORM_SECRETS</code> is the exact content that would go in <code>infrastructure/secrets.auto.tfvars</code>. The workflow writes it to that file for Terraform/OpenTofu.</p>
+<p><strong>DigitalOcean</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">access_token</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"dop_v1_your_digitalocean_token"</span>
+<span class="na">access_key_id</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"your_spaces_access_key_id"</span>
+<span class="na">secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"your_spaces_secret_access_key"</span>
+</code></pre></div>
+<p><strong>AWS</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">aws_access_key_id</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"AKIA..."</span>
+<span class="na">aws_secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"your_aws_secret_key"</span>
+</code></pre></div>
+<p>Create the secret by copying the full HCL block (including variable names) and pasting it as the secret value. Do not wrap it in quotes or encode it further.</p>
+<h3 id="generating-common-secrets">Generating Common Secrets<a class="headerlink" href="#generating-common-secrets" title="Permanent link">¶</a></h3>
+<p><strong>Docker registry credentials</strong> (for <code>LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># GitHub Container Registry</span>
+<span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"github_username:ghp_your_personal_access_token"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64
+
+<span class="c1"># Docker Hub</span>
+<span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"dockerhub_username:dockerhub_token"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64
+</code></pre></div>
+<p>Use a GitHub PAT with <code>read:packages</code> for GHCR.</p>
+<p><strong>SSH private key</strong> (for <code>SSH_PRIVATE_KEY</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Generate a new deploy key (if you don't have one)</span>
+ssh-keygen<span class="w"> </span>-t<span class="w"> </span>ed25519<span class="w"> </span>-C<span class="w"> </span><span class="s2">"github-actions-deploy"</span><span class="w"> </span>-f<span class="w"> </span>deploy_key<span class="w"> </span>-N<span class="w"> </span><span class="s2">""</span>
+
+<span class="c1"># Add deploy_key.pub as a Deploy Key in your repo (Settings → Deploy keys)</span>
+<span class="c1"># Paste the contents of deploy_key (private key) as the SSH_PRIVATE_KEY secret</span>
+cat<span class="w"> </span>deploy_key
+</code></pre></div>
+<p>The same key is used for cloning the cluster repository and any private dependencies (e.g. edx-platform forks, Tutor plugins).</p>
+<h2 id="github-actions-workflows">GitHub Actions Workflows<a class="headerlink" href="#github-actions-workflows" title="Permanent link">¶</a></h2>
+<p>The cluster repository includes reusable workflows that you trigger manually.</p>
+<h3 id="workflow-overview">Workflow Overview<a class="headerlink" href="#workflow-overview" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Trigger</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Create Instance</strong></td>
+<td>Manual (workflow_dispatch)</td>
+<td>Creates a new instance: config, provision workflows, ArgoCD Application</td>
+</tr>
+<tr>
+<td><strong>Build Image</strong></td>
+<td>Manual</td>
+<td>Builds a single service image (openedx or mfe) for an instance</td>
+</tr>
+<tr>
+<td><strong>Build All Images</strong></td>
+<td>Manual</td>
+<td>Builds both openedx and mfe images for an instance</td>
+</tr>
+<tr>
+<td><strong>Delete Instance</strong></td>
+<td>Manual</td>
+<td>Removes an instance and runs deprovision workflows</td>
+</tr>
+<tr>
+<td><strong>Update Instance</strong></td>
+<td>Manual</td>
+<td>Merges JSON config into an instance's <code>config.yml</code></td>
+</tr>
+<tr>
+<td><strong>pre-commit</strong></td>
+<td>On push/PR</td>
+<td>Runs linting and formatting</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-trigger-workflows">How to Trigger Workflows<a class="headerlink" href="#how-to-trigger-workflows" title="Permanent link">¶</a></h3>
+<ol>
+<li>Open your cluster repository on GitHub.</li>
+<li>Go to the <strong>Actions</strong> tab.</li>
+<li>Select the workflow from the left sidebar (e.g. "Create Instance").</li>
+<li>Click <strong>Run workflow</strong>.</li>
+<li>Fill in the inputs and run.</li>
+</ol>
+<h3 id="common-workflow-inputs">Common Workflow Inputs<a class="headerlink" href="#common-workflow-inputs" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Workflows</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>INSTANCE_NAME</strong></td>
+<td>Create, Build, Build All, Delete, Update</td>
+<td>Instance identifier (DNS-compliant, e.g. <code>my-instance</code>)</td>
+</tr>
+<tr>
+<td><strong>STRAIN_REPOSITORY_BRANCH</strong></td>
+<td>Build, Build All</td>
+<td>Branch to use for the strain (default: <code>main</code>). The strain is the cluster repo; this is the branch containing <code>instances/&lt;name&gt;/</code></td>
+</tr>
+<tr>
+<td><strong>SERVICE</strong></td>
+<td>Build</td>
+<td>Service to build: <code>openedx</code> or <code>mfe</code></td>
+</tr>
+<tr>
+<td><strong>LAUNCHPAD_CLI_VERSION</strong></td>
+<td>Create, Build, Build All, Delete</td>
+<td>Git ref (branch/tag/SHA) of launchpad-cluster-template for the CLI (default: <code>main</code>)</td>
+</tr>
+<tr>
+<td><strong>RUNNER_WORKFLOW_LABEL</strong></td>
+<td>All</td>
+<td>GitHub Actions runner label (default: <code>ubuntu-latest</code>). Use <code>self-hosted</code> for self-hosted runners</td>
+</tr>
+<tr>
+<td><strong>PICASSO_VERSION</strong></td>
+<td>Build, Build All</td>
+<td>Git ref of Picasso for image builds</td>
+</tr>
+<tr>
+<td><strong>LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION</strong></td>
+<td>Delete</td>
+<td>Git ref for OpenCraft manifests (default: <code>main</code>)</td>
+</tr>
+<tr>
+<td><strong>EDX_PLATFORM_VERSION</strong></td>
+<td>Create</td>
+<td>edX Platform branch/tag (default: <code>release/teak.3</code>)</td>
+</tr>
+<tr>
+<td><strong>TUTOR_VERSION</strong></td>
+<td>Create</td>
+<td>Tutor version (default from cluster template)</td>
+</tr>
+<tr>
+<td><strong>INSTANCE_TEMPLATE_VERSION</strong></td>
+<td>Create</td>
+<td>Instance template version (default: <code>main</code>)</td>
+</tr>
+<tr>
+<td><strong>CONFIG</strong></td>
+<td>Update</td>
+<td>JSON object to merge into instance config (e.g. <code>{"KEY": "value"}</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="strain-and-repository">Strain and Repository<a class="headerlink" href="#strain-and-repository" title="Permanent link">¶</a></h3>
+<p>The <strong>strain</strong> is the cluster repository itself. The branch (<code>STRAIN_REPOSITORY_BRANCH</code>) determines which branch of the cluster repo is used when building images. For instance <code>my-instance</code>, the build uses <code>instances/my-instance/</code> from that branch.</p>
+<h2 id="argocd-project-and-repository-connection">ArgoCD Project and Repository Connection<a class="headerlink" href="#argocd-project-and-repository-connection" title="Permanent link">¶</a></h2>
+<p>ArgoCD must be able to clone the cluster repository to sync applications. Configure it after installing ArgoCD and Argo Workflows.</p>
+<h3 id="step-1-create-or-use-the-default-project">Step 1: Create or Use the Default Project<a class="headerlink" href="#step-1-create-or-use-the-default-project" title="Permanent link">¶</a></h3>
+<p>ArgoCD applications use a project (e.g. <code>launchpad-production</code>). The default project may already exist. To create one:</p>
+<ol>
+<li>Log into the ArgoCD UI.</li>
+<li>Go to <strong>Settings</strong> → <strong>Projects</strong>.</li>
+<li>Create a project or use the default.</li>
+</ol>
+<h3 id="step-2-connect-the-repository">Step 2: Connect the Repository<a class="headerlink" href="#step-2-connect-the-repository" title="Permanent link">¶</a></h3>
+<ol>
+<li>In ArgoCD, go to <strong>Settings</strong> → <strong>Repositories</strong>.</li>
+<li>Click <strong>Connect Repo</strong>.</li>
+<li>Choose the connection method:</li>
+</ol>
+<h4 id="github-ssh-deploy-key">GitHub (SSH Deploy Key)<a class="headerlink" href="#github-ssh-deploy-key" title="Permanent link">¶</a></h4>
+<ol>
+<li><strong>Connection method</strong>: Via SSH</li>
+<li><strong>Repository URL</strong>: <code>git@github.com:your-org/launchpad-production-cluster.git</code></li>
+<li><strong>SSH private key</strong>: Paste the private key (same content as <code>SSH_PRIVATE_KEY</code> if you use it for GitHub Actions)</li>
+</ol>
+<p>To add the SSH key to GitHub as a Deploy Key:</p>
+<ul>
+<li>Go to your cluster repo → <strong>Settings</strong> → <strong>Deploy keys</strong>.</li>
+<li>Add the <strong>public</strong> key (<code>.pub</code> file).</li>
+</ul>
+<p>For read-only access, you can create a deploy key with only clone permission. For write access (e.g. if ArgoCD writes back), enable write access.</p>
+<h4 id="github-https-with-personal-access-token">GitHub (HTTPS with Personal Access Token)<a class="headerlink" href="#github-https-with-personal-access-token" title="Permanent link">¶</a></h4>
+<ol>
+<li><strong>Connection method</strong>: Via HTTPS</li>
+<li><strong>Repository URL</strong>: <code>https://github.com/your-org/launchpad-production-cluster.git</code></li>
+<li><strong>Username</strong>: Your GitHub username (or <code>x-access-token</code> for fine-grained PATs)</li>
+<li><strong>Password</strong>: GitHub Personal Access Token with <code>repo</code> scope</li>
+</ol>
+<h3 id="step-3-verify-connection">Step 3: Verify Connection<a class="headerlink" href="#step-3-verify-connection" title="Permanent link">¶</a></h3>
+<p>After adding the repository, ArgoCD should show it as connected. Applications that reference this repo will be able to sync.</p>
+<h3 id="step-4-project-configuration">Step 4: Project Configuration<a class="headerlink" href="#step-4-project-configuration" title="Permanent link">¶</a></h3>
+<p>Ensure the project allows the repository:</p>
+<ol>
+<li>Go to <strong>Settings</strong> → <strong>Projects</strong> → your project.</li>
+<li>Under <strong>Source Repositories</strong>, add your cluster repository URL.</li>
+<li>Under <strong>Destinations</strong>, add the cluster (e.g. <code>https://kubernetes.default.svc</code>).</li>
+</ol>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="../provisioning/">Infrastructure Provisioning</a> - Cluster creation and ArgoCD installation</li>
+<li><a href="../../instances/provisioning/">Instance Provisioning</a> - Creating instances</li>
+<li><a href="../../instances/configuration/">Instance Configuration</a> - config.yml and manifests</li>
+<li><a href="../../instances/docker-images/">Instance Docker Images</a> - Building images with Picasso</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@8/dist/mermaid.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

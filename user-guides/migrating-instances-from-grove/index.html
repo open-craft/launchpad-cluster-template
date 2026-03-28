@@ -1,0 +1,2020 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://launchpad.opencraft.com/user-guides/migrating-instances-from-grove/">
+      
+      
+        <link rel="prev" href="../multi-domain-setup/">
+      
+      
+        <link rel="next" href="../use-more-performant-runners/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Migrating Instances from Grove - Launchpad Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/opencraft-branding.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/mermaid@8/dist/mermaid.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+<style>
+    .md-header__button.md-logo img { width: auto !important; }
+</style>
+
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#migrating-instances-from-grove" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Launchpad Documentation" class="md-header__button md-logo" aria-label="Launchpad Documentation" data-md-component="logo">
+      
+  <img src="../../images/opencraft-logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Launchpad Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Migrating Instances from Grove
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/open-craft/launchpad-cluster-template" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+        <ul class="md-tabs__list">
+            <li class="md-tabs__item">
+                <a href="https://launchpad.opencraft.com/" class="md-tabs__link md-tabs__link--active">Launchpad Documentation</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Launchpad Documentation" class="md-nav__button md-logo" aria-label="Launchpad Documentation" data-md-component="logo">
+      
+  <img src="../../images/opencraft-logo.svg" alt="logo">
+
+    </a>
+    Launchpad Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/open-craft/launchpad-cluster-template" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Infrastructure
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../infrastructure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../infrastructure/provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../infrastructure/cluster-repository-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cluster Repository Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../infrastructure/deprovisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deprovisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../infrastructure/custom-resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cluster
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cluster
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/backup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/restore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Restore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cluster/monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instances
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Instances
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/deprovisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deprovisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/theming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/docker-images/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Images
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/auto-scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto-scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/tracking-logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracking Logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instances/debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debugging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked="">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-aws-waf-and-alb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using AWS WAF and ALB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instance-maintenance-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instance Maintenance Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setting-up-cron-jobs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting Up Cron Jobs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pull-request-sandboxes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pull Request Sandboxes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multi-domain-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Domain Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating Instances from Grove
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating Instances from Grove
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#configure-the-new-instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure the new instance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#point-the-new-instance-to-the-old-instance-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Point the new instance to the old instance data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dns-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS changes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-argocd-automated-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable ArgoCD automated sync
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swap-terraform-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swap Terraform resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ensure-instance-permissions-are-correct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ensure instance permissions are correct
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ensure instance permissions are correct">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-identify-instance-database-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Identify instance database values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-restrict-mysql-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Restrict MySQL permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-restrict-mongodb-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Restrict MongoDB permissions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Restrict MongoDB permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#digitalocean-managed-mongodb-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DigitalOcean Managed MongoDB (API)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mongodb-atlas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MongoDB Atlas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-hosted-mongodb-mongo-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-hosted MongoDB (mongo shell)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-verify-the-instance-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Verify the instance works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../use-more-performant-runners/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use More Performant Runners
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#configure-the-new-instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure the new instance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#point-the-new-instance-to-the-old-instance-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Point the new instance to the old instance data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dns-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS changes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-argocd-automated-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable ArgoCD automated sync
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swap-terraform-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swap Terraform resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ensure-instance-permissions-are-correct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ensure instance permissions are correct
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ensure instance permissions are correct">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-identify-instance-database-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Identify instance database values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-restrict-mysql-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Restrict MySQL permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-restrict-mongodb-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Restrict MongoDB permissions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Restrict MongoDB permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#digitalocean-managed-mongodb-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DigitalOcean Managed MongoDB (API)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mongodb-atlas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MongoDB Atlas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-hosted-mongodb-mongo-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-hosted MongoDB (mongo shell)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-verify-the-instance-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Verify the instance works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="migrating-instances-from-grove">Migrating Instances from Grove<a class="headerlink" href="#migrating-instances-from-grove" title="Permanent link">¶</a></h1>
+<h2 id="configure-the-new-instance">Configure the new instance<a class="headerlink" href="#configure-the-new-instance" title="Permanent link">¶</a></h2>
+<p>-[ ] set the DNS record TTL to 300s
+-[ ] create a new instance in the new cluster using the "create instance" GitHub workflow
+-[ ] make sure the new instance's <code>aplication.yml</code> has <code>spec.syncPolicy.automated.enabled</code> set to <code>false</code>
+-[ ] create any necessary infrastructure resources for the new instance (used by plugins)
+-[ ] ensure the old instance configuration (<code>config.yml</code>) is replicated for the new instance
+-[ ] configure theming and branding for the new instance
+-[ ] build the new instance using the "build instance" GitHub workflow
+-[ ] deploy the new instance using ArgoCD and wait for it to be ready (~20 minutes for the first deployment)
+-[ ] check that the new instance looks as expected
+-[ ] proceed with instance test guide to verify the instance is working as expected
+-[ ] turn off the init jobs for the new instance by setting <code>DRYDOCK_INIT_JOBS</code> to <code>false</code> in the <code>config.yml</code></p>
+<h2 id="point-the-new-instance-to-the-old-instance-data">Point the new instance to the old instance data<a class="headerlink" href="#point-the-new-instance-to-the-old-instance-data" title="Permanent link">¶</a></h2>
+<p>We are going to simplify the migration by making the new instance to use the old instance data. This allows us to avoid data migration, but requires careful configuration of the new instance. Both instances will be using the same database and storage for some time!</p>
+<p>-[ ] get the application configuration from the old instance</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># List all configmaps</span>
+./kubectl<span class="w"> </span>-n<span class="w"> </span>&lt;instance-name&gt;<span class="w"> </span>get<span class="w"> </span>cm
+
+<span class="c1"># LMS configuration</span>
+./kubectl<span class="w"> </span>-n<span class="w"> </span>&lt;instance-name&gt;<span class="w"> </span>get<span class="w"> </span>cm<span class="w"> </span>openedx-settings-lms-&lt;latest<span class="w"> </span>id&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.data.production\.py}'</span><span class="w"> </span>&gt;<span class="w"> </span>&lt;instance-name&gt;-settings-lms.py
+
+<span class="c1"># CMS configuration</span>
+./kubectl<span class="w"> </span>-n<span class="w"> </span>&lt;instance-name&gt;<span class="w"> </span>get<span class="w"> </span>cm<span class="w"> </span>openedx-settings-cms-&lt;latest<span class="w"> </span>id&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.data.production\.py}'</span><span class="w"> </span>&gt;<span class="w"> </span>&lt;instance-name&gt;-settings-cms.py
+
+<span class="c1"># if other configuration is needed, get it from the old instance</span>
+<span class="c1"># -- recommended to get from instance settings using Django shell</span>
+<span class="c1"># ./kubectl -n &lt;instance-name&gt; exec -it deployments/lms -- ./manage.py lms shell</span>
+</code></pre></div>
+<p>-[ ] update the MySQL, MongoDB, S3 and other configuration in the new instance config to use the old instance data (i.e. the same database and storage)
+-[ ] enable the new cluster access for old databases (MongoDB and MySQL)
+-[ ] build the new instance using the "build instance" GitHub workflow
+-[ ] make a backup of the old instance data (in MySQL, MongoDB, S3, etc.)
+-[ ] deploy the new instance using ArgoCD and wait for it to be ready
+-[ ] proceed with instance test guide to verify the old instance is still working as expected
+-[ ] check instance specific configuration and make sure non-generic configuration is working as expected (e.g., LTI, OAuth, etc.)</p>
+<h2 id="dns-changes">DNS changes<a class="headerlink" href="#dns-changes" title="Permanent link">¶</a></h2>
+<p>We need to update the DNS records to point to the new instance. This may lead to a 0-7 minutes outage while the Let's Encrypt certificates are (re-)generated. This section is split into 2 sections: safe and unsafe operations. Proceed in order.</p>
+<p>Safe operations:</p>
+<p>-[ ] update the instance config with the expected FQDNs for LMS, CMS, etc.
+-[ ] build the new instance using the "build instance" GitHub workflow</p>
+<p>Unsafe operations:</p>
+<p>-[ ] change the DNS record to point to the new cluster, and wait about a minute for DNS propagation (monitor DNS at [https://dnschecker.org/]). For CNAME aliased record, the propagation may take a bit longer.
+-[ ] (optional -- only if a must) destroy ingress controllers [^1] and TLS secrets [^2]
+-[ ] (optional -- only if a must) deploy the new instance using ArgoCD and wait for it to be ready
+-[ ] proceed with instance test guide to verify the new instance is working as expected
+-[ ] check the logs for errors
+-[ ] update the DNS record TTL to 3600s once confirmed that the instance is OK</p>
+<p>[^1]: <code>kubectl -n courses delete ing --all</code>
+[^2]: <code>kubectl -n courses delete secrets cms-host-tls lms-host-tls meilisearch-host-tls mfe-host-tls</code></p>
+<h2 id="enable-argocd-automated-sync">Enable ArgoCD automated sync<a class="headerlink" href="#enable-argocd-automated-sync" title="Permanent link">¶</a></h2>
+<p>-[ ] enable ArgoCD automated sync for the new instance by setting <code>spec.syncPolicy.automated.enabled</code> to <code>true</code> in the <code>application.yml</code></p>
+<h2 id="swap-terraform-resources">Swap Terraform resources<a class="headerlink" href="#swap-terraform-resources" title="Permanent link">¶</a></h2>
+<p><em><strong>IMPORTANT: Do this step if and only if ALL instances are migrated from the cluster!</strong></em></p>
+<p>TBD -- This section of the documentation will be finalized when the first cluster is migrated at OpenCraft and we discovered all rabbit holes.</p>
+<h2 id="ensure-instance-permissions-are-correct">Ensure instance permissions are correct<a class="headerlink" href="#ensure-instance-permissions-are-correct" title="Permanent link">¶</a></h2>
+<p>The new infrastructure uses proper permissions for the instance resources, but the old infrastructure does not. We need to make sure the instance user has access only to the instance resources and not the entire database cluster(s).</p>
+<p>The new infrastructure grants:</p>
+<ul>
+<li><strong>MySQL</strong>: <code>ALL PRIVILEGES</code> on the instance database only (e.g. <code>GRANT ALL PRIVILEGES ON \</code>launchpad-instance-openedx`.<em> TO 'launchpad-instance'@'%'<code>), not on</code></em>.*`</li>
+<li><strong>MongoDB</strong>: <code>readWrite</code> role on the instance’s main and forum databases only, not <code>readWriteAnyDatabase</code> or other cluster-wide roles</li>
+</ul>
+<h3 id="step-1-identify-instance-database-values">Step 1: Identify instance database values<a class="headerlink" href="#step-1-identify-instance-database-values" title="Permanent link">¶</a></h3>
+<p>-[ ] From the migrated instance <code>config.yml</code> or Kubernetes configmaps, note:</p>
+<ul>
+<li><code>MYSQL_DATABASE</code> (e.g. <code>launchpad-instance-openedx</code>)</li>
+<li><code>MYSQL_USERNAME</code> (e.g. <code>launchpad-instance</code>)</li>
+<li><code>MONGODB_DATABASE</code> (e.g. <code>launchpad-instance-openedx</code>)</li>
+<li><code>FORUM_MONGODB_DATABASE</code> (e.g. <code>launchpad-instance-forum</code>)</li>
+<li><code>MONGODB_USERNAME</code> (e.g. <code>launchpad-instance</code>)</li>
+</ul>
+<p><em>Note: example values will be used below.</em></p>
+<h3 id="step-2-restrict-mysql-permissions">Step 2: Restrict MySQL permissions<a class="headerlink" href="#step-2-restrict-mysql-permissions" title="Permanent link">¶</a></h3>
+<p>-[ ] If the instance user has global privileges (e.g. on <code>*.*</code>), restrict it to the instance database only.</p>
+<p><strong>Prerequisites</strong>: MySQL admin credentials (root or user with <code>GRANT</code>) -- allow your IP as a trusted source as needed depending on the Cloud Provider.</p>
+<ol>
+<li>Connect as admin:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>mysql<span class="w"> </span>-h<span class="w"> </span>&lt;MYSQL_HOST&gt;<span class="w"> </span>-P<span class="w"> </span>&lt;MYSQL_PORT&gt;<span class="w"> </span>-u<span class="w"> </span>&lt;ADMIN_USER&gt;<span class="w"> </span>-p
+</code></pre></div>
+<ol start="2">
+<li>Inspect current grants:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="c1">-- List all users matching the instance username to find the correct host</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">user</span><span class="p">,</span><span class="w"> </span><span class="k">host</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">mysql</span><span class="p">.</span><span class="k">user</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="k">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'launchpad-instance'</span><span class="p">;</span>
+<span class="k">SHOW</span><span class="w"> </span><span class="n">GRANTS</span><span class="w"> </span><span class="k">FOR</span><span class="w"> </span><span class="s1">'launchpad-instance'</span><span class="o">@</span><span class="s1">'%'</span><span class="p">;</span>
+</code></pre></div>
+<p>Use the actual <code>user@host</code> from <code>mysql.user</code> if it differs from <code>'%'</code>. If you see <code>GRANT ALL PRIVILEGES ON *.*</code>, the user has cluster-wide access and should be restricted.</p>
+<ol start="3">
+<li>Revoke global privileges and grant scoped access (replace placeholders; use the actual <code>user@host</code> if it differs from <code>'%'</code>):</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Revoke global privileges (adjust if the user has different grants)</span>
+<span class="k">REVOKE</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">PRIVILEGES</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="o">*</span><span class="p">.</span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="s1">'launchpad-instance'</span><span class="o">@</span><span class="s1">'%'</span><span class="p">;</span>
+
+<span class="c1">-- Grant access only to the instance database</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">PRIVILEGES</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="o">`</span><span class="n">launchpad</span><span class="o">-</span><span class="n">instance</span><span class="o">-</span><span class="n">openedx</span><span class="o">`</span><span class="p">.</span><span class="o">*</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="s1">'launchpad-instance'</span><span class="o">@</span><span class="s1">'%'</span><span class="p">;</span>
+
+<span class="n">FLUSH</span><span class="w"> </span><span class="k">PRIVILEGES</span><span class="p">;</span>
+</code></pre></div>
+<ol start="4">
+<li>Confirm the grants:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="k">SHOW</span><span class="w"> </span><span class="n">GRANTS</span><span class="w"> </span><span class="k">FOR</span><span class="w"> </span><span class="s1">'launchpad-instance'</span><span class="o">@</span><span class="s1">'%'</span><span class="p">;</span>
+</code></pre></div>
+<p>Expected: <code>GRANT ALL PRIVILEGES ON \</code>launchpad-instance-openedx`.* TO 'launchpad-instance'@'%'`.</p>
+<h3 id="step-3-restrict-mongodb-permissions">Step 3: Restrict MongoDB permissions<a class="headerlink" href="#step-3-restrict-mongodb-permissions" title="Permanent link">¶</a></h3>
+<p>-[ ] Follow the steps for your MongoDB provider:</p>
+<h4 id="digitalocean-managed-mongodb-api">DigitalOcean Managed MongoDB (API)<a class="headerlink" href="#digitalocean-managed-mongodb-api" title="Permanent link">¶</a></h4>
+<p>Use the DigitalOcean API to ensure the user has <code>readWrite</code> only on the instance databases.</p>
+<ol>
+<li>
+<p>Get the cluster ID from your DigitalOcean project or infrastructure config.</p>
+</li>
+<li>
+<p>Check the current user (replace <code>CLUSTER_ID</code> and <code>USERNAME</code>):</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$DIGITALOCEAN_TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"https://api.digitalocean.com/v2/databases/CLUSTER_ID/users/USERNAME"</span>
+</code></pre></div>
+<ol start="3">
+<li>If the user has cluster-wide access, recreate it with scoped databases:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="c1"># Delete the existing user (note: this invalidates the password; you must update the instance config with the new one)</span>
+curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$DIGITALOCEAN_TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"https://api.digitalocean.com/v2/databases/CLUSTER_ID/users/USERNAME"</span>
+
+<span class="c1"># Wait a few seconds, then create the user with scoped access</span>
+sleep<span class="w"> </span><span class="m">3</span>
+curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$DIGITALOCEAN_TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"name": "USERNAME", "settings": {"mongo_user_settings": {"databases": ["launchpad-instance-openedx", "launchpad-instance-forum"], "role": "readWrite"}}}'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"https://api.digitalocean.com/v2/databases/CLUSTER_ID/users"</span>
+</code></pre></div>
+<p>Update the instance <code>config.yml</code> with the new MongoDB password from the API response.</p>
+<h4 id="mongodb-atlas">MongoDB Atlas<a class="headerlink" href="#mongodb-atlas" title="Permanent link">¶</a></h4>
+<p>Use the Atlas UI or CLI to give the user <code>readWrite</code> only on the instance databases.</p>
+<ol>
+<li>
+<p>In Atlas: Project → Database Access → edit the user.</p>
+</li>
+<li>
+<p>Ensure the user has roles:</p>
+</li>
+</ol>
+<ul>
+<li><code>readWrite</code> on the main database (e.g. <code>launchpad-instance-openedx</code>)</li>
+<li><code>readWrite</code> on the forum database (e.g. <code>launchpad-instance-forum</code>)</li>
+</ul>
+<ol start="3">
+<li>Remove any cluster-wide roles such as <code>readWriteAnyDatabase</code> or <code>readAnyDatabase</code>.</li>
+</ol>
+<p>Or via Atlas CLI:</p>
+<div class="highlight"><pre><span></span><code>atlas<span class="w"> </span>dbusers<span class="w"> </span>update<span class="w"> </span>launchpad-instance<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--role<span class="w"> </span><span class="s2">"readWrite@launchpad-instance-openedx"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--role<span class="w"> </span><span class="s2">"readWrite@launchpad-instance-forum"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--projectId<span class="w"> </span>&lt;PROJECT_ID&gt;
+</code></pre></div>
+<h4 id="self-hosted-mongodb-mongo-shell">Self-hosted MongoDB (mongo shell)<a class="headerlink" href="#self-hosted-mongodb-mongo-shell" title="Permanent link">¶</a></h4>
+<p>Use <code>mongosh</code> (MongoDB 5.0+). On older setups, use <code>mongo</code> if <code>mongosh</code> is not available.</p>
+<ol>
+<li>Connect as admin:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>mongosh<span class="w"> </span><span class="s2">"mongodb://&lt;ADMIN_USER&gt;:&lt;ADMIN_PASSWORD&gt;@&lt;MONGODB_HOST&gt;:&lt;MONGODB_PORT&gt;/admin?authSource=admin"</span>
+</code></pre></div>
+<ol start="2">
+<li>Inspect current roles:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nx">use</span><span class="w"> </span><span class="nx">admin</span>
+<span class="nx">db</span><span class="p">.</span><span class="nx">getUser</span><span class="p">(</span><span class="s2">"launchpad-instance"</span><span class="p">)</span>
+</code></pre></div>
+<ol start="3">
+<li>Replace roles with scoped <code>readWrite</code> (adjust usernames and database names):</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nx">use</span><span class="w"> </span><span class="nx">admin</span>
+<span class="nx">db</span><span class="p">.</span><span class="nx">updateUser</span><span class="p">(</span><span class="s2">"launchpad-instance"</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">roles</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s2">"readWrite"</span><span class="p">,</span><span class="w"> </span><span class="nx">db</span><span class="o">:</span><span class="w"> </span><span class="s2">"launchpad-instance-openedx"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s2">"readWrite"</span><span class="p">,</span><span class="w"> </span><span class="nx">db</span><span class="o">:</span><span class="w"> </span><span class="s2">"launchpad-instance-forum"</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>If the user does not exist, create it instead:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">use</span><span class="w"> </span><span class="nx">admin</span>
+<span class="nx">db</span><span class="p">.</span><span class="nx">createUser</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">user</span><span class="o">:</span><span class="w"> </span><span class="s2">"launchpad-instance"</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">pwd</span><span class="o">:</span><span class="w"> </span><span class="s2">"&lt;PASSWORD_FROM_CONFIG&gt;"</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">roles</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s2">"readWrite"</span><span class="p">,</span><span class="w"> </span><span class="nx">db</span><span class="o">:</span><span class="w"> </span><span class="s2">"launchpad-instance-openedx"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s2">"readWrite"</span><span class="p">,</span><span class="w"> </span><span class="nx">db</span><span class="o">:</span><span class="w"> </span><span class="s2">"launchpad-instance-forum"</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">})</span>
+</code></pre></div>
+<h3 id="step-4-verify-the-instance-works">Step 4: Verify the instance works<a class="headerlink" href="#step-4-verify-the-instance-works" title="Permanent link">¶</a></h3>
+<p>-[ ] Ensure the instance can connect to MySQL and MongoDB (LMS/CMS healthy)
+-[ ] Run the instance test guide to confirm expected behaviour</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@8/dist/mermaid.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
