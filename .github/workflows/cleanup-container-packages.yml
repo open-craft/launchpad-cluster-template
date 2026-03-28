@@ -1,0 +1,108 @@
+name: Cleanup Container Packages
+
+on:
+  workflow_call:
+    inputs:
+      RUNNER_WORKFLOW_LABEL:
+        description: "The label of the runner workflow to run"
+        required: false
+        type: string
+        default: "ubuntu-latest"
+      CLEANUP_POLICY:
+        description: "Retention mode: max_count or retention_days"
+        required: false
+        type: string
+        default: "max_count"
+      MAX_IMAGES_PER_INSTANCE:
+        description: "Used with max_count: max number of images to keep per instance"
+        required: false
+        type: number
+        default: 5
+      RETENTION_DAYS:
+        description: "Used with retention_days: delete images older than this many days"
+        required: false
+        type: number
+        default: 30
+      PACKAGE_SUFFIXES_JSON:
+        description: 'JSON array of package name suffixes (GHCR package is "<repo>/<suffix>")'
+        required: false
+        type: string
+        default: '["openedx","mfe"]'
+      INSTANCE_MARKER_FILE:
+        description: "Only directories with this marker file are treated as instances"
+        required: false
+        type: string
+        default: "config.yml"
+      HASH_LENGTH:
+        description: "Expected random hash length in image tags"
+        required: false
+        type: number
+        default: 8
+      DRY_RUN:
+        description: "Print deletions without deleting versions"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  cleanup:
+    name: Cleanup ${{ matrix.package_suffix }}
+    runs-on: ${{ inputs.RUNNER_WORKFLOW_LABEL }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package_suffix: ${{ fromJSON(inputs.PACKAGE_SUFFIXES_JSON) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cleanup registry
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # TODO: add a suffix to the tag name "/${{ matrix.package_suffix }}",
+          # so that we can do granular cleanup of multiple packages from the
+          # same repository. Right now this is not possible due to the way the
+          # images are tagged.
+          PACKAGE_NAME: ${{ github.event.repository.name }}
+          CLEANUP_POLICY: ${{ inputs.CLEANUP_POLICY }}
+          MAX_IMAGES_PER_INSTANCE: ${{ inputs.MAX_IMAGES_PER_INSTANCE }}
+          RETENTION_DAYS: ${{ inputs.RETENTION_DAYS }}
+          INSTANCE_MARKER_FILE: ${{ inputs.INSTANCE_MARKER_FILE }}
+          HASH_LENGTH: ${{ inputs.HASH_LENGTH }}
+          DRY_RUN: ${{ inputs.DRY_RUN }}
+        run: |
+          set -euo pipefail
+          args=(
+            --package-name "${PACKAGE_NAME}"
+            --instances-root "instances"
+            --instance-marker-file "${INSTANCE_MARKER_FILE}"
+            --hash-length "${HASH_LENGTH}"
+          )
+
+          if [ "${DRY_RUN}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+
+          case "${CLEANUP_POLICY}" in
+            max_count)
+              args+=(--max-per-instance "${MAX_IMAGES_PER_INSTANCE}")
+              ;;
+            retention_days)
+              args+=(--retention-days "${RETENTION_DAYS}")
+              ;;
+            *)
+              echo "Invalid CLEANUP_POLICY: ${CLEANUP_POLICY}. Expected max_count or retention_days."
+              exit 1
+              ;;
+          esac
+
+          python ".github/workflows/scripts/cleanup_ghcr_instance_images.py" "${args[@]}"
