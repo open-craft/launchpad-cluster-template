@@ -33,55 +33,17 @@ spec:
   templates:
     - name: main
       steps:
-        - - name: revoke-permissions
-            template: revoke-permissions
-        - - name: drop-user
-            template: drop-user
         - - name: drop-database
             template: drop-database
-
-    - name: revoke-permissions
-      script:
-        image: mysql:8.0
-        command: [bash]
-        source: |
-          #!/bin/bash
-          set -e
-
-          export MYSQL_PWD="{{workflow.parameters.mysql-root-password}}"
-
-          echo "Revoking permissions for user: {{workflow.parameters.username}}"
-          mysql -h{{workflow.parameters.mysql-host}} \
-                -P{{workflow.parameters.mysql-port}} \
-                -u{{workflow.parameters.mysql-root-user}} \
-                -e "REVOKE ALL PRIVILEGES ON \`{{workflow.parameters.database-name}}\`.* FROM '{{workflow.parameters.username}}'@'%'; FLUSH PRIVILEGES;" || echo "User or database may not exist"
-
-          echo "Permissions revoked for user {{workflow.parameters.username}}"
-
-    - name: drop-user
-      script:
-        image: mysql:8.0
-        command: [bash]
-        source: |
-          #!/bin/bash
-          set -e
-
-          export MYSQL_PWD="{{workflow.parameters.mysql-root-password}}"
-
-          echo "Dropping user: {{workflow.parameters.username}}"
-          mysql -h{{workflow.parameters.mysql-host}} \
-                -P{{workflow.parameters.mysql-port}} \
-                -u{{workflow.parameters.mysql-root-user}} \
-                -e "DROP USER IF EXISTS '{{workflow.parameters.username}}'@'%';" || echo "User may not exist"
-
-          echo "User {{workflow.parameters.username}} dropped successfully"
+        - - name: drop-user
+            template: drop-user
 
     - name: drop-database
       script:
         image: mysql:8.0
-        command: [bash]
+        command: [sh]
         source: |
-          #!/bin/bash
+          #!/bin/sh
           set -e
 
           export MYSQL_PWD="{{workflow.parameters.mysql-root-password}}"
@@ -90,7 +52,27 @@ spec:
           mysql -h{{workflow.parameters.mysql-host}} \
                 -P{{workflow.parameters.mysql-port}} \
                 -u{{workflow.parameters.mysql-root-user}} \
-                -e "DROP DATABASE IF EXISTS \`{{workflow.parameters.database-name}}\`;" || echo "Database may not exist"
+                --connect-timeout=30 \
+                -e "DROP DATABASE IF EXISTS \`{{workflow.parameters.database-name}}\`;"
+
+          echo "Database {{workflow.parameters.database-name}} dropped (or did not exist)"
+
+    - name: drop-user
+      script:
+        image: mysql:8.0
+        command: [sh]
+        source: |
+          #!/bin/sh
+          set -e
+
+          export MYSQL_PWD="{{workflow.parameters.mysql-root-password}}"
+
+          echo "Dropping user: {{workflow.parameters.username}}"
+          mysql -h{{workflow.parameters.mysql-host}} \
+                -P{{workflow.parameters.mysql-port}} \
+                -u{{workflow.parameters.mysql-root-user}} \
+                --connect-timeout=30 \
+                -e "DROP USER IF EXISTS '{{workflow.parameters.username}}'@'%';"
 
           echo "MySQL deprovisioning completed successfully!"
           echo "- Database: {{workflow.parameters.database-name}} (dropped)"
