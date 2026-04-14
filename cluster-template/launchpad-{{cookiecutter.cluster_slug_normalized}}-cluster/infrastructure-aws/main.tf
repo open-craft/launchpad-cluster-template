@@ -2,7 +2,7 @@ locals {
   context_file = jsondecode(file("${path.module}/../context.json"))
 
   # Kubernetes cluster nodes
-  kubernetes_worker_node_size       = "m-4vcpu-32gb"
+  kubernetes_worker_node_size       = "t3.xlarge"
   kubernetes_cluster_min_node_count = 2
   kubernetes_cluster_max_node_count = 8
 
