@@ -83,6 +83,8 @@ on:
         required: true
       SSH_PRIVATE_KEY:
         required: true
+      KUBECONFIG_CONTENT:
+        required: false
 
 jobs:
   create-instance:
@@ -167,6 +169,7 @@ jobs:
           LAUNCHPAD_STORAGE_REGION: ${{ secrets.LAUNCHPAD_STORAGE_REGION }}
           LAUNCHPAD_STORAGE_ACCESS_KEY_ID: ${{ secrets.LAUNCHPAD_STORAGE_ACCESS_KEY_ID }}
           LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY: ${{ secrets.LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY }}
+          KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG_CONTENT }}
           # OpenCraft manifests version override
           LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION: ${{ inputs.INSTANCE_TEMPLATE_VERSION }}
           # Backend credentials for Terraform state access
