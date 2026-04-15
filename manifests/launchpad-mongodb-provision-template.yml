@@ -33,15 +33,12 @@ spec:
       - name: digitalocean-token
         description: "DigitalOcean API token (for DigitalOcean API provider)"
         value: ""
-      - name: atlas-public-key
-        description: "MongoDB Atlas API public key (for Atlas provider)"
+      - name: atlas-aws-secret-name
+        description: "AWS Secrets Manager secret name containing Atlas credentials (public_key, private_key)"
         value: ""
-      - name: atlas-private-key
-        description: "MongoDB Atlas API private key (for Atlas provider)"
-        value: ""
-      - name: atlas-project-id
-        description: "MongoDB Atlas project ID (for Atlas provider)"
-        value: ""
+      - name: atlas-aws-region
+        description: "AWS region for Secrets Manager"
+        value: "us-east-1"
       - name: atlas-cluster-name
         description: "MongoDB Atlas cluster name (for Atlas provider)"
         value: ""
@@ -234,61 +231,100 @@ spec:
     #############################################################################
     - name: provision-atlas
       steps:
-        - - name: validate-atlas-config
-            template: validate-atlas-config
+        - - name: fetch-atlas-credentials
+            template: fetch-atlas-credentials
         - - name: create-database-atlas
             template: create-database-atlas
+            arguments:
+              parameters:
+                - name: atlas-public-key
+                  value: "{{steps.fetch-atlas-credentials.outputs.parameters.atlas-public-key}}"
+                - name: atlas-private-key
+                  value: "{{steps.fetch-atlas-credentials.outputs.parameters.atlas-private-key}}"
         - - name: create-user-atlas
             template: create-user-atlas
+            arguments:
+              parameters:
+                - name: atlas-public-key
+                  value: "{{steps.fetch-atlas-credentials.outputs.parameters.atlas-public-key}}"
+                - name: atlas-private-key
+                  value: "{{steps.fetch-atlas-credentials.outputs.parameters.atlas-private-key}}"
 
-    - name: validate-atlas-config
+    - name: fetch-atlas-credentials
       script:
-        image: alpine:3.18
+        image: amazon/aws-cli:2.13.23
         command: [sh]
         source: |
           #!/bin/sh
           set -e
 
-          PUBLIC_KEY="{{workflow.parameters.atlas-public-key}}"
-          PRIVATE_KEY="{{workflow.parameters.atlas-private-key}}"
-          PROJECT_ID="{{workflow.parameters.atlas-project-id}}"
+          SECRET_NAME="{{workflow.parameters.atlas-aws-secret-name}}"
+          AWS_REGION="{{workflow.parameters.atlas-aws-region}}"
+          PROJECT_ID="{{workflow.parameters.mongodb-cluster-id}}"
           CLUSTER_NAME="{{workflow.parameters.atlas-cluster-name}}"
 
-          if [ -z "$PUBLIC_KEY" ]; then
-            echo "Error: atlas-public-key is required for atlas provider"
-            exit 1
-          fi
-
-          if [ -z "$PRIVATE_KEY" ]; then
-            echo "Error: atlas-private-key is required for atlas provider"
+          if [ -z "$SECRET_NAME" ]; then
+            echo "Error: atlas-aws-secret-name is required for atlas provider" >&2
             exit 1
           fi
 
           if [ -z "$PROJECT_ID" ]; then
-            echo "Error: atlas-project-id is required for atlas provider"
+            echo "Error: mongodb-cluster-id is required for atlas provider" >&2
             exit 1
           fi
 
           if [ -z "$CLUSTER_NAME" ]; then
-            echo "Error: atlas-cluster-name is required for atlas provider"
+            echo "Error: atlas-cluster-name is required for atlas provider" >&2
             exit 1
           fi
 
-          echo "MongoDB Atlas configuration validated"
-          echo "- Project ID: $PROJECT_ID"
-          echo "- Cluster: $CLUSTER_NAME"
+          echo "Fetching Atlas credentials from AWS Secrets Manager: $SECRET_NAME" >&2
+          SECRET=$(aws secretsmanager get-secret-value \
+            --secret-id "$SECRET_NAME" \
+            --region "$AWS_REGION" \
+            --query SecretString \
+            --output text)
+
+          PUBLIC_KEY=$(echo "$SECRET" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['public_key'])")
+          PRIVATE_KEY=$(echo "$SECRET" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['private_key'])")
+
+          if [ -z "$PUBLIC_KEY" ] || [ -z "$PRIVATE_KEY" ]; then
+            echo "Error: 'public_key' or 'private_key' not found in AWS secret '$SECRET_NAME'" >&2
+            exit 1
+          fi
+
+          mkdir -p /tmp/outputs
+          echo -n "$PUBLIC_KEY" > /tmp/outputs/atlas-public-key
+          echo -n "$PRIVATE_KEY" > /tmp/outputs/atlas-private-key
+
+          echo "MongoDB Atlas credentials fetched successfully" >&2
+          echo "- AWS Secret: $SECRET_NAME" >&2
+          echo "- Project ID: $PROJECT_ID" >&2
+          echo "- Cluster: $CLUSTER_NAME" >&2
+      outputs:
+        parameters:
+          - name: atlas-public-key
+            valueFrom:
+              path: /tmp/outputs/atlas-public-key
+          - name: atlas-private-key
+            valueFrom:
+              path: /tmp/outputs/atlas-private-key
 
     - name: create-database-atlas
+      inputs:
+        parameters:
+          - name: atlas-public-key
+          - name: atlas-private-key
       script:
         image: debian:bookworm-slim
         command: [bash]
         env:
           - name: MCLI_PUBLIC_API_KEY
-            value: "{{workflow.parameters.atlas-public-key}}"
+            value: "{{inputs.parameters.atlas-public-key}}"
           - name: MCLI_PRIVATE_API_KEY
-            value: "{{workflow.parameters.atlas-private-key}}"
+            value: "{{inputs.parameters.atlas-private-key}}"
           - name: MCLI_PROJECT_ID
-            value: "{{workflow.parameters.atlas-project-id}}"
+            value: "{{workflow.parameters.mongodb-cluster-id}}"
           - name: MCLI_OPS_MANAGER_URL
             value: "https://cloud.mongodb.com"
         source: |
@@ -296,20 +332,18 @@ spec:
           set -euo pipefail
 
           DATABASE_NAME="{{workflow.parameters.database-name}}"
-          PROJECT_ID="{{workflow.parameters.atlas-project-id}}"
+          PROJECT_ID="{{workflow.parameters.mongodb-cluster-id}}"
           CLUSTER_NAME="{{workflow.parameters.atlas-cluster-name}}"
 
-          # Install Atlas CLI from official MongoDB package
+          # Install Atlas CLI
           echo "Installing MongoDB Atlas CLI..."
           export DEBIAN_FRONTEND=noninteractive
           apt-get update -y
           apt-get install -y curl ca-certificates
 
-          # Detect architecture
           ARCH=$(dpkg --print-architecture)
           VERSION="1.28.0"
           DEB_URL="https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_${VERSION}_linux_${ARCH}.deb"
-
           curl -fsSL "$DEB_URL" -o /tmp/atlas-cli.deb
           dpkg -i /tmp/atlas-cli.deb
           atlas --version
@@ -325,16 +359,20 @@ spec:
           echo "Database '$DATABASE_NAME' will be created automatically on first write."
 
     - name: create-user-atlas
+      inputs:
+        parameters:
+          - name: atlas-public-key
+          - name: atlas-private-key
       script:
         image: debian:bookworm-slim
         command: [bash]
         env:
           - name: MCLI_PUBLIC_API_KEY
-            value: "{{workflow.parameters.atlas-public-key}}"
+            value: "{{inputs.parameters.atlas-public-key}}"
           - name: MCLI_PRIVATE_API_KEY
-            value: "{{workflow.parameters.atlas-private-key}}"
+            value: "{{inputs.parameters.atlas-private-key}}"
           - name: MCLI_PROJECT_ID
-            value: "{{workflow.parameters.atlas-project-id}}"
+            value: "{{workflow.parameters.mongodb-cluster-id}}"
           - name: MCLI_OPS_MANAGER_URL
             value: "https://cloud.mongodb.com"
         source: |
@@ -345,7 +383,7 @@ spec:
           USERNAME="{{workflow.parameters.username}}"
           PASSWORD="{{workflow.parameters.password}}"
           DATABASE_NAME="{{workflow.parameters.database-name}}"
-          PROJECT_ID="{{workflow.parameters.atlas-project-id}}"
+          PROJECT_ID="{{workflow.parameters.mongodb-cluster-id}}"
           K8s_API_BEARER_TOKEN="{{workflow.parameters.k8s-api-bearer-token}}"
 
           # Install Atlas CLI from official MongoDB package

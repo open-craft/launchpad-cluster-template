@@ -283,7 +283,7 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
             "LAUNCHPAD_INSTANCE_MYSQL_USERNAME": config_data.get("MYSQL_USERNAME", ""),
             "LAUNCHPAD_INSTANCE_MYSQL_PASSWORD": config_data.get("MYSQL_PASSWORD", ""),
             "LAUNCHPAD_INSTANCE_MYSQL_HOST": config_data.get("MYSQL_HOST"),
-            "LAUNCHPAD_INSTANCE_MYSQL_PORT": config_data.get("MYSQL_PORT"),
+            "LAUNCHPAD_INSTANCE_MYSQL_PORT": config_data.get("MYSQL_PORT", "3306"),
             "LAUNCHPAD_INSTANCE_MYSQL_ROOT_USER": os.getenv(
                 "LAUNCHPAD_MYSQL_ROOT_USER", "root"
             ),
@@ -330,14 +330,11 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
     # MongoDB Atlas parameters
     instance_config.update(
         {
-            "LAUNCHPAD_INSTANCE_ATLAS_PUBLIC_KEY": os.getenv(
-                "LAUNCHPAD_ATLAS_PUBLIC_KEY", ""
+            "LAUNCHPAD_INSTANCE_ATLAS_AWS_SECRET_NAME": os.getenv(
+                "LAUNCHPAD_ATLAS_AWS_SECRET_NAME", ""
             ),
-            "LAUNCHPAD_INSTANCE_ATLAS_PRIVATE_KEY": os.getenv(
-                "LAUNCHPAD_ATLAS_PRIVATE_KEY", ""
-            ),
-            "LAUNCHPAD_INSTANCE_ATLAS_PROJECT_ID": os.getenv(
-                "LAUNCHPAD_ATLAS_PROJECT_ID", ""
+            "LAUNCHPAD_INSTANCE_ATLAS_AWS_REGION": os.getenv(
+                "LAUNCHPAD_ATLAS_AWS_REGION", "us-east-1"
             ),
             "LAUNCHPAD_INSTANCE_ATLAS_CLUSTER_NAME": os.getenv(
                 "LAUNCHPAD_ATLAS_CLUSTER_NAME", ""
