@@ -491,7 +491,7 @@ def create_instance(  # pylint: disable=too-many-positional-arguments
     manifests_url = config.cluster.opencraft_manifests_url  # pylint: disable=no-member
 
     _setup_instance_rbac(k8s_client, instance_name, manifests_url)
-    _ensure_argo_workflows_installed()
+    # _ensure_argo_workflows_installed()
 
     config_file = instances_dir / instance_name / "config.yml"
     if not config_file.exists():
