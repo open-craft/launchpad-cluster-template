@@ -28,12 +28,15 @@ spec:
       - name: digitalocean-token
         description: "DigitalOcean API token (for DigitalOcean API provider)"
         value: ""
-      - name: atlas-aws-secret-name
-        description: "AWS Secrets Manager secret name containing Atlas credentials (public_key, private_key)"
+      - name: atlas-public-key
+        description: "MongoDB Atlas API public key (for Atlas provider)"
         value: ""
-      - name: atlas-aws-region
-        description: "AWS region for Secrets Manager"
-        value: "us-east-1"
+      - name: atlas-private-key
+        description: "MongoDB Atlas API private key (for Atlas provider)"
+        value: ""
+      - name: atlas-project-id
+        description: "MongoDB Atlas project ID (for Atlas provider)"
+        value: ""
       - name: atlas-cluster-name
         description: "MongoDB Atlas cluster name (for Atlas provider)"
         value: ""
@@ -131,79 +134,22 @@ spec:
     #############################################################################
     - name: deprovision-atlas
       steps:
-        - - name: fetch-atlas-credentials
-            template: fetch-atlas-credentials
         - - name: delete-user-atlas
             template: delete-user-atlas
-            arguments:
-              parameters:
-                - name: atlas-public-key
-                  value: "{{steps.fetch-atlas-credentials.outputs.parameters.atlas-public-key}}"
-                - name: atlas-private-key
-                  value: "{{steps.fetch-atlas-credentials.outputs.parameters.atlas-private-key}}"
         - - name: delete-database-atlas
             template: delete-database-atlas
 
-    - name: fetch-atlas-credentials
-      script:
-        image: amazon/aws-cli:2.13.23
-        command: [sh]
-        source: |
-          #!/bin/sh
-          set -e
-
-          SECRET_NAME="{{workflow.parameters.atlas-aws-secret-name}}"
-          AWS_REGION="{{workflow.parameters.atlas-aws-region}}"
-
-          if [ -z "$SECRET_NAME" ]; then
-            echo "Error: atlas-aws-secret-name is required for atlas provider" >&2
-            exit 1
-          fi
-
-          echo "Fetching Atlas credentials from AWS Secrets Manager: $SECRET_NAME" >&2
-          SECRET=$(aws secretsmanager get-secret-value \
-            --secret-id "$SECRET_NAME" \
-            --region "$AWS_REGION" \
-            --query SecretString \
-            --output text)
-
-          PUBLIC_KEY=$(echo "$SECRET" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['public_key'])")
-          PRIVATE_KEY=$(echo "$SECRET" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['private_key'])")
-
-          if [ -z "$PUBLIC_KEY" ] || [ -z "$PRIVATE_KEY" ]; then
-            echo "Error: 'public_key' or 'private_key' not found in AWS secret '$SECRET_NAME'" >&2
-            exit 1
-          fi
-
-          mkdir -p /tmp/outputs
-          echo -n "$PUBLIC_KEY" > /tmp/outputs/atlas-public-key
-          echo -n "$PRIVATE_KEY" > /tmp/outputs/atlas-private-key
-
-          echo "MongoDB Atlas credentials fetched successfully" >&2
-      outputs:
-        parameters:
-          - name: atlas-public-key
-            valueFrom:
-              path: /tmp/outputs/atlas-public-key
-          - name: atlas-private-key
-            valueFrom:
-              path: /tmp/outputs/atlas-private-key
-
     - name: delete-user-atlas
-      inputs:
-        parameters:
-          - name: atlas-public-key
-          - name: atlas-private-key
       script:
         image: debian:bookworm-slim
         command: [bash]
         env:
           - name: MCLI_PUBLIC_API_KEY
-            value: "{{inputs.parameters.atlas-public-key}}"
+            value: "{{workflow.parameters.atlas-public-key}}"
           - name: MCLI_PRIVATE_API_KEY
-            value: "{{inputs.parameters.atlas-private-key}}"
+            value: "{{workflow.parameters.atlas-private-key}}"
           - name: MCLI_PROJECT_ID
-            value: "{{workflow.parameters.mongodb-cluster-id}}"
+            value: "{{workflow.parameters.atlas-project-id}}"
           - name: MCLI_OPS_MANAGER_URL
             value: "https://cloud.mongodb.com"
         source: |
@@ -211,7 +157,7 @@ spec:
           set -euo pipefail
 
           USERNAME="{{workflow.parameters.username}}"
-          PROJECT_ID="{{workflow.parameters.mongodb-cluster-id}}"
+          PROJECT_ID="{{workflow.parameters.atlas-project-id}}"
 
           # Install Atlas CLI from official MongoDB package
           echo "Installing MongoDB Atlas CLI..."
