@@ -41,10 +41,10 @@ class ClusterConfig(LaunchpadBaseSettings):
 
     # Argo versions
     argocd_version: str = Field(
-        default="stable", description="ArgoCD version to install"
+        default="release-3.3", description="ArgoCD version to install"
     )
     argo_workflows_version: str = Field(
-        default="stable", description="Argo Workflows version to install"
+        default="v4.0.4", description="Argo Workflows version to install"
     )
 
     # OpenCraft manifests configuration
@@ -115,7 +115,7 @@ class ClusterConfig(LaunchpadBaseSettings):
         Get the Argo Workflows installation URL.
         """
 
-        return f"https://raw.githubusercontent.com/argoproj/argo-workflows/{self.argo_workflows_version}/manifests/install.yaml"
+        return f"https://github.com/argoproj/argo-workflows/releases/download/{self.argo_workflows_version}/install.yaml"
 
 
 class InstanceConfig(LaunchpadBaseSettings):
