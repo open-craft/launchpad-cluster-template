@@ -309,7 +309,7 @@ def delete_instance(instance_name: str, force: bool = False) -> None:
 
         try:
             subprocess.run(
-                ["kubectl", "delete", "namespace", instance_name, "--timeout=300s"],
+                ["kubectl", "delete", "namespace", instance_name, "--timeout=300s", "--ignore-not-found=true"],
                 check=True,
                 capture_output=False,
             )
