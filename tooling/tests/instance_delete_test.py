@@ -14,7 +14,7 @@ from launchpad.exceptions import KubernetesError
 class TestCreateDeprovisionWorkflows:
     """Tests for _create_deprovision_workflows."""
 
-    @mock.patch("launchpad.cli.instance_delete._wait_for_workflow_completion")
+    @mock.patch("launchpad.cli.instance_delete.wait_for_workflow_completion")
     @mock.patch("launchpad.cli.instance_delete.run_command_with_logging")
     def test_raises_when_any_workflow_fails(self, _mock_rcl, mock_wait):
         mock_wait.side_effect = [True, False, True]
@@ -31,7 +31,7 @@ class TestCreateDeprovisionWorkflows:
 
     @mock.patch("launchpad.cli.instance_delete.log_success")
     @mock.patch("launchpad.cli.instance_delete.subprocess.run")
-    @mock.patch("launchpad.cli.instance_delete._wait_for_workflow_completion")
+    @mock.patch("launchpad.cli.instance_delete.wait_for_workflow_completion")
     @mock.patch("launchpad.cli.instance_delete.run_command_with_logging")
     def test_succeeds_and_cleans_workflows_when_all_complete(
         self, _mock_rcl, mock_wait, mock_subprocess_run, mock_log_success

@@ -33,6 +33,10 @@ on:
         required: true
       LAUNCHPAD_MYSQL_ROOT_PASSWORD:
         required: true
+      LAUNCHPAD_MYSQL_PROVIDER:
+        required: false
+      LAUNCHPAD_MYSQL_CLUSTER_ID:
+        required: false
       LAUNCHPAD_MONGODB_HOST:
         required: true
       LAUNCHPAD_MONGODB_PORT:
@@ -125,6 +129,8 @@ jobs:
           LAUNCHPAD_MYSQL_PORT: ${{ secrets.LAUNCHPAD_MYSQL_PORT }}
           LAUNCHPAD_MYSQL_ROOT_USER: ${{ secrets.LAUNCHPAD_MYSQL_ROOT_USER }}
           LAUNCHPAD_MYSQL_ROOT_PASSWORD: ${{ secrets.LAUNCHPAD_MYSQL_ROOT_PASSWORD }}
+          LAUNCHPAD_MYSQL_PROVIDER: ${{ secrets.LAUNCHPAD_MYSQL_PROVIDER }}
+          LAUNCHPAD_MYSQL_CLUSTER_ID: ${{ secrets.LAUNCHPAD_MYSQL_CLUSTER_ID }}
           LAUNCHPAD_MONGODB_HOST: ${{ secrets.LAUNCHPAD_MONGODB_HOST }}
           LAUNCHPAD_MONGODB_PORT: ${{ secrets.LAUNCHPAD_MONGODB_PORT }}
           LAUNCHPAD_MONGODB_PROVIDER: ${{ secrets.LAUNCHPAD_MONGODB_PROVIDER }}

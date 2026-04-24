@@ -29,6 +29,11 @@ output "mysql_port" {
   value       = module.mysql_database.cluster_port
 }
 
+output "mysql_cluster_id" {
+  description = "MySQL database cluster ID"
+  value       = module.mysql_database.cluster_id
+}
+
 output "mysql_root_user" {
   description = "MySQL root username"
   value       = module.mysql_database.cluster_root_user

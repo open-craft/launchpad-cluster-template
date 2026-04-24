@@ -600,8 +600,10 @@ For GitHub Actions, configure:
 **MySQL Database** (if using MySQL):
 - `LAUNCHPAD_MYSQL_HOST`: MySQL server hostname
 - `LAUNCHPAD_MYSQL_PORT`: MySQL server port (default: `3306`)
-- `LAUNCHPAD_MYSQL_ADMIN_USER`: MySQL admin username
-- `LAUNCHPAD_MYSQL_ADMIN_PASSWORD`: MySQL admin password
+- `LAUNCHPAD_MYSQL_ROOT_USER`: MySQL admin username
+- `LAUNCHPAD_MYSQL_ROOT_PASSWORD`: MySQL admin password
+- `LAUNCHPAD_MYSQL_PROVIDER`: (Optional) `direct_sql` or `digitalocean_api` for delete deprovision mode
+- `LAUNCHPAD_MYSQL_CLUSTER_ID`: (Required when provider is `digitalocean_api`) DigitalOcean MySQL cluster UUID
 
 **MongoDB Database** (if using MongoDB):
 - `LAUNCHPAD_MONGODB_HOST`: MongoDB server hostname

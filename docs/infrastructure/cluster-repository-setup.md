@@ -50,13 +50,15 @@ Workflows read sensitive values from **repository secrets**. Configure them befo
 | `LAUNCHPAD_MYSQL_PORT`                  | Create Instance, Delete Instance                                    | MySQL port (default: `3306`)                                          |
 | `LAUNCHPAD_MYSQL_ROOT_USER`             | Create Instance, Delete Instance                                    | MySQL admin username                                                  |
 | `LAUNCHPAD_MYSQL_ROOT_PASSWORD`         | Create Instance, Delete Instance                                    | MySQL admin password                                                  |
+| `LAUNCHPAD_MYSQL_PROVIDER`              | Delete Instance                                                     | MySQL deprovision provider: `direct_sql` or `digitalocean_api`       |
+| `LAUNCHPAD_MYSQL_CLUSTER_ID`            | Delete Instance                                                     | DigitalOcean MySQL cluster UUID (required when provider is `digitalocean_api`) |
 | `LAUNCHPAD_MONGODB_HOST`                | Create Instance, Delete Instance                                    | MongoDB hostname (for direct connection)                              |
 | `LAUNCHPAD_MONGODB_PORT`                | Create Instance, Delete Instance                                    | MongoDB port (default: `27017`)                                       |
 | `LAUNCHPAD_MONGODB_PROVIDER`            | Create Instance, Delete Instance                                    | `digitalocean_api` or `atlas`                                         |
 | `LAUNCHPAD_MONGODB_CLUSTER_ID`          | Create Instance, Delete Instance                                    | DigitalOcean MongoDB cluster ID (or Atlas project ID)                 |
 | `LAUNCHPAD_MONGODB_REPLICA_SET`         | Create Instance, Delete Instance                                    | MongoDB replica set name                                              |
 | `LAUNCHPAD_MONGODB_AUTH_SOURCE`         | Create Instance, Delete Instance                                    | MongoDB auth source (default: `admin`)                                 |
-| `LAUNCHPAD_DIGITALOCEAN_TOKEN`          | Create Instance, Delete Instance                                    | DigitalOcean API token                                                |
+| `LAUNCHPAD_DIGITALOCEAN_TOKEN`          | Create Instance, Delete Instance                                    | DigitalOcean API token for provider-managed database cleanup          |
 | `LAUNCHPAD_STORAGE_TYPE`                | Create Instance, Delete Instance                                    | `s3` or `spaces`                                                      |
 | `LAUNCHPAD_STORAGE_REGION`              | Create Instance, Delete Instance                                    | Region (e.g. `us-east-1`, `nyc3`)                                     |
 | `LAUNCHPAD_STORAGE_ACCESS_KEY_ID`       | Create Instance, Delete Instance                                    | S3/Spaces access key ID                                               |

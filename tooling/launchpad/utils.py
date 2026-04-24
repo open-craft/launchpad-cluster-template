@@ -276,6 +276,11 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
     if tutor_version is not None:
         instance_config["LAUNCHPAD_TUTOR_VERSION"] = tutor_version
 
+    # Shared provider credentials used by both MySQL and MongoDB workflows.
+    instance_config["LAUNCHPAD_INSTANCE_DIGITALOCEAN_TOKEN"] = os.getenv(
+        "LAUNCHPAD_DIGITALOCEAN_TOKEN", ""
+    )
+
     # MySQL parameters
     instance_config.update(
         {
@@ -289,6 +294,13 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
             ),
             "LAUNCHPAD_INSTANCE_MYSQL_ROOT_PASSWORD": os.getenv(
                 "LAUNCHPAD_MYSQL_ROOT_PASSWORD", ""
+            ),
+            # Provider-specific parameters (DigitalOcean API or direct SQL)
+            "LAUNCHPAD_INSTANCE_MYSQL_PROVIDER": os.getenv(
+                "LAUNCHPAD_MYSQL_PROVIDER", "direct_sql"
+            ),
+            "LAUNCHPAD_INSTANCE_MYSQL_CLUSTER_ID": os.getenv(
+                "LAUNCHPAD_MYSQL_CLUSTER_ID", ""
             ),
         }
     )
@@ -320,9 +332,6 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
             ),
             "LAUNCHPAD_INSTANCE_MONGODB_CLUSTER_ID": os.getenv(
                 "LAUNCHPAD_MONGODB_CLUSTER_ID", ""
-            ),
-            "LAUNCHPAD_INSTANCE_DIGITALOCEAN_TOKEN": os.getenv(
-                "LAUNCHPAD_DIGITALOCEAN_TOKEN", ""
             ),
         }
     )

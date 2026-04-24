@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 
 from launchpad.cli.utils import exit_with_error, run_command_with_logging
+from launchpad.cli.workflow_wait import wait_for_workflow_completion
 from launchpad.config import get_config
 from launchpad.exceptions import KubernetesError
 from launchpad.kubeconfig import setup_kubeconfig
@@ -21,8 +22,6 @@ from launchpad.utils import (
 )
 
 logger = get_logger(__name__)
-
-WORKFLOW_TIMEOUT = 300
 
 NAMESPACE_DELETE_RETRY = 3
 NAMESPACE_DELETE_TIMEOUT = 300
@@ -130,69 +129,6 @@ def _delete_namespace_with_retry(instance_name: str) -> None:
     ) from last_wait_error
 
 
-def _wait_for_workflow_completion(  # pylint: disable=duplicate-code
-    instance_name: str,
-    workflow_name: str,
-    timeout: int = WORKFLOW_TIMEOUT,
-) -> bool:
-    """
-    Wait for an Argo Workflow to complete and check its status.
-
-    Args:
-        instance_name: Namespace where the workflow runs
-        workflow_name: Name of the workflow to wait for
-        timeout: Maximum time to wait in seconds
-
-    Returns:
-        True if workflow succeeded, False otherwise
-    """
-    logger.debug("Waiting for workflow '%s' to complete...", workflow_name)
-
-    try:
-        subprocess.run(
-            [
-                "kubectl",
-                "wait",
-                "--for=condition=Completed",
-                f"workflow/{workflow_name}",
-                "-n",
-                instance_name,
-                f"--timeout={timeout}s",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-
-        result = subprocess.run(
-            [
-                "kubectl",
-                "get",
-                f"workflow/{workflow_name}",
-                "-n",
-                instance_name,
-                "-o",
-                "jsonpath={.status.phase}",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-
-        status = result.stdout.strip()
-
-        if status == "Succeeded":
-            logger.debug("Workflow '%s' succeeded", workflow_name)
-            return True
-
-        logger.warning("Workflow '%s' failed with status: %s", workflow_name, status)
-        return False
-
-    except subprocess.CalledProcessError:
-        logger.warning("Workflow '%s' timed out or failed", workflow_name)
-        return False
-
-
 def _create_deprovision_workflows(
     k8s_client: KubernetesClient,
     instance_name: str,
@@ -249,7 +185,9 @@ def _create_deprovision_workflows(
     failed_workflows: list[str] = []
 
     for workflow_type, _, workflow_name in workflows:
-        if not _wait_for_workflow_completion(instance_name, workflow_name):
+        if not wait_for_workflow_completion(
+            instance_name, workflow_name, logger=logger
+        ):
             failed_workflows.append(workflow_type)
 
     subprocess.run(
