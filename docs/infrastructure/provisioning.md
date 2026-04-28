@@ -142,6 +142,34 @@ export LAUNCHPAD_CLUSTER_DOMAIN="cluster.domain"
 export LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS="base64 encoded docker registry credentials"
 ```
 
+**Optional: enable GitHub SSO for ArgoCD**:
+
+1. Create a GitHub OAuth App with callback URL:
+   `https://argocd.<cluster-domain>/api/dex/callback`
+2. Export these variables before running `launchpad_install_argo`:
+
+```bash
+export LAUNCHPAD_ARGOCD_GITHUB_SSO_ENABLED="true"
+export LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_ID="github-oauth-client-id"
+export LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_SECRET="github-oauth-client-secret"
+export LAUNCHPAD_ARGOCD_GITHUB_ORGS="your-github-org,another-org"
+```
+
+Or provide SSO values directly on the install command (manual setup path):
+
+```bash
+launchpad_install_argo --argocd-only \
+  --enable-argocd-github-sso \
+  --argocd-github-oauth-client-id "github-oauth-client-id" \
+  --argocd-github-oauth-client-secret "github-oauth-client-secret" \
+  --argocd-github-orgs "your-github-org,another-org"
+```
+
+When provided, CLI flags override the corresponding `LAUNCHPAD_ARGOCD_GITHUB_*` environment variables for that run.
+
+For existing ArgoCD installations and manual patch commands, see
+[Enabling ArgoCD GitHub SSO](../user-guides/enabling-argocd-github-sso.md).
+
 **Install Both Tools**:
 
 ```bash
@@ -184,6 +212,20 @@ After installation, you can access:
 - **Argo Workflows**: `http://localhost:2746` (after `kubectl port-forward svc/argo-server 2746:2746 -n argo`)
 
 Use the admin password (displayed during installation or set via `LAUNCHPAD_ARGO_ADMIN_PASSWORD`) to log in.
+
+If GitHub SSO is enabled, restart ArgoCD Dex and server pods after installation:
+
+```bash
+kubectl delete pod -n argocd -l app.kubernetes.io/name=argocd-dex-server
+kubectl delete pod -n argocd -l app.kubernetes.io/name=argocd-server
+```
+
+GitHub SSO only authenticates users. Authorization still comes from ArgoCD RBAC policies.
+Add user/group mappings in [`manifests/argocd-rbac-config.yml`](../../manifests/argocd-rbac-config.yml), for example:
+
+```csv
+g, github:your-username, role:developer
+```
 
 ### Step 5: Configure ArgoCD Projects and Repository
 
@@ -323,6 +365,10 @@ Users can access ArgoCD via:
 - `LAUNCHPAD_OPENCRAFT_MANIFESTS_URL`: Base URL for OpenCraft manifests (default: GitHub raw content URL)
 - `LAUNCHPAD_DOCKER_REGISTRY`: Docker registry hostname (default: `ghcr.io`)
 - `LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS`: Base64-encoded registry credentials for private image pulls
+- `LAUNCHPAD_ARGOCD_GITHUB_SSO_ENABLED`: Enable ArgoCD GitHub SSO via Dex (default: `false`)
+- `LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_ID`: GitHub OAuth App client ID (required when GitHub SSO is enabled)
+- `LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_SECRET`: GitHub OAuth App client secret (required when GitHub SSO is enabled)
+- `LAUNCHPAD_ARGOCD_GITHUB_ORGS`: Comma-separated GitHub org slugs allowed to sign in (required when GitHub SSO is enabled)
 
 ### Terraform Variables
 

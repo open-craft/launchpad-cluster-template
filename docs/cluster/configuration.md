@@ -19,6 +19,10 @@ Optional:
 - **`LAUNCHPAD_ARGO_WORKFLOWS_VERSION`** -  Argo Workflows version (default: `stable`)
 - **`LAUNCHPAD_OPENCRAFT_MANIFESTS_URL`** -  Base URL for OpenCraft manifests
 - **`LAUNCHPAD_DOCKER_REGISTRY`** -  Registry hostname (e.g. `ghcr.io`)
+- **`LAUNCHPAD_ARGOCD_GITHUB_SSO_ENABLED`** -  Enable ArgoCD GitHub SSO via Dex (default: `false`)
+- **`LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_ID`** -  GitHub OAuth App client ID (required when GitHub SSO is enabled)
+- **`LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_SECRET`** -  GitHub OAuth App client secret (required when GitHub SSO is enabled)
+- **`LAUNCHPAD_ARGOCD_GITHUB_ORGS`** -  Comma-separated GitHub org slugs allowed to sign in (required when GitHub SSO is enabled)
 
 ## Terraform/OpenTofu Variables
 

@@ -364,6 +364,60 @@ class TestKubernetesClient:
     @mock.patch("launchpad.kubernetes.client.ApiClient")
     @mock.patch("launchpad.kubernetes.config.load_kube_config")
     @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    @mock.patch("launchpad.kubernetes.subprocess.run")
+    @mock.patch("launchpad.kubernetes.yaml.safe_load_all")
+    def test_apply_manifest_conflict_retries_with_force_conflicts(
+        self,
+        mock_yaml_load,
+        mock_subprocess_run,
+        _mock_get_logger,
+        _mock_load_config,
+        mock_api_client_class,
+        _mock_apps_v1_class,
+        _mock_core_v1,
+        _mock_rbac_v1,
+    ):
+        """
+        Test server-side apply conflict retries once with --force-conflicts.
+        """
+
+        mock_api_client_instance = mock.Mock()
+        mock_api_client_class.return_value = mock_api_client_instance
+
+        manifest = "apiVersion: v1\nkind: Role\nmetadata:\n  name: argocd-server"
+        doc = {
+            "apiVersion": "v1",
+            "kind": "Role",
+            "metadata": {"name": "argocd-server"},
+        }
+        mock_yaml_load.return_value = [doc]
+
+        conflict_error = subprocess.CalledProcessError(
+            1,
+            ["kubectl", "apply"],
+            stderr='Apply failed with 1 conflict: conflict with "kubectl-patch"',
+        )
+        success_result = mock.Mock()
+        success_result.returncode = 0
+        success_result.stdout = "role/argocd-server configured"
+        success_result.stderr = ""
+        mock_subprocess_run.side_effect = [conflict_error, success_result]
+
+        k8s_client = KubernetesClient()
+        k8s_client.apply_manifest(manifest, namespace="argocd")
+
+        assert mock_subprocess_run.call_count == 2
+        first_command = mock_subprocess_run.call_args_list[0][0][0]
+        second_command = mock_subprocess_run.call_args_list[1][0][0]
+        assert "--force-conflicts" not in first_command
+        assert "--force-conflicts" in second_command
+
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     @mock.patch("launchpad.kubernetes.requests.get")
     @mock.patch("launchpad.kubernetes.subprocess.run")
     @mock.patch("launchpad.kubernetes.yaml.safe_load_all")

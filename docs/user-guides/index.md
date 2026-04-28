@@ -10,6 +10,7 @@ This section contains step-by-step guides for specific tasks and scenarios when 
 - **[Use More Performant Runners](use-more-performant-runners.md)** -  Using Blacksmith runners for faster builds
 - **[Pull Request Sandboxes](pull-request-sandboxes.md)** -  Using sandbox environments for pull requests
 - **[Multi-Domain Setup](multi-domain-setup.md)** -  Serving an instance under multiple domains
+- **[Enabling ArgoCD GitHub SSO](enabling-argocd-github-sso.md)** -  Configuring GitHub SSO for new and existing ArgoCD installations
 - **[Migrating Instances from Grove](migrating-instances-from-grove.md)** - Step-by-step checklist to help instance migration
 
 ## Related Documentation

@@ -172,18 +172,64 @@ class KubernetesClient:
         Raises:
             KubernetesError: If applying the resource fails
         """
-        try:
-            yaml_content = yaml.dump(doc, default_flow_style=False)
-            result = subprocess.run(
-                ["kubectl", "apply", "--server-side", "-f", "-", "-n", namespace],
-                input=yaml_content,
-                text=True,
-                capture_output=True,
-                check=True,
-            )
+        yaml_content = yaml.dump(doc, default_flow_style=False)
+        resource_name = doc.get("metadata", {}).get("name", "unknown")
+        resource_kind = doc.get("kind", "unknown")
 
-            resource_name = doc.get("metadata", {}).get("name", "unknown")
-            resource_kind = doc.get("kind", "unknown")
+        apply_command = [
+            "kubectl",
+            "apply",
+            "--server-side",
+            "-f",
+            "-",
+            "-n",
+            namespace,
+        ]
+
+        force_conflicts_used = False
+
+        try:
+            try:
+                result = subprocess.run(
+                    apply_command,
+                    input=yaml_content,
+                    text=True,
+                    capture_output=True,
+                    check=True,
+                )
+            except subprocess.CalledProcessError as e:
+                stderr = e.stderr or ""
+                has_apply_conflict = (
+                    "Apply failed with" in stderr and "conflict with" in stderr
+                )
+                if not has_apply_conflict:
+                    raise KubernetesError(
+                        f"Failed to apply {resource_kind} '{resource_name}': {stderr}"
+                    ) from e
+
+                self._logger.warning(
+                    (
+                        "Server-side apply conflict for %s '%s'; "
+                        "retrying once with --force-conflicts"
+                    ),
+                    resource_kind,
+                    resource_name,
+                )
+
+                force_conflicts_used = True
+                try:
+                    result = subprocess.run(
+                        apply_command + ["--force-conflicts"],
+                        input=yaml_content,
+                        text=True,
+                        capture_output=True,
+                        check=True,
+                    )
+                except subprocess.CalledProcessError as retry_error:
+                    raise KubernetesError(
+                        f"Failed to apply {resource_kind} '{resource_name}': "
+                        f"{retry_error.stderr}"
+                    ) from retry_error
 
             if "configured" in result.stdout:
                 self._logger.info(
@@ -204,12 +250,14 @@ class KubernetesClient:
                     resource_name,
                 )
 
-        except subprocess.CalledProcessError as e:
-            resource_name = doc.get("metadata", {}).get("name", "unknown")
-            resource_kind = doc.get("kind", "unknown")
-            raise KubernetesError(
-                f"Failed to apply {resource_kind} '{resource_name}': {e.stderr}"
-            ) from e
+            if force_conflicts_used:
+                self._logger.info(
+                    "%s '%s' applied with --force-conflicts",
+                    resource_kind,
+                    resource_name,
+                )
+        except KubernetesError:
+            raise
         except Exception as e:
             raise KubernetesError(f"Unexpected error applying resource: {e}") from e
 
