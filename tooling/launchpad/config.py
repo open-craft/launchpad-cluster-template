@@ -75,6 +75,22 @@ class ClusterConfig(LaunchpadBaseSettings):
         default="", description="Argo admin password (plaintext)"
     )
 
+    # Optional ArgoCD GitHub SSO configuration via Dex
+    argocd_github_sso_enabled: bool = Field(
+        default=False, description="Enable ArgoCD GitHub SSO via Dex"
+    )
+    argocd_github_oauth_client_id: str = Field(
+        default="", description="GitHub OAuth app client ID for ArgoCD Dex connector"
+    )
+    argocd_github_oauth_client_secret: str = Field(
+        default="",
+        description="GitHub OAuth app client secret for ArgoCD Dex connector",
+    )
+    argocd_github_orgs: str = Field(
+        default="",
+        description="Comma-separated GitHub org slugs allowed to sign in via Dex",
+    )
+
     @staticmethod
     def _load_cluster_domain_from_context() -> str:
         """

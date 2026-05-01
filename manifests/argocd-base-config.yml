@@ -10,3 +10,4 @@ metadata:
 data:
   users.anonymous.enabled: "false"
   exec.enabled: "true"
+  kustomize.buildOptions: --enable-helm

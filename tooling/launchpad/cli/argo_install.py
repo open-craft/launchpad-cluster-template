@@ -30,10 +30,119 @@ SYSTEM_NAMESPACES = {
     "kube-public",
     "kube-node-lease",
 }
+ARGOCD_NAMESPACE = "argocd"
 
 
 def _is_system_namespace(namespace: str) -> bool:
     return namespace in SYSTEM_NAMESPACES or namespace.startswith("kube-")
+
+
+def _split_csv_values(raw_value: str) -> list[str]:
+    """
+    Parse a comma-separated string into a list of non-empty trimmed values.
+    """
+    return [value.strip() for value in raw_value.split(",") if value.strip()]
+
+
+def _build_dex_github_config(client_id: str, github_orgs: list[str]) -> str:
+    """
+    Build the dex.config YAML payload for a GitHub connector.
+    """
+    org_lines = "\n".join(f"      - name: {org}" for org in github_orgs)
+    return (
+        "connectors:\n"
+        "- type: github\n"
+        "  id: github\n"
+        "  name: GitHub\n"
+        "  config:\n"
+        f"    clientID: {client_id}\n"
+        "    clientSecret: $dex.github.clientSecret\n"
+        "    orgs:\n"
+        f"{org_lines}"
+    )
+
+
+def _build_argocd_sso_cli_overrides(args: argparse.Namespace) -> dict[str, str | bool]:
+    """
+    Build ClusterConfig override values from CLI arguments.
+    """
+    overrides: dict[str, str | bool] = {}
+
+    if args.argocd_github_sso_enabled is not None:
+        overrides["argocd_github_sso_enabled"] = args.argocd_github_sso_enabled
+
+    if args.argocd_github_oauth_client_id is not None:
+        overrides["argocd_github_oauth_client_id"] = args.argocd_github_oauth_client_id
+
+    if args.argocd_github_oauth_client_secret is not None:
+        overrides["argocd_github_oauth_client_secret"] = (
+            args.argocd_github_oauth_client_secret
+        )
+
+    if args.argocd_github_orgs is not None:
+        overrides["argocd_github_orgs"] = args.argocd_github_orgs
+
+    return overrides
+
+
+def _configure_argocd_github_sso(
+    k8s: KubernetesClient,
+    cluster_config: ClusterConfig,
+) -> None:
+    """
+    Configure optional GitHub SSO for ArgoCD using Dex.
+    """
+    if not cluster_config.argocd_github_sso_enabled:
+        return
+
+    client_id = cluster_config.argocd_github_oauth_client_id.strip()
+    client_secret = cluster_config.argocd_github_oauth_client_secret.strip()
+    github_orgs = _split_csv_values(cluster_config.argocd_github_orgs)
+
+    missing_vars = []
+    if not client_id:
+        missing_vars.append("LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_ID")
+    if not client_secret:
+        missing_vars.append("LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_SECRET")
+    if not github_orgs:
+        missing_vars.append("LAUNCHPAD_ARGOCD_GITHUB_ORGS")
+
+    if missing_vars:
+        raise ConfigurationError(
+            "GitHub SSO is enabled, but required settings are missing: "
+            + ", ".join(missing_vars)
+        )
+
+    run_command_with_logging(
+        logger,
+        "configure ArgoCD Dex GitHub connector",
+        k8s.patch_config_map,
+        name="argocd-cm",
+        namespace=ARGOCD_NAMESPACE,
+        data={
+            "url": f"https://argocd.{cluster_config.cluster_domain}",
+            "dex.config": _build_dex_github_config(client_id, github_orgs),
+        },
+    )
+
+    run_command_with_logging(
+        logger,
+        "configure ArgoCD Dex GitHub OAuth secret",
+        k8s.patch_secret,
+        name="argocd-secret",
+        namespace=ARGOCD_NAMESPACE,
+        string_data={
+            "dex.github.clientSecret": client_secret,
+        },
+    )
+
+    logger.warning("Restart ArgoCD Dex and server pods to apply GitHub SSO changes:")
+    logger.warning(
+        "  kubectl delete pod -n argocd -l app.kubernetes.io/name=argocd-dex-server"
+    )
+    logger.warning(
+        "  kubectl delete pod -n argocd -l app.kubernetes.io/name=argocd-server"
+    )
 
 
 def _configure_registry_pull_secrets(
@@ -236,7 +345,7 @@ def install_argocd(cluster_config: ClusterConfig) -> None:
         logger,
         "create ArgoCD namespace",
         k8s.create_namespace,
-        "argocd",
+        ARGOCD_NAMESPACE,
     )
 
     run_command_with_logging(
@@ -244,7 +353,7 @@ def install_argocd(cluster_config: ClusterConfig) -> None:
         "install ArgoCD core components",
         k8s.apply_manifest_from_url,
         cluster_config.argocd_install_url,
-        "argocd",
+        ARGOCD_NAMESPACE,
     )
 
     run_command_with_logging(
@@ -252,7 +361,7 @@ def install_argocd(cluster_config: ClusterConfig) -> None:
         "ensure base ArgoCD configmap",
         k8s.apply_manifest_from_url,
         f"{cluster_config.opencraft_manifests_url}/argocd-base-config.yml",
-        "argocd",
+        ARGOCD_NAMESPACE,
     )
 
     run_command_with_logging(
@@ -260,7 +369,7 @@ def install_argocd(cluster_config: ClusterConfig) -> None:
         "ensure ArgoCD server role allows web terminal (pods/exec)",
         k8s.ensure_role_has_pods_exec,
         "argocd-server",
-        "argocd",
+        ARGOCD_NAMESPACE,
     )
 
     run_command_with_logging(
@@ -268,18 +377,20 @@ def install_argocd(cluster_config: ClusterConfig) -> None:
         "configure ArgoCD ingress",
         k8s.apply_manifest_from_url,
         f"{cluster_config.opencraft_manifests_url}/argocd-ingress.yml",
-        "argocd",
+        ARGOCD_NAMESPACE,
         {
             "LAUNCHPAD_CLUSTER_DOMAIN": cluster_config.cluster_domain,
         },
     )
+
+    _configure_argocd_github_sso(k8s, cluster_config)
 
     run_command_with_logging(
         logger,
         "configure ArgoCD admin password",
         k8s.apply_manifest_from_url,
         f"{cluster_config.opencraft_manifests_url}/argocd-admin-password.yml",
-        "argocd",
+        ARGOCD_NAMESPACE,
         {
             "LAUNCHPAD_CLUSTER_DOMAIN": cluster_config.cluster_domain,
             "LAUNCHPAD_ARGO_ADMIN_PASSWORD_BCRYPT": bcrypt_password(plaintext_password),
@@ -293,7 +404,7 @@ def install_argocd(cluster_config: ClusterConfig) -> None:
         _configure_registry_pull_secrets,
         k8s,
         cluster_config,
-        ["argocd"],
+        [ARGOCD_NAMESPACE],
         scan_existing_namespaces=False,
     )
 
@@ -323,6 +434,35 @@ def main():
         action="store_true",
         help="Install only Argo Workflows",
     )
+    sso_toggle_group = parser.add_mutually_exclusive_group()
+    sso_toggle_group.add_argument(
+        "--enable-argocd-github-sso",
+        dest="argocd_github_sso_enabled",
+        action="store_true",
+        help="Enable ArgoCD GitHub SSO via Dex for this install run",
+    )
+    sso_toggle_group.add_argument(
+        "--disable-argocd-github-sso",
+        dest="argocd_github_sso_enabled",
+        action="store_false",
+        help="Disable ArgoCD GitHub SSO via Dex for this install run",
+    )
+    parser.set_defaults(argocd_github_sso_enabled=None)
+    parser.add_argument(
+        "--argocd-github-oauth-client-id",
+        default=None,
+        help="GitHub OAuth App client ID for ArgoCD Dex connector",
+    )
+    parser.add_argument(
+        "--argocd-github-oauth-client-secret",
+        default=None,
+        help="GitHub OAuth App client secret for ArgoCD Dex connector",
+    )
+    parser.add_argument(
+        "--argocd-github-orgs",
+        default=None,
+        help="Comma-separated GitHub org slugs allowed to sign in via Dex",
+    )
 
     args = parser.parse_args()
 
@@ -333,8 +473,11 @@ def main():
         install_both = not args.argocd_only and not args.workflows_only
 
         if install_both or args.argocd_only:
+            cluster_payload = dict(config.model_dump()["cluster"])
+            cluster_payload.update(_build_argocd_sso_cli_overrides(args))
+            cluster_config = ClusterConfig.model_validate(cluster_payload)
             logger.info("Installing ArgoCD...")
-            install_argocd(config.cluster)
+            install_argocd(cluster_config)
 
         if install_both or args.workflows_only:
             logger.info("Installing Argo Workflows...")

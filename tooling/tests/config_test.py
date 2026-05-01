@@ -36,6 +36,10 @@ class TestClusterConfig:
         assert config.argo_workflows_version == "stable"
         assert config.opencraft_manifests_version == "main"
         assert config.argo_admin_password == ""
+        assert config.argocd_github_sso_enabled is False
+        assert config.argocd_github_oauth_client_id == ""
+        assert config.argocd_github_oauth_client_secret == ""
+        assert config.argocd_github_orgs == ""
 
     def test_cluster_config_custom_values(self):
         """
@@ -48,6 +52,10 @@ class TestClusterConfig:
             argo_workflows_version="v3.4.0",
             opencraft_manifests_version="develop",
             argo_admin_password="custom_password",
+            argocd_github_sso_enabled=True,
+            argocd_github_oauth_client_id="client-id",
+            argocd_github_oauth_client_secret="client-secret",
+            argocd_github_orgs="open-craft,example-org",
         )
 
         assert config.cluster_domain == "test.cluster.domain"
@@ -55,6 +63,10 @@ class TestClusterConfig:
         assert config.argo_workflows_version == "v3.4.0"
         assert config.opencraft_manifests_version == "develop"
         assert config.argo_admin_password == "custom_password"
+        assert config.argocd_github_sso_enabled is True
+        assert config.argocd_github_oauth_client_id == "client-id"
+        assert config.argocd_github_oauth_client_secret == "client-secret"
+        assert config.argocd_github_orgs == "open-craft,example-org"
 
     def test_cluster_config_opencraft_manifests_url(self):
         """
@@ -118,12 +130,20 @@ class TestClusterConfig:
             {
                 "LAUNCHPAD_CLUSTER_DOMAIN": "env.cluster.domain",
                 "LAUNCHPAD_ARGOCD_VERSION": "v2.9.0",
+                "LAUNCHPAD_ARGOCD_GITHUB_SSO_ENABLED": "true",
+                "LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_ID": "env-client-id",
+                "LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_SECRET": "env-client-secret",
+                "LAUNCHPAD_ARGOCD_GITHUB_ORGS": "open-craft,example-org",
             },
         ):
             config = ClusterConfig()
 
             assert config.cluster_domain == "env.cluster.domain"
             assert config.argocd_version == "v2.9.0"
+            assert config.argocd_github_sso_enabled is True
+            assert config.argocd_github_oauth_client_id == "env-client-id"
+            assert config.argocd_github_oauth_client_secret == "env-client-secret"
+            assert config.argocd_github_orgs == "open-craft,example-org"
 
 
 class TestInstanceConfig:

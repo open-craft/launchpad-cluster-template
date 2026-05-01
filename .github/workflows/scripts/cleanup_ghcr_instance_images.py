@@ -380,7 +380,9 @@ def delete_package_version(
         details = exc.read().decode("utf-8", errors="replace")
         if exc.code == 404:
             # Deletions can race across concurrent jobs; treat not found as already deleted.
-            print(f"WARNING: Version {version_id} already deleted or unavailable (404).")
+            print(
+                f"WARNING: Version {version_id} already deleted or unavailable (404)."
+            )
             return False
         raise SystemExit(
             f"GitHub API request failed: DELETE {url} -> {exc.code} {details}"
