@@ -29,6 +29,11 @@ on:
         required: false
         type: string
         default: "ubuntu-latest"
+      SERVICES:
+        description: 'JSON array of services to build'
+        required: false
+        type: string
+        default: '["openedx", "mfe"]'
     secrets:
       SSH_PRIVATE_KEY:
         description: "Private SSH key for accessing private repositories"
@@ -37,10 +42,10 @@ on:
 jobs:
   build:
     name: Build ${{ matrix.service }} service
-    uses: open-craft/launchpad-cluster-template/.github/workflows/build.yml@main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/build.yml@agrendalath/bb-10290-aws
     strategy:
       matrix:
-        service: ["openedx", "mfe"]
+        service: ${{ fromJSON(inputs.SERVICES) }}
     secrets:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
     with:
