@@ -52,7 +52,7 @@ on:
 jobs:
   build:
     name: Build Service
-    uses: open-craft/picasso/.github/workflows/build.yml@kaustav/new_ghcr_test
+    uses: open-craft/picasso/.github/workflows/build.yml@agrendalath/bb-10290-enterprise
     concurrency:
       group: build:${{ inputs.STRAIN_REPOSITORY }}:${{ inputs.STRAIN_REPOSITORY_BRANCH }}:${{ inputs.INSTANCE_NAME }}:${{ inputs.SERVICE }}
       cancel-in-progress: false

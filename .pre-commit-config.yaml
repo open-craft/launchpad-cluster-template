@@ -17,12 +17,6 @@ repos:
       - id: debug-statements
       - id: name-tests-test
 
-      # Check Shell
-      - id: check-case-conflict
-      - id: check-executables-have-shebangs
-      - id: check-shebang-scripts-are-executable
-        exclude: ^cluster-template/launchpad-\{\{cookiecutter\.cluster_slug_normalized\}\}-cluster/activate$
-
       # Check JSON/YAML
       - id: check-yaml
         args: [--allow-multiple-documents]

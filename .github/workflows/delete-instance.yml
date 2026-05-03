@@ -40,7 +40,15 @@ on:
       LAUNCHPAD_MONGODB_PROVIDER:
         required: true
       LAUNCHPAD_MONGODB_CLUSTER_ID:
-        required: true
+        required: false
+      LAUNCHPAD_ATLAS_PUBLIC_KEY:
+        required: false
+      LAUNCHPAD_ATLAS_PRIVATE_KEY:
+        required: false
+      LAUNCHPAD_ATLAS_PROJECT_ID:
+        required: false
+      LAUNCHPAD_ATLAS_CLUSTER_NAME:
+        required: false
       LAUNCHPAD_DIGITALOCEAN_TOKEN:
         required: true
       LAUNCHPAD_STORAGE_TYPE:
@@ -53,6 +61,8 @@ on:
         required: true
       SSH_PRIVATE_KEY:
         required: true
+      KUBECONFIG_CONTENT:
+        required: false
 
 jobs:
   delete-instance:
@@ -130,10 +140,15 @@ jobs:
           LAUNCHPAD_MONGODB_PROVIDER: ${{ secrets.LAUNCHPAD_MONGODB_PROVIDER }}
           LAUNCHPAD_MONGODB_CLUSTER_ID: ${{ secrets.LAUNCHPAD_MONGODB_CLUSTER_ID }}
           LAUNCHPAD_DIGITALOCEAN_TOKEN: ${{ secrets.LAUNCHPAD_DIGITALOCEAN_TOKEN }}
+          LAUNCHPAD_ATLAS_PUBLIC_KEY: ${{ secrets.LAUNCHPAD_ATLAS_PUBLIC_KEY }}
+          LAUNCHPAD_ATLAS_PRIVATE_KEY: ${{ secrets.LAUNCHPAD_ATLAS_PRIVATE_KEY }}
+          LAUNCHPAD_ATLAS_PROJECT_ID: ${{ secrets.LAUNCHPAD_ATLAS_PROJECT_ID }}
+          LAUNCHPAD_ATLAS_CLUSTER_NAME: ${{ secrets.LAUNCHPAD_ATLAS_CLUSTER_NAME }}
           LAUNCHPAD_STORAGE_TYPE: ${{ secrets.LAUNCHPAD_STORAGE_TYPE }}
           LAUNCHPAD_STORAGE_REGION: ${{ secrets.LAUNCHPAD_STORAGE_REGION }}
           LAUNCHPAD_STORAGE_ACCESS_KEY_ID: ${{ secrets.LAUNCHPAD_STORAGE_ACCESS_KEY_ID }}
           LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY: ${{ secrets.LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY }}
+          KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG_CONTENT }}
           # OpenCraft manifests version override
           LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION: ${{ inputs.LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION }}
           # Backend credentials for Terraform state access
