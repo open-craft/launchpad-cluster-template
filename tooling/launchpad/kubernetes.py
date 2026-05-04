@@ -175,7 +175,7 @@ class KubernetesClient:
         try:
             yaml_content = yaml.dump(doc, default_flow_style=False)
             result = subprocess.run(
-                ["kubectl", "apply", "--server-side", "-f", "-", "-n", namespace],
+                ["kubectl", "apply", "--server-side", "--force-conflicts", "-f", "-", "-n", namespace],
                 input=yaml_content,
                 text=True,
                 capture_output=True,
