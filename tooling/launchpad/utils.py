@@ -284,9 +284,15 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
     # MySQL parameters
     instance_config.update(
         {
-            "LAUNCHPAD_INSTANCE_MYSQL_DATABASE": config_data.get("MYSQL_DATABASE", ""),
-            "LAUNCHPAD_INSTANCE_MYSQL_USERNAME": config_data.get("MYSQL_USERNAME", ""),
-            "LAUNCHPAD_INSTANCE_MYSQL_PASSWORD": config_data.get("MYSQL_PASSWORD", ""),
+            "LAUNCHPAD_INSTANCE_MYSQL_DATABASE": config_data.get(
+                "MYSQL_DATABASE", config_data.get("OPENEDX_MYSQL_DATABASE", "")
+            ),
+            "LAUNCHPAD_INSTANCE_MYSQL_USERNAME": config_data.get(
+                "MYSQL_USERNAME", config_data.get("OPENEDX_MYSQL_USERNAME", "")
+            ),
+            "LAUNCHPAD_INSTANCE_MYSQL_PASSWORD": config_data.get(
+                "MYSQL_PASSWORD", config_data.get("OPENEDX_MYSQL_PASSWORD", "")
+            ),
             "LAUNCHPAD_INSTANCE_MYSQL_HOST": config_data.get("MYSQL_HOST"),
             "LAUNCHPAD_INSTANCE_MYSQL_PORT": config_data.get("MYSQL_PORT"),
             "LAUNCHPAD_INSTANCE_MYSQL_ROOT_USER": os.getenv(
