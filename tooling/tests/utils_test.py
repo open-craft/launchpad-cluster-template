@@ -466,3 +466,54 @@ class TestBuildInstanceConfigMongoDB:
         assert result["LAUNCHPAD_INSTANCE_MONGODB_AUTH_SOURCE"] == ""
         assert result["LAUNCHPAD_INSTANCE_MONGODB_REPLICA_SET"] == ""
         assert result["LAUNCHPAD_INSTANCE_MONGODB_DATABASE_FORUM"] == ""
+
+
+class TestBuildInstanceConfigMySQLProvider:
+    """
+    Tests for MySQL provider extraction in build_instance_config.
+    """
+
+    def test_mysql_provider_defaults_to_direct_sql(self):
+        """
+        Test that MySQL provider defaults are populated when env vars are unset.
+        """
+        config = {
+            "MYSQL_DATABASE": "openedx",
+            "MYSQL_USERNAME": "openedx_user",
+            "MYSQL_PASSWORD": "secret",
+            "MYSQL_HOST": "mysql.example.internal",
+            "MYSQL_PORT": "3306",
+        }
+
+        with mock.patch.dict(os.environ, {}, clear=True):
+            result = build_instance_config("inst", config)
+
+        assert result["LAUNCHPAD_INSTANCE_MYSQL_PROVIDER"] == "direct_sql"
+        assert result["LAUNCHPAD_INSTANCE_MYSQL_CLUSTER_ID"] == ""
+
+    def test_mysql_provider_digitalocean_values_extracted_from_env(self):
+        """
+        Test that MySQL provider metadata and DigitalOcean token are read from env vars.
+        """
+        config = {
+            "MYSQL_DATABASE": "openedx",
+            "MYSQL_USERNAME": "openedx_user",
+            "MYSQL_PASSWORD": "secret",
+            "MYSQL_HOST": "mysql.example.internal",
+            "MYSQL_PORT": "3306",
+        }
+
+        with mock.patch.dict(
+            os.environ,
+            {
+                "LAUNCHPAD_MYSQL_PROVIDER": "digitalocean_api",
+                "LAUNCHPAD_MYSQL_CLUSTER_ID": "mysql-cluster-123",
+                "LAUNCHPAD_DIGITALOCEAN_TOKEN": "dop_v1_example",
+            },
+            clear=True,
+        ):
+            result = build_instance_config("inst", config)
+
+        assert result["LAUNCHPAD_INSTANCE_MYSQL_PROVIDER"] == "digitalocean_api"
+        assert result["LAUNCHPAD_INSTANCE_MYSQL_CLUSTER_ID"] == "mysql-cluster-123"
+        assert result["LAUNCHPAD_INSTANCE_DIGITALOCEAN_TOKEN"] == "dop_v1_example"

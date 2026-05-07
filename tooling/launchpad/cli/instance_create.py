@@ -12,7 +12,11 @@ import yaml
 from cookiecutter.main import cookiecutter
 
 from launchpad.cli.argo_install import install_argo_workflows
-from launchpad.cli.utils import exit_with_error, run_command_with_logging
+from launchpad.cli.utils import (
+    exit_with_error,
+    run_command_with_logging,
+    wait_for_workflow_completion,
+)
 from launchpad.config import get_config
 from launchpad.exceptions import KubernetesError
 from launchpad.git import (
@@ -33,8 +37,6 @@ from launchpad.utils import (
 logger = get_logger(__name__)
 
 ARGO_NAMESPACE = "argo"
-WORKFLOW_TIMEOUT = 300
-WORKFLOW_CHECK_INTERVAL = 5
 DEFAULT_PLATFORM_NAME = None
 DEFAULT_TUTOR_VERSION = None
 DEFAULT_EDX_PLATFORM_VERSION = None
@@ -206,70 +208,6 @@ def _setup_instance_rbac(
     log_success(logger, f"Instance RBAC configured for namespace '{instance_name}'")
 
 
-def _wait_for_workflow_completion(  # pylint: disable=duplicate-code
-    instance_name: str,
-    workflow_name: str,
-    timeout: int = WORKFLOW_TIMEOUT,
-) -> bool:
-    """
-    Wait for an Argo Workflow to complete and check its status.
-
-    Args:
-        instance_name: Namespace where the workflow runs
-        workflow_name: Name of the workflow to wait for
-        timeout: Maximum time to wait in seconds
-
-    Returns:
-        True if workflow succeeded, False otherwise
-    """
-
-    logger.debug("Waiting for workflow '%s' to complete...", workflow_name)
-
-    try:
-        subprocess.run(
-            [
-                "kubectl",
-                "wait",
-                "--for=condition=Completed",
-                f"workflow/{workflow_name}",
-                "-n",
-                instance_name,
-                f"--timeout={timeout}s",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-
-        result = subprocess.run(
-            [
-                "kubectl",
-                "get",
-                f"workflow/{workflow_name}",
-                "-n",
-                instance_name,
-                "-o",
-                "jsonpath={.status.phase}",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-
-        status = result.stdout.strip()
-
-        if status == "Succeeded":
-            logger.debug("Workflow '%s' succeeded", workflow_name)
-            return True
-
-        logger.warning("Workflow '%s' failed with status: %s", workflow_name, status)
-        return False
-
-    except subprocess.CalledProcessError:
-        logger.warning("Workflow '%s' timed out or failed", workflow_name)
-        return False
-
-
 def _create_provision_workflows(  # pylint: disable=duplicate-code
     k8s_client: KubernetesClient,
     instance_name: str,
@@ -323,7 +261,9 @@ def _create_provision_workflows(  # pylint: disable=duplicate-code
     all_succeeded = True
 
     for workflow_type, _, workflow_name in workflows:
-        if not _wait_for_workflow_completion(instance_name, workflow_name):
+        if not wait_for_workflow_completion(
+            instance_name, workflow_name, logger=logger
+        ):
             all_succeeded = False
 
     subprocess.run(

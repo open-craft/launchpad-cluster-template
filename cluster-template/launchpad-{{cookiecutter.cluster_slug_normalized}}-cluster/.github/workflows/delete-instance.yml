@@ -34,6 +34,8 @@ jobs:
       LAUNCHPAD_MYSQL_PORT: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_PORT }}{% endraw %}"
       LAUNCHPAD_MYSQL_ROOT_USER: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_ROOT_USER }}{% endraw %}"
       LAUNCHPAD_MYSQL_ROOT_PASSWORD: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_ROOT_PASSWORD }}{% endraw %}"
+      LAUNCHPAD_MYSQL_PROVIDER: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_PROVIDER }}{% endraw %}"
+      LAUNCHPAD_MYSQL_CLUSTER_ID: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_CLUSTER_ID }}{% endraw %}"
       LAUNCHPAD_MONGODB_HOST: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_HOST }}{% endraw %}"
       LAUNCHPAD_MONGODB_PORT: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_PORT }}{% endraw %}"
       LAUNCHPAD_MONGODB_PROVIDER: "{% raw %}${{ secrets.LAUNCHPAD_MONGODB_PROVIDER }}{% endraw %}"

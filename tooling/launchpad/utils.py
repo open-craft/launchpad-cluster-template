@@ -276,12 +276,23 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
     if tutor_version is not None:
         instance_config["LAUNCHPAD_TUTOR_VERSION"] = tutor_version
 
+    # Shared provider credentials used by both MySQL and MongoDB workflows.
+    instance_config["LAUNCHPAD_INSTANCE_DIGITALOCEAN_TOKEN"] = os.getenv(
+        "LAUNCHPAD_DIGITALOCEAN_TOKEN", ""
+    )
+
     # MySQL parameters
     instance_config.update(
         {
-            "LAUNCHPAD_INSTANCE_MYSQL_DATABASE": config_data.get("MYSQL_DATABASE", ""),
-            "LAUNCHPAD_INSTANCE_MYSQL_USERNAME": config_data.get("MYSQL_USERNAME", ""),
-            "LAUNCHPAD_INSTANCE_MYSQL_PASSWORD": config_data.get("MYSQL_PASSWORD", ""),
+            "LAUNCHPAD_INSTANCE_MYSQL_DATABASE": config_data.get(
+                "MYSQL_DATABASE", config_data.get("OPENEDX_MYSQL_DATABASE", "")
+            ),
+            "LAUNCHPAD_INSTANCE_MYSQL_USERNAME": config_data.get(
+                "MYSQL_USERNAME", config_data.get("OPENEDX_MYSQL_USERNAME", "")
+            ),
+            "LAUNCHPAD_INSTANCE_MYSQL_PASSWORD": config_data.get(
+                "MYSQL_PASSWORD", config_data.get("OPENEDX_MYSQL_PASSWORD", "")
+            ),
             "LAUNCHPAD_INSTANCE_MYSQL_HOST": config_data.get("MYSQL_HOST"),
             "LAUNCHPAD_INSTANCE_MYSQL_PORT": config_data.get("MYSQL_PORT"),
             "LAUNCHPAD_INSTANCE_MYSQL_ROOT_USER": os.getenv(
@@ -289,6 +300,13 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
             ),
             "LAUNCHPAD_INSTANCE_MYSQL_ROOT_PASSWORD": os.getenv(
                 "LAUNCHPAD_MYSQL_ROOT_PASSWORD", ""
+            ),
+            # Provider-specific parameters (DigitalOcean API or direct SQL)
+            "LAUNCHPAD_INSTANCE_MYSQL_PROVIDER": os.getenv(
+                "LAUNCHPAD_MYSQL_PROVIDER", "direct_sql"
+            ),
+            "LAUNCHPAD_INSTANCE_MYSQL_CLUSTER_ID": os.getenv(
+                "LAUNCHPAD_MYSQL_CLUSTER_ID", ""
             ),
         }
     )
@@ -320,9 +338,6 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
             ),
             "LAUNCHPAD_INSTANCE_MONGODB_CLUSTER_ID": os.getenv(
                 "LAUNCHPAD_MONGODB_CLUSTER_ID", ""
-            ),
-            "LAUNCHPAD_INSTANCE_DIGITALOCEAN_TOKEN": os.getenv(
-                "LAUNCHPAD_DIGITALOCEAN_TOKEN", ""
             ),
         }
     )

@@ -18,6 +18,15 @@ spec:
       - name: username
         description: "Name of the user to drop"
         value: "openedx_user"
+      - name: mysql-provider
+        description: "MySQL provider type (direct_sql, digitalocean_api)"
+        value: "direct_sql"
+      - name: mysql-cluster-id
+        description: "MySQL cluster ID (for DigitalOcean API provider)"
+        value: ""
+      - name: digitalocean-token
+        description: "DigitalOcean API token (for DigitalOcean API provider)"
+        value: ""
       - name: mysql-host
         description: "MySQL host address"
         value: "mysql"
@@ -33,67 +42,206 @@ spec:
   templates:
     - name: main
       steps:
-        - - name: revoke-permissions
-            template: revoke-permissions
-        - - name: drop-user
-            template: drop-user
-        - - name: drop-database
-            template: drop-database
+        - - name: validate-provider
+            template: validate-provider
+        - - name: deprovision-direct-sql
+            template: deprovision-direct-sql
+            when: "{{workflow.parameters.mysql-provider}} == 'direct_sql'"
+        - - name: deprovision-digitalocean
+            template: deprovision-digitalocean-api
+            when: "{{workflow.parameters.mysql-provider}} == 'digitalocean_api'"
 
-    - name: revoke-permissions
+    - name: validate-provider
+      script:
+        image: alpine:3.18
+        command: [sh]
+        source: |
+          #!/bin/sh
+          set -eu
+
+          MYSQL_PROVIDER="{{workflow.parameters.mysql-provider}}"
+
+          case "$MYSQL_PROVIDER" in
+            direct_sql|digitalocean_api)
+              ;;
+            *)
+              echo "Error: unsupported mysql-provider '$MYSQL_PROVIDER'"
+              echo "Supported providers: direct_sql, digitalocean_api"
+              exit 1
+              ;;
+          esac
+
+          if [ "$MYSQL_PROVIDER" = "digitalocean_api" ] && [ -z "{{workflow.parameters.mysql-cluster-id}}" ]; then
+            echo "Error: mysql-cluster-id is required for digitalocean_api provider"
+            exit 1
+          fi
+
+          if [ "$MYSQL_PROVIDER" = "digitalocean_api" ] && [ -z "{{workflow.parameters.digitalocean-token}}" ]; then
+            echo "Error: digitalocean-token is required for digitalocean_api provider"
+            exit 1
+          fi
+
+    - name: deprovision-direct-sql
       script:
         image: mysql:8.0
         command: [bash]
         source: |
-          #!/bin/bash
-          set -e
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          DATABASE_NAME="{{workflow.parameters.database-name}}"
+          USERNAME="{{workflow.parameters.username}}"
+          MYSQL_HOST="{{workflow.parameters.mysql-host}}"
+          MYSQL_PORT="{{workflow.parameters.mysql-port}}"
+          MYSQL_ROOT_USER="{{workflow.parameters.mysql-root-user}}"
 
           export MYSQL_PWD="{{workflow.parameters.mysql-root-password}}"
 
-          echo "Revoking permissions for user: {{workflow.parameters.username}}"
-          mysql -h{{workflow.parameters.mysql-host}} \
-                -P{{workflow.parameters.mysql-port}} \
-                -u{{workflow.parameters.mysql-root-user}} \
-                -e "REVOKE ALL PRIVILEGES ON \`{{workflow.parameters.database-name}}\`.* FROM '{{workflow.parameters.username}}'@'%'; FLUSH PRIVILEGES;" || echo "User or database may not exist"
+          escape_sql_literal() {
+            printf "%s" "$1" | sed "s/'/''/g"
+          }
 
-          echo "Permissions revoked for user {{workflow.parameters.username}}"
+          DATABASE_IDENTIFIER=$(printf "%s" "$DATABASE_NAME" | sed 's/`/``/g')
+          DATABASE_ESCAPED=$(escape_sql_literal "$DATABASE_NAME")
+          USERNAME_ESCAPED=$(escape_sql_literal "$USERNAME")
 
-    - name: drop-user
+          MYSQL_CMD=(
+            mysql
+            -h"${MYSQL_HOST}"
+            -P"${MYSQL_PORT}"
+            -u"${MYSQL_ROOT_USER}"
+            --connect-timeout=30
+            -N
+            -B
+          )
+
+          mysql_exec() {
+            "${MYSQL_CMD[@]}" -e "$1"
+          }
+
+          echo "Dropping database via SQL: $DATABASE_NAME"
+          mysql_exec "DROP DATABASE IF EXISTS \`${DATABASE_IDENTIFIER}\`;"
+
+          USER_HOSTS=$(mysql_exec "SELECT Host FROM mysql.user WHERE User = '${USERNAME_ESCAPED}';")
+          if [ -n "$USER_HOSTS" ]; then
+            echo "Dropping user '${USERNAME}' across all host variants"
+            while IFS= read -r user_host; do
+              [ -z "$user_host" ] && continue
+              HOST_ESCAPED=$(escape_sql_literal "$user_host")
+              mysql_exec "DROP USER IF EXISTS '${USERNAME_ESCAPED}'@'${HOST_ESCAPED}';"
+            done <<<"$USER_HOSTS"
+          else
+            echo "No existing host variants found for '${USERNAME}', dropping '%' variant as fallback"
+            mysql_exec "DROP USER IF EXISTS '${USERNAME_ESCAPED}'@'%';"
+          fi
+
+          REMAINING_DATABASES=$(mysql_exec "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${DATABASE_ESCAPED}';" | tr -d '[:space:]')
+          REMAINING_USERS=$(mysql_exec "SELECT COUNT(*) FROM mysql.user WHERE User = '${USERNAME_ESCAPED}';" | tr -d '[:space:]')
+
+          if [ "$REMAINING_DATABASES" != "0" ]; then
+            echo "Error: database '${DATABASE_NAME}' still exists after deprovision."
+            exit 1
+          fi
+
+          if [ "$REMAINING_USERS" != "0" ]; then
+            echo "Error: user '${USERNAME}' still has host variants after deprovision."
+            mysql_exec "SELECT CONCAT(User, '@', Host) FROM mysql.user WHERE User = '${USERNAME_ESCAPED}';"
+            exit 1
+          fi
+
+          echo "MySQL deprovisioning completed successfully (direct SQL)"
+          echo "- Database: ${DATABASE_NAME} (verified absent)"
+          echo "- User: ${USERNAME} (verified absent)"
+          echo "- Host: ${MYSQL_HOST}:${MYSQL_PORT}"
+          echo "- Namespace: {{workflow.parameters.namespace}}"
+
+    - name: deprovision-digitalocean-api
       script:
-        image: mysql:8.0
-        command: [bash]
+        image: curlimages/curl:8.1.2
+        command: [sh]
+        env:
+          - name: DIGITALOCEAN_TOKEN
+            value: "{{workflow.parameters.digitalocean-token}}"
         source: |
-          #!/bin/bash
-          set -e
+          #!/bin/sh
+          set -eu
 
-          export MYSQL_PWD="{{workflow.parameters.mysql-root-password}}"
+          DATABASE_NAME="{{workflow.parameters.database-name}}"
+          USERNAME="{{workflow.parameters.username}}"
+          MYSQL_CLUSTER_ID="{{workflow.parameters.mysql-cluster-id}}"
+          RESPONSE_FILE="/tmp/do-response.json"
+          MAX_VERIFY_ATTEMPTS=12
+          VERIFY_SLEEP_SECONDS=5
 
-          echo "Dropping user: {{workflow.parameters.username}}"
-          mysql -h{{workflow.parameters.mysql-host}} \
-                -P{{workflow.parameters.mysql-port}} \
-                -u{{workflow.parameters.mysql-root-user}} \
-                -e "DROP USER IF EXISTS '{{workflow.parameters.username}}'@'%';" || echo "User may not exist"
+          call_api() {
+            METHOD="$1"
+            ENDPOINT="$2"
+            HTTP_STATUS=$(curl -sS -o "$RESPONSE_FILE" -w "%{http_code}" -X "$METHOD" \
+              -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
+              "$ENDPOINT")
+          }
 
-          echo "User {{workflow.parameters.username}} dropped successfully"
+          delete_resource() {
+            RESOURCE_NAME="$1"
+            ENDPOINT="$2"
+            call_api DELETE "$ENDPOINT"
+            case "$HTTP_STATUS" in
+              204|404)
+                echo "$RESOURCE_NAME delete request accepted (status: $HTTP_STATUS)"
+                ;;
+              *)
+                echo "Error: failed to delete $RESOURCE_NAME (status: $HTTP_STATUS)"
+                cat "$RESPONSE_FILE"
+                exit 1
+                ;;
+            esac
+          }
 
-    - name: drop-database
-      script:
-        image: mysql:8.0
-        command: [bash]
-        source: |
-          #!/bin/bash
-          set -e
+          verify_resource_absent() {
+            RESOURCE_NAME="$1"
+            ENDPOINT="$2"
+            ATTEMPT=1
 
-          export MYSQL_PWD="{{workflow.parameters.mysql-root-password}}"
+            while [ "$ATTEMPT" -le "$MAX_VERIFY_ATTEMPTS" ]; do
+              call_api GET "$ENDPOINT"
+              if [ "$HTTP_STATUS" = "404" ]; then
+                echo "$RESOURCE_NAME is absent (verified)."
+                return 0
+              fi
 
-          echo "Dropping database: {{workflow.parameters.database-name}}"
-          mysql -h{{workflow.parameters.mysql-host}} \
-                -P{{workflow.parameters.mysql-port}} \
-                -u{{workflow.parameters.mysql-root-user}} \
-                -e "DROP DATABASE IF EXISTS \`{{workflow.parameters.database-name}}\`;" || echo "Database may not exist"
+              if [ "$HTTP_STATUS" != "200" ]; then
+                echo "Error: unexpected status while verifying $RESOURCE_NAME (status: $HTTP_STATUS)"
+                cat "$RESPONSE_FILE"
+                exit 1
+              fi
 
-          echo "MySQL deprovisioning completed successfully!"
-          echo "- Database: {{workflow.parameters.database-name}} (dropped)"
-          echo "- User: {{workflow.parameters.username}} (dropped)"
-          echo "- Host: {{workflow.parameters.mysql-host}}:{{workflow.parameters.mysql-port}}"
+              if [ "$ATTEMPT" -eq "$MAX_VERIFY_ATTEMPTS" ]; then
+                break
+              fi
+
+              echo "$RESOURCE_NAME still exists, retrying verification ($ATTEMPT/$MAX_VERIFY_ATTEMPTS)..."
+              ATTEMPT=$((ATTEMPT + 1))
+              sleep "$VERIFY_SLEEP_SECONDS"
+            done
+
+            echo "Error: $RESOURCE_NAME still exists after deletion attempts."
+            cat "$RESPONSE_FILE"
+            exit 1
+          }
+
+          DATABASE_ENDPOINT="https://api.digitalocean.com/v2/databases/$MYSQL_CLUSTER_ID/dbs/$DATABASE_NAME"
+          USER_ENDPOINT="https://api.digitalocean.com/v2/databases/$MYSQL_CLUSTER_ID/users/$USERNAME"
+
+          echo "Deleting MySQL database via DigitalOcean API: $DATABASE_NAME"
+          delete_resource "database '$DATABASE_NAME'" "$DATABASE_ENDPOINT"
+          verify_resource_absent "database '$DATABASE_NAME'" "$DATABASE_ENDPOINT"
+
+          echo "Deleting MySQL user via DigitalOcean API: $USERNAME"
+          delete_resource "user '$USERNAME'" "$USER_ENDPOINT"
+          verify_resource_absent "user '$USERNAME'" "$USER_ENDPOINT"
+
+          echo "MySQL deprovisioning completed successfully (DigitalOcean API)"
+          echo "- Database: $DATABASE_NAME (verified absent)"
+          echo "- User: $USERNAME (verified absent)"
+          echo "- Cluster ID: $MYSQL_CLUSTER_ID"
           echo "- Namespace: {{workflow.parameters.namespace}}"

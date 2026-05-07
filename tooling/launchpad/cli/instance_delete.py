@@ -4,9 +4,14 @@ Instance delete command.
 
 import argparse
 import subprocess
+import time
 from pathlib import Path
 
-from launchpad.cli.utils import exit_with_error, run_command_with_logging
+from launchpad.cli.utils import (
+    exit_with_error,
+    run_command_with_logging,
+    wait_for_workflow_completion,
+)
 from launchpad.config import get_config
 from launchpad.exceptions import KubernetesError
 from launchpad.kubeconfig import setup_kubeconfig
@@ -21,70 +26,105 @@ from launchpad.utils import (
 
 logger = get_logger(__name__)
 
-WORKFLOW_TIMEOUT = 300
+NAMESPACE_DELETE_RETRY = 3
+NAMESPACE_DELETE_TIMEOUT = 300
+NAMESPACE_DELETE_POLL_INTERVAL = 3.0
 
 
-def _wait_for_workflow_completion(  # pylint: disable=duplicate-code
+def _wait_for_namespace_absent(
     instance_name: str,
-    workflow_name: str,
-    timeout: int = WORKFLOW_TIMEOUT,
-) -> bool:
+    timeout_s: int = NAMESPACE_DELETE_TIMEOUT,
+    poll_interval_s: float = NAMESPACE_DELETE_POLL_INTERVAL,
+) -> None:
     """
-    Wait for an Argo Workflow to complete and check its status.
+    Poll until the namespace is no longer returned by the API (fully removed or never existed).
 
-    Args:
-        instance_name: Namespace where the workflow runs
-        workflow_name: Name of the workflow to wait for
-        timeout: Maximum time to wait in seconds
-
-    Returns:
-        True if workflow succeeded, False otherwise
+    Success is defined by the API no longer listing the namespace, not by ``kubectl delete`` exit
+    codes (which can be non-zero on client timeouts even while termination is still progressing).
     """
-    logger.debug("Waiting for workflow '%s' to complete...", workflow_name)
-
-    try:
-        subprocess.run(
-            [
-                "kubectl",
-                "wait",
-                "--for=condition=Completed",
-                f"workflow/{workflow_name}",
-                "-n",
-                instance_name,
-                f"--timeout={timeout}s",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
         result = subprocess.run(
-            [
-                "kubectl",
-                "get",
-                f"workflow/{workflow_name}",
-                "-n",
-                instance_name,
-                "-o",
-                "jsonpath={.status.phase}",
-            ],
-            check=True,
+            ["kubectl", "get", "namespace", instance_name],
             capture_output=True,
             text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            logger.debug(
+                "Namespace '%s' is no longer present in the API", instance_name
+            )
+            return
+        time.sleep(poll_interval_s)
+
+    raise KubernetesError(
+        f"Timed out after {timeout_s}s waiting for namespace '{instance_name}' to be removed"
+    )
+
+
+def _delete_namespace_with_retry(instance_name: str) -> None:
+    """
+    Request namespace deletion and wait until it disappears, with retries.
+
+    Re-issues ``kubectl delete`` between rounds in case the first wait exhausts while the
+    namespace is still terminating (common with finalizers); a later round often completes once
+    dependents have drained.
+    """
+    last_wait_error: KubernetesError | None = None
+
+    for round_num in range(1, NAMESPACE_DELETE_RETRY + 1):
+        delete_result = subprocess.run(
+            [
+                "kubectl",
+                "delete",
+                "namespace",
+                instance_name,
+                "--wait=false",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
         )
 
-        status = result.stdout.strip()
+        if delete_result.returncode != 0:
+            combined = (delete_result.stderr or "") + (delete_result.stdout or "")
+            if "NotFound" in combined or "not found" in combined.lower():
+                logger.debug(
+                    "Namespace '%s' was already gone before delete (or race); verifying...",
+                    instance_name,
+                )
+            else:
+                logger.warning(
+                    "kubectl delete namespace returned exit code %s (round %s/%s); "
+                    "waiting for namespace to disappear from the API. Output: %s",
+                    delete_result.returncode,
+                    round_num,
+                    NAMESPACE_DELETE_RETRY,
+                    combined.strip() or "(empty)",
+                )
 
-        if status == "Succeeded":
-            logger.debug("Workflow '%s' succeeded", workflow_name)
-            return True
+        try:
+            _wait_for_namespace_absent(
+                instance_name,
+                timeout_s=NAMESPACE_DELETE_TIMEOUT,
+            )
+            return
+        except KubernetesError as exc:
+            last_wait_error = exc
+            if round_num >= NAMESPACE_DELETE_RETRY:
+                break
+            logger.warning(
+                "Namespace '%s' still present after %s s (round %s/%s); "
+                "re-checking status and re-issuing delete",
+                instance_name,
+                NAMESPACE_DELETE_TIMEOUT,
+                round_num,
+                NAMESPACE_DELETE_RETRY,
+            )
 
-        logger.warning("Workflow '%s' failed with status: %s", workflow_name, status)
-        return False
-
-    except subprocess.CalledProcessError:
-        logger.warning("Workflow '%s' timed out or failed", workflow_name)
-        return False
+    raise KubernetesError(
+        f"Failed to delete namespace '{instance_name}'"
+    ) from last_wait_error
 
 
 def _create_deprovision_workflows(
@@ -140,25 +180,34 @@ def _create_deprovision_workflows(
             )
 
     logger.info("Waiting for deprovision workflows to complete...")
-    all_succeeded = True
+    failed_workflows: list[str] = []
 
     for workflow_type, _, workflow_name in workflows:
-        if not _wait_for_workflow_completion(instance_name, workflow_name):
-            all_succeeded = False
+        if not wait_for_workflow_completion(
+            instance_name, workflow_name, logger=logger
+        ):
+            failed_workflows.append(workflow_type)
 
     subprocess.run(
         ["kubectl", "get", "workflows", "-n", instance_name],
         check=False,
     )
 
-    if all_succeeded:
-        logger.warning("Cleaning up workflows to save resources...")
-        for _, _, workflow_name in workflows:
-            subprocess.run(
-                ["kubectl", "delete", "workflow", workflow_name, "-n", instance_name],
-                check=False,
-                capture_output=True,
-            )
+    if failed_workflows:
+        raise KubernetesError(
+            "Deprovision workflow(s) did not succeed: "
+            f"{', '.join(failed_workflows)}. "
+            "See workflow logs in the instance namespace; the delete was aborted so "
+            "cloud resources are not left behind without a failed CI signal."
+        )
+
+    logger.warning("Cleaning up workflows to save resources...")
+    for _, _, workflow_name in workflows:
+        subprocess.run(
+            ["kubectl", "delete", "workflow", workflow_name, "-n", instance_name],
+            check=False,
+            capture_output=True,
+        )
 
     log_success(
         logger,
@@ -307,30 +356,7 @@ def delete_instance(instance_name: str, force: bool = False) -> None:
 
         logger.info("Deleting namespace '%s' and all its resources...", instance_name)
 
-        try:
-            subprocess.run(
-                ["kubectl", "delete", "namespace", instance_name, "--timeout=300s"],
-                check=True,
-                capture_output=False,
-            )
-        except subprocess.CalledProcessError as exc:
-            logger.warning(
-                "Failed to delete namespace (some resources may still be terminating)"
-            )
-            raise KubernetesError(
-                f"Failed to delete namespace '{instance_name}'"
-            ) from exc
-
-        result = subprocess.run(
-            ["kubectl", "get", "namespace", instance_name],
-            capture_output=True,
-            check=False,
-        )
-
-        if result.returncode == 0:
-            logger.warning("Namespace '%s' still exists", instance_name)
-            subprocess.run(["kubectl", "get", "namespace", instance_name], check=False)
-            raise KubernetesError(f"Namespace '{instance_name}' was not fully deleted")
+        _delete_namespace_with_retry(instance_name)
 
         log_success(logger, f"Namespace '{instance_name}' successfully deleted")
 

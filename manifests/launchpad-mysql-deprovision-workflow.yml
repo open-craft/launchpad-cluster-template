@@ -18,6 +18,12 @@ spec:
         value: "{{ LAUNCHPAD_INSTANCE_MYSQL_DATABASE }}"
       - name: username
         value: "{{ LAUNCHPAD_INSTANCE_MYSQL_USERNAME }}"
+      - name: mysql-provider
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_PROVIDER }}"
+      - name: mysql-cluster-id
+        value: "{{ LAUNCHPAD_INSTANCE_MYSQL_CLUSTER_ID }}"
+      - name: digitalocean-token
+        value: "{{ LAUNCHPAD_INSTANCE_DIGITALOCEAN_TOKEN }}"
       - name: mysql-host
         value: "{{ LAUNCHPAD_INSTANCE_MYSQL_HOST }}"
       - name: mysql-port
