@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": [
+    "pre-commit",
+    "terraform",
+    "github-actions",
+    "uv",
+    "pip_requirements"
+  ],
+  "includePaths": [
+    ".pre-commit-config.yaml",
+    "cluster-template/launchpad-{{cookiecutter.cluster_slug_normalized}}-cluster/.github/workflows/**",
+    "cluster-template/launchpad-{{cookiecutter.cluster_slug_normalized}}-cluster/.pre-commit-config.yaml",
+    "cluster-template/launchpad-{{cookiecutter.cluster_slug_normalized}}-cluster/infrastructure-aws/providers.tf",
+    "cluster-template/launchpad-{{cookiecutter.cluster_slug_normalized}}-cluster/infrastructure-digitalocean/providers.tf",
+    "docs/requirements.txt",
+    "tooling/**"
+  ]
+}
