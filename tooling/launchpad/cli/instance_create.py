@@ -12,8 +12,11 @@ import yaml
 from cookiecutter.main import cookiecutter
 
 from launchpad.cli.argo_install import install_argo_workflows
-from launchpad.cli.utils import exit_with_error, run_command_with_logging
-from launchpad.cli.workflow_wait import wait_for_workflow_completion
+from launchpad.cli.utils import (
+    exit_with_error,
+    run_command_with_logging,
+    wait_for_workflow_completion,
+)
 from launchpad.config import get_config
 from launchpad.exceptions import KubernetesError
 from launchpad.git import (

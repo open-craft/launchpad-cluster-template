@@ -7,8 +7,11 @@ import subprocess
 import time
 from pathlib import Path
 
-from launchpad.cli.utils import exit_with_error, run_command_with_logging
-from launchpad.cli.workflow_wait import wait_for_workflow_completion
+from launchpad.cli.utils import (
+    exit_with_error,
+    run_command_with_logging,
+    wait_for_workflow_completion,
+)
 from launchpad.config import get_config
 from launchpad.exceptions import KubernetesError
 from launchpad.kubeconfig import setup_kubeconfig
@@ -54,7 +57,6 @@ def _wait_for_namespace_absent(
             return
         time.sleep(poll_interval_s)
 
-    subprocess.run(["kubectl", "get", "namespace", instance_name], check=False)
     raise KubernetesError(
         f"Timed out after {timeout_s}s waiting for namespace '{instance_name}' to be removed"
     )
@@ -118,10 +120,6 @@ def _delete_namespace_with_retry(instance_name: str) -> None:
                 NAMESPACE_DELETE_TIMEOUT,
                 round_num,
                 NAMESPACE_DELETE_RETRY,
-            )
-            subprocess.run(
-                ["kubectl", "get", "namespace", instance_name, "-o", "wide"],
-                check=False,
             )
 
     raise KubernetesError(
