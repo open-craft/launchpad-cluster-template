@@ -1,16 +1,77 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices"
   ],
   "enabledManagers": [
     "pre-commit",
     "terraform",
-    "github-actions"
+    "github-actions",
+    "pep621",
+    "pip_requirements"
   ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
   "includePaths": [
     ".github/workflows/**",
     ".pre-commit-config.yaml",
     "infrastructure/providers.tf"
+  ],
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": [
+      "security"
+    ]
+  },
+  "packageRules": [
+    {
+      "description": "Group patch and minor Terraform updates",
+      "matchManagers": [
+        "terraform"
+      ],
+      "matchUpdateTypes": [
+        "patch",
+        "minor"
+      ],
+      "groupName": "terraform"
+    },
+    {
+      "description": "Group digest, patch, and minor GitHub Actions updates",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "digest",
+        "patch",
+        "minor"
+      ],
+      "groupName": "github-actions"
+    },
+    {
+      "description": "Group digest, patch, and minor pre-commit hook updates",
+      "matchManagers": [
+        "pre-commit"
+      ],
+      "matchUpdateTypes": [
+        "digest",
+        "patch",
+        "minor"
+      ],
+      "groupName": "pre-commit"
+    },
+    {
+      "description": "Group digest, patch, and minor Python dependency updates",
+      "matchManagers": [
+        "pep621",
+        "pip_requirements"
+      ],
+      "matchUpdateTypes": [
+        "digest",
+        "patch",
+        "minor"
+      ],
+      "groupName": "python"
+    }
   ]
 }
