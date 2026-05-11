@@ -32,20 +32,20 @@ jobs:
         run: |
           pip install pre-commit
 
-      - uses: wagoid/commitlint-github-action@v6
+      - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6
         with:
           failOnWarnings: true # Strict mode
           configFile: .github/.commitlintrc.mjs
 
       - name: Run pre-commit on PRs
         if: github.event_name == 'pull_request'
-        uses: pre-commit/action@v3.0.1
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
         env:
           PCT_TFPATH: tofu
 
       - name: Run pre-commit on push to main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: pre-commit/action@v3.0.1
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
         env:
           PCT_TFPATH: tofu
           SKIP: no-commit-to-branch
