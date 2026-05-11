@@ -24,7 +24,7 @@ jobs:
           python-version: "3.12"
 
       - name: Set up OpenTofu
-        uses: opentofu/setup-opentofu@v1
+        uses: opentofu/setup-opentofu@fc711fa910b93cba0f3fbecaafc9f42fd0c411cb # v2
         with:
           tofu_version: latest
 
