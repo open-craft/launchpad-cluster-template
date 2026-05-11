@@ -412,6 +412,51 @@ wheels = [
 ]
 
 [[package]]
+name = "launchpad"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "bcrypt" },
+    { name = "cookiecutter" },
+    { name = "jinja2" },
+    { name = "kubernetes" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "pyyaml" },
+    { name = "requests" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "isort" },
+    { name = "pylint" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bcrypt", specifier = ">=4.0.0" },
+    { name = "cookiecutter", specifier = ">=2.6.0" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "kubernetes", specifier = ">=31.0.0" },
+    { name = "pydantic", specifier = ">=2.11.9" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
+    { name = "requests", specifier = ">=2.32.5" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black", specifier = ">=25.9.0" },
+    { name = "isort", specifier = ">=6.1.0" },
+    { name = "pylint", specifier = ">=3.3.8" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=6.0.0" },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -538,51 +583,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ca/bc/f35b8446f4531a7cb215605d100cd88b7ac6f44ab3fc94870c120ab3adbf/pathspec-0.12.1.tar.gz", hash = "sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712", size = 51043, upload-time = "2023-12-10T22:30:45Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cc/20/ff623b09d963f88bfde16306a54e12ee5ea43e9b597108672ff3a408aad6/pathspec-0.12.1-py3-none-any.whl", hash = "sha256:a0d503e138a4c123b27490a4f7beda6a01c6f288df0e4a8b79c7eb0dc7b4cc08", size = 31191, upload-time = "2023-12-10T22:30:43.14Z" },
-]
-
-[[package]]
-name = "launchpad"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "bcrypt" },
-    { name = "cookiecutter" },
-    { name = "jinja2" },
-    { name = "kubernetes" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "pyyaml" },
-    { name = "requests" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "black" },
-    { name = "isort" },
-    { name = "pylint" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "bcrypt", specifier = ">=4.0.0" },
-    { name = "cookiecutter", specifier = ">=2.6.0" },
-    { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "kubernetes", specifier = ">=31.0.0" },
-    { name = "pydantic", specifier = ">=2.11.9" },
-    { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "requests", specifier = ">=2.32.5" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "black", specifier = ">=25.9.0" },
-    { name = "isort", specifier = ">=6.1.0" },
-    { name = "pylint", specifier = ">=3.3.8" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pytest-cov", specifier = ">=6.0.0" },
 ]
 
 [[package]]
@@ -724,7 +724,7 @@ wheels = [
 
 [[package]]
 name = "pytest"
-version = "8.4.2"
+version = "9.0.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
@@ -733,9 +733,9 @@ dependencies = [
     { name = "pluggy" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a3/5c/00a0e072241553e1a7496d638deababa67c5058571567b92a7eaa258397c/pytest-8.4.2.tar.gz", hash = "sha256:86c0d0b93306b961d58d62a4db4879f27fe25513d4b969df351abdddb3c30e01", size = 1519618, upload-time = "2025-09-04T14:34:22.711Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/0d/549bd94f1a0a402dc8cf64563a117c0f3765662e2e668477624baeec44d5/pytest-9.0.3.tar.gz", hash = "sha256:b86ada508af81d19edeb213c681b1d48246c1a91d304c6c81a427674c17eb91c", size = 1572165, upload-time = "2026-04-07T17:16:18.027Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a8/a4/20da314d277121d6534b3a980b29035dcd51e6744bd79075a6ce8fa4eb8d/pytest-8.4.2-py3-none-any.whl", hash = "sha256:872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79", size = 365750, upload-time = "2025-09-04T14:34:20.226Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/24/a372aaf5c9b7208e7112038812994107bc65a84cd00e0354a88c2c77a617/pytest-9.0.3-py3-none-any.whl", hash = "sha256:2c5efc453d45394fdd706ade797c0a81091eccd1d6e4bccfcd476e2b8e0ab5d9", size = 375249, upload-time = "2026-04-07T17:16:16.13Z" },
 ]
 
 [[package]]
