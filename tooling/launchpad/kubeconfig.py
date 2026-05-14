@@ -12,19 +12,97 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from launchpad.exceptions import ConfigurationError
 from launchpad.utils import get_logger
 
-logger = None
+logger = get_logger(__name__)
 
 
-def _get_logger():
-    global logger  # pylint: disable=global-statement
-    if logger is None:
-        logger = get_logger(__name__)
-    return logger
+def _get_terraform_command() -> Optional[str]:
+    if shutil.which("tofu"):
+        logger.debug("Found tofu command")
+        return "tofu"
+
+    if shutil.which("terraform"):
+        logger.debug("Found terraform command")
+        return "terraform"
+
+    logger.debug("Neither tofu nor terraform commands found")
+    return None
+
+
+def _kubeconfig_paths_from_env() -> List[Path]:
+    raw = os.environ.get("KUBECONFIG", "")
+    if not raw.strip():
+        return []
+
+    return [
+        Path(entry.strip()).expanduser()
+        for entry in raw.split(os.pathsep)
+        if entry.strip()
+    ]
+
+
+def _has_usable_kubeconfig_env() -> bool:
+    for path in _kubeconfig_paths_from_env():
+        try:
+            if path.is_file():
+                logger.info("Using kubeconfig from KUBECONFIG entry %s", path)
+                return True
+        except OSError:
+            continue
+
+    return False
+
+
+def _atomic_write_file(path: Path, content: str) -> None:
+    parent = path.parent
+    parent.mkdir(parents=True, exist_ok=True)
+
+    tmp_path: Optional[Path] = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            delete=False,
+            dir=parent,
+            prefix=".tmp-kubeconfig-",
+            encoding="utf-8",
+        ) as tmp_file:
+            tmp_file.write(content)
+            tmp_path = Path(tmp_file.name)
+
+        tmp_path.chmod(0o600)
+        tmp_path.replace(path)
+    except OSError:
+        if tmp_path and tmp_path.exists():
+            tmp_path.unlink(missing_ok=True)
+        raise
+
+
+def _resolve_infrastructure_dir(working_dir: Optional[Path] = None) -> Optional[Path]:
+    """
+    Resolve the infrastructure directory used for Terraform/OpenTofu and kubeconfig files.
+
+    Args:
+        working_dir: Repository or project root (directory that contains ``infrastructure/``).
+            Defaults to the current working directory.
+
+    Returns:
+        Path to ``infrastructure`` if it exists, otherwise None.
+    """
+    if not working_dir:
+        working_dir = Path.cwd()
+
+    if working_dir.name == "infrastructure":
+        working_dir = working_dir.parent
+
+    infrastructure_dir = working_dir / "infrastructure"
+    if not infrastructure_dir.is_dir():
+        return None
+
+    return infrastructure_dir
 
 
 def get_kubeconfig_from_terraform(working_dir: Optional[Path] = None) -> Optional[str]:
@@ -46,35 +124,21 @@ def get_kubeconfig_from_terraform(working_dir: Optional[Path] = None) -> Optiona
         ConfigurationError: If command execution fails
     """
 
-    command = None
-    if shutil.which("tofu"):
-        command = "tofu"
-        _get_logger().debug("Found tofu command")
-    elif shutil.which("terraform"):
-        command = "terraform"
-        _get_logger().debug("Found terraform command")
-    else:
-        _get_logger().debug("Neither tofu nor terraform commands found")
+    command = _get_terraform_command()
+    if not command:
         return None
 
-    if not working_dir:
-        working_dir = Path.cwd()
-
-    # If we're already in the infrastructure directory, go up one level
-    if working_dir.name == "infrastructure":
-        working_dir = working_dir.parent
-
-    # Check if infrastructure directory exists in the current working directory
-    infrastructure_dir = working_dir / "infrastructure"
-    if not infrastructure_dir.exists():
-        _get_logger().warning("Infrastructure directory not found in %s", working_dir)
+    infrastructure_dir = _resolve_infrastructure_dir(working_dir)
+    if not infrastructure_dir:
+        logger.warning(
+            "Infrastructure directory not found for working dir %s",
+            working_dir or Path.cwd(),
+        )
         return None
 
     try:
-        _get_logger().info("Getting kubeconfig from %s", infrastructure_dir)
-        _get_logger().info(
-            "Command: %s", [command, "output", "-raw", "kubeconfig_content"]
-        )
+        logger.info("Getting kubeconfig from %s", infrastructure_dir)
+        logger.info("Command: %s", [command, "output", "-raw", "kubeconfig_content"])
         result = subprocess.run(
             [command, "output", "-raw", "kubeconfig_content"],
             cwd=infrastructure_dir,
@@ -86,17 +150,15 @@ def get_kubeconfig_from_terraform(working_dir: Optional[Path] = None) -> Optiona
         raise ConfigurationError(f"Failed to execute {command} command: {exc}") from exc
 
     if result.returncode != 0:
-        _get_logger().debug(
-            "Failed to get kubeconfig from %s: %s", command, result.stderr
-        )
+        logger.debug("Failed to get kubeconfig from %s: %s", command, result.stderr)
         return None
 
     kubeconfig = result.stdout.strip()
     if not kubeconfig:
-        _get_logger().debug("Empty kubeconfig from %s output", command)
+        logger.debug("Empty kubeconfig from %s output", command)
         return None
 
-    _get_logger().debug("Raw output from %s: %s", command, repr(kubeconfig[:100]))
+    logger.debug("Raw output from %s: %s", command, repr(kubeconfig[:100]))
 
     # Check if the output looks like a valid kubeconfig
     if (
@@ -104,10 +166,10 @@ def get_kubeconfig_from_terraform(working_dir: Optional[Path] = None) -> Optiona
         or kubeconfig.startswith("\x1b[")
         or "Warning:" in kubeconfig
     ):
-        _get_logger().warning(
+        logger.warning(
             "Output from %s does not appear to be a valid kubeconfig", command
         )
-        _get_logger().warning(
+        logger.warning(
             "Validation failed - starts with apiVersion: %s, contains kind: Config: %s, starts with \\x1b[: %s, contains Warning: %s",
             kubeconfig.startswith("apiVersion:"),
             "kind: Config" in kubeconfig,
@@ -116,7 +178,7 @@ def get_kubeconfig_from_terraform(working_dir: Optional[Path] = None) -> Optiona
         )
         return None
 
-    _get_logger().info("Successfully retrieved kubeconfig from %s", command)
+    logger.info("Successfully retrieved kubeconfig from %s", command)
     return kubeconfig
 
 
@@ -133,74 +195,77 @@ def get_kubeconfig_from_env() -> Optional[str]:
     kubeconfig_content = os.environ.get("KUBECONFIG_CONTENT", "").strip()
 
     if not kubeconfig_content:
-        _get_logger().debug("KUBECONFIG_CONTENT environment variable not set")
+        logger.debug("KUBECONFIG_CONTENT environment variable not set")
         return None
 
     try:
         decoded = base64.b64decode(kubeconfig_content, validate=True).decode("utf-8")
-        _get_logger().info(
-            "Successfully decoded base64-encoded kubeconfig from environment"
-        )
+        logger.info("Successfully decoded base64-encoded kubeconfig from environment")
         return decoded
     except Exception:  # pylint: disable=broad-except
-        _get_logger().info("Using plain-text kubeconfig from environment")
+        logger.info("Using plain-text kubeconfig from environment")
         return kubeconfig_content
 
 
 def setup_kubeconfig(terraform_dir: Optional[Path] = None) -> None:
     """
-    Set up kubeconfig from available sources.
+    Set up kubeconfig from available sources for this process.
 
-    Attempts to retrieve kubeconfig in the following order:
-    1. Terraform/OpenTofu output (if not force_env)
-    2. KUBECONFIG_CONTENT environment variable
-    3. Use existing kubeconfig if available
+    Resolution order:
 
-    If kubeconfig is retrieved, it is written to ~/.kube/config.
+    1. If ``KUBECONFIG`` is set and any path in it (split with ``os.pathsep``) is an
+       existing regular file, use that and return without writing or mutating sources.
+    2. ``KUBECONFIG_CONTENT`` environment variable (plain or base64).
+    3. Terraform/OpenTofu ``kubeconfig_content`` output (from ``infrastructure/``).
+
+    When content comes from (2) or (3), it is written to either
+    ``infrastructure/.kubeconfig`` when an infrastructure directory
+    exists, or a private file under the system temporary directory. The process
+    environment variable ``KUBECONFIG`` is then set to that file's absolute path so
+    ``kubectl`` and client-go (``load_kube_config``) use it. This avoids overwriting
+    ``~/.kube/config``.
 
     Args:
-        terraform_dir: Directory containing Terraform/OpenTofu files.
-                      If None, uses current directory.
+        terraform_dir: Directory containing Terraform/OpenTofu files (repository root
+            or ``infrastructure`` parent). If None, uses the current working directory.
 
     Raises:
         ConfigurationError: If no valid kubeconfig can be obtained
     """
-    kubeconfig_content = None
+    if _has_usable_kubeconfig_env():
+        return
 
-    # Try Terraform/OpenTofu first
-    kubeconfig_content = get_kubeconfig_from_terraform(terraform_dir)
+    kubeconfig_content = get_kubeconfig_from_env()
 
-    # Fall back to environment variable
     if not kubeconfig_content:
-        kubeconfig_content = get_kubeconfig_from_env()
+        kubeconfig_content = get_kubeconfig_from_terraform(terraform_dir)
 
-    # Check if existing kubeconfig is available
-    kubeconfig_path = Path.home() / ".kube" / "config"
     if not kubeconfig_content:
-        if kubeconfig_path.exists():
-            _get_logger().info("Using existing kubeconfig at %s", kubeconfig_path)
-            return
-
         raise ConfigurationError(
             "No kubeconfig available. Please ensure one of the following:\n"
-            "1. Run this command from a directory with infrastructure directory present\n"
-            "2. Set KUBECONFIG_CONTENT environment variable\n"
-            "3. Have a valid kubeconfig at ~/.kube/config"
+            "1. Run this command from a directory with an infrastructure directory present\n"
+            "   (so Terraform/OpenTofu can provide kubeconfig), or\n"
+            "2. Set KUBECONFIG_CONTENT environment variable, or\n"
+            "3. Set KUBECONFIG to an existing kubeconfig file path for your cluster"
         )
 
-    try:
-        kubeconfig_path.parent.mkdir(parents=True, exist_ok=True)
-
+    infrastructure_dir = _resolve_infrastructure_dir(terraform_dir)
+    if infrastructure_dir:
+        kubeconfig_path = infrastructure_dir / ".kubeconfig"
+    else:
         with tempfile.NamedTemporaryFile(
-            mode="w", delete=False, dir=kubeconfig_path.parent
+            mode="w",
+            delete=False,
+            prefix="launchpad-kubeconfig-",
+            suffix=".yaml",
+            encoding="utf-8",
         ) as tmp_file:
-            tmp_file.write(kubeconfig_content)
-            tmp_path = Path(tmp_file.name)
+            kubeconfig_path = Path(tmp_file.name)
 
-        tmp_path.chmod(0o600)
-        tmp_path.replace(kubeconfig_path)
-
-        _get_logger().info("Kubeconfig written to %s", kubeconfig_path)
-
+    try:
+        _atomic_write_file(kubeconfig_path, kubeconfig_content)
     except (OSError, IOError) as exc:
         raise ConfigurationError(f"Failed to write kubeconfig: {exc}") from exc
+
+    os.environ["KUBECONFIG"] = str(kubeconfig_path.resolve())
+    logger.info("Kubeconfig written to %s", kubeconfig_path)

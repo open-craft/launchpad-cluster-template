@@ -21,6 +21,8 @@ from launchpad.kubeconfig import (
     setup_kubeconfig,
 )
 
+MINIMAL_KUBECONFIG = "apiVersion: v1\nkind: Config"
+
 
 class TestGetKubeconfigFromTerraform:
     """
@@ -46,14 +48,12 @@ class TestGetKubeconfigFromTerraform:
             "/usr/bin/tofu" if cmd == "tofu" else None
         )
         mock_run.return_value = Mock(
-            returncode=0,
-            stdout="apiVersion: v1\nkind: Config\n",
-            stderr="",
+            returncode=0, stdout=f"{MINIMAL_KUBECONFIG}\n", stderr=""
         )
 
         result = get_kubeconfig_from_terraform()
 
-        assert result == "apiVersion: v1\nkind: Config"
+        assert result == MINIMAL_KUBECONFIG
         mock_run.assert_called_once_with(
             ["tofu", "output", "-raw", "kubeconfig_content"],
             cwd=mock_infrastructure,
@@ -81,14 +81,12 @@ class TestGetKubeconfigFromTerraform:
             "/usr/bin/terraform" if cmd == "terraform" else None
         )
         mock_run.return_value = Mock(
-            returncode=0,
-            stdout="apiVersion: v1\nkind: Config\n",
-            stderr="",
+            returncode=0, stdout=f"{MINIMAL_KUBECONFIG}\n", stderr=""
         )
 
         result = get_kubeconfig_from_terraform()
 
-        assert result == "apiVersion: v1\nkind: Config"
+        assert result == MINIMAL_KUBECONFIG
         mock_run.assert_called_once_with(
             ["terraform", "output", "-raw", "kubeconfig_content"],
             cwd=mock_infrastructure,
@@ -112,7 +110,7 @@ class TestGetKubeconfigFromTerraform:
     @patch("launchpad.kubeconfig.shutil.which")
     @patch("launchpad.kubeconfig.subprocess.run")
     @patch("launchpad.kubeconfig.Path")
-    def test_with_working_directory(self, mock_path, mock_run, mock_check_command):
+    def test_with_working_directory(self, _mock_path, mock_run, mock_check_command):
         """
         Test with custom working directory.
         """
@@ -127,14 +125,12 @@ class TestGetKubeconfigFromTerraform:
             "/usr/bin/tofu" if cmd == "tofu" else None
         )
         mock_run.return_value = Mock(
-            returncode=0,
-            stdout="apiVersion: v1\nkind: Config\n",
-            stderr="",
+            returncode=0, stdout=f"{MINIMAL_KUBECONFIG}\n", stderr=""
         )
 
         result = get_kubeconfig_from_terraform(working_dir)
 
-        assert result == "apiVersion: v1\nkind: Config"
+        assert result == MINIMAL_KUBECONFIG
         mock_run.assert_called_once()
         assert mock_run.call_args[1]["cwd"] == mock_infrastructure
 
@@ -220,14 +216,12 @@ class TestGetKubeconfigFromTerraform:
             "/usr/bin/tofu" if cmd == "tofu" else None
         )
         mock_run.return_value = Mock(
-            returncode=0,
-            stdout="  \n  apiVersion: v1\nkind: Config  \n  ",
-            stderr="",
+            returncode=0, stdout=f"  \n  {MINIMAL_KUBECONFIG}  \n  ", stderr=""
         )
 
         result = get_kubeconfig_from_terraform()
 
-        assert result == "apiVersion: v1\nkind: Config"
+        assert result == MINIMAL_KUBECONFIG
 
 
 class TestGetKubeconfigFromEnv:
@@ -240,7 +234,7 @@ class TestGetKubeconfigFromEnv:
         Test retrieval of plain-text kubeconfig from environment.
         """
 
-        kubeconfig = "apiVersion: v1\nkind: Config"
+        kubeconfig = MINIMAL_KUBECONFIG
         monkeypatch.setenv("KUBECONFIG_CONTENT", kubeconfig)
 
         result = get_kubeconfig_from_env()
@@ -252,7 +246,7 @@ class TestGetKubeconfigFromEnv:
         Test retrieval of base64-encoded kubeconfig from environment.
         """
 
-        kubeconfig = "apiVersion: v1\nkind: Config"
+        kubeconfig = MINIMAL_KUBECONFIG
         encoded = base64.b64encode(kubeconfig.encode()).decode()
         monkeypatch.setenv("KUBECONFIG_CONTENT", encoded)
 
@@ -328,6 +322,11 @@ class TestSetupKubeconfig:
     Tests for setup_kubeconfig function.
     """
 
+    @pytest.fixture(autouse=True)
+    def _isolate_kubeconfig_env(self, monkeypatch):
+        monkeypatch.delenv("KUBECONFIG", raising=False)
+        monkeypatch.delenv("KUBECONFIG_CONTENT", raising=False)
+
     @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
     def test_with_terraform_kubeconfig(self, mock_get_terraform):
         """
@@ -336,16 +335,19 @@ class TestSetupKubeconfig:
         mock_get_terraform.return_value = "kubeconfig from terraform"
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("launchpad.kubeconfig.Path.home") as mock_home:
-                mock_home.return_value = Path(tmpdir)
-
+            root = Path(tmpdir)
+            (root / "infrastructure").mkdir(parents=True)
+            with patch("launchpad.kubeconfig.Path.cwd", return_value=root):
                 setup_kubeconfig()
 
-                kubeconfig_path = Path(tmpdir) / ".kube" / "config"
-                assert kubeconfig_path.exists()
-                assert kubeconfig_path.read_text() == "kubeconfig from terraform"
-
-                assert oct(kubeconfig_path.stat().st_mode)[-3:] == "600"
+            kubeconfig_path = root / "infrastructure" / ".kubeconfig"
+            assert kubeconfig_path.exists()
+            assert (
+                kubeconfig_path.read_text(encoding="utf-8")
+                == "kubeconfig from terraform"
+            )
+            assert oct(kubeconfig_path.stat().st_mode)[-3:] == "600"
+            assert os.environ["KUBECONFIG"] == str(kubeconfig_path.resolve())
 
         mock_get_terraform.assert_called_once_with(None)
 
@@ -353,48 +355,58 @@ class TestSetupKubeconfig:
     @patch("launchpad.kubeconfig.get_kubeconfig_from_env")
     def test_with_env_kubeconfig(self, mock_get_env, mock_get_terraform):
         """
-        Test setup using kubeconfig from environment when Terraform fails.
+        Test setup uses KUBECONFIG_CONTENT before Terraform output.
         """
-        mock_get_terraform.return_value = None
         mock_get_env.return_value = "kubeconfig from env"
+        mock_get_terraform.return_value = "kubeconfig from terraform"
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("launchpad.kubeconfig.Path.home") as mock_home:
-                mock_home.return_value = Path(tmpdir)
-
+            root = Path(tmpdir)
+            with patch("launchpad.kubeconfig.Path.cwd", return_value=root):
                 setup_kubeconfig()
 
-                kubeconfig_path = Path(tmpdir) / ".kube" / "config"
-                assert kubeconfig_path.exists()
-                assert kubeconfig_path.read_text() == "kubeconfig from env"
+            written = Path(os.environ["KUBECONFIG"])
+            assert written.exists()
+            assert written.read_text(encoding="utf-8") == "kubeconfig from env"
+            assert oct(written.stat().st_mode)[-3:] == "600"
 
-                assert oct(kubeconfig_path.stat().st_mode)[-3:] == "600"
-
-        mock_get_terraform.assert_called_once()
+        mock_get_terraform.assert_not_called()
         mock_get_env.assert_called_once()
 
     @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
     @patch("launchpad.kubeconfig.get_kubeconfig_from_env")
-    def test_with_existing_kubeconfig(self, mock_get_env, mock_get_terraform):
+    def test_short_circuits_when_kubeconfig_env_usable(
+        self, mock_get_env, mock_get_terraform, tmp_path, monkeypatch
+    ):
         """
-        Test when existing kubeconfig is available and no new one is provided.
+        When KUBECONFIG points at an existing file, do not fetch or write other sources.
         """
+        kube_file = tmp_path / "existing.yaml"
+        kube_file.write_text("apiVersion: v1\nkind: Config\n", encoding="utf-8")
+        monkeypatch.setenv("KUBECONFIG", str(kube_file))
 
         mock_get_terraform.return_value = None
         mock_get_env.return_value = None
 
-        with patch("launchpad.kubeconfig.Path") as mock_path_class:
-            mock_home = MagicMock()
-            mock_kubeconfig_path = MagicMock()
-            mock_kubeconfig_path.exists.return_value = True
+        setup_kubeconfig()
 
-            mock_path_class.home.return_value = mock_home
-            mock_home.__truediv__.return_value = mock_kubeconfig_path
+        mock_get_terraform.assert_not_called()
+        mock_get_env.assert_not_called()
 
-            setup_kubeconfig()
+    def test_kubeconfig_env_multiple_paths_second_usable(self, tmp_path, monkeypatch):
+        """
+        KUBECONFIG may list several paths (os.pathsep); the first existing file wins.
+        """
+        missing = tmp_path / "missing.yaml"
+        existing = tmp_path / "exists.yaml"
+        existing.write_text("apiVersion: v1\nkind: Config\n", encoding="utf-8")
+        monkeypatch.setenv("KUBECONFIG", f"{missing}{os.pathsep}{existing}")
 
-        mock_get_terraform.assert_called_once()
-        mock_get_env.assert_called_once()
+        with patch("launchpad.kubeconfig.get_kubeconfig_from_terraform") as mock_tf:
+            with patch("launchpad.kubeconfig.get_kubeconfig_from_env") as mock_env:
+                setup_kubeconfig()
+                mock_tf.assert_not_called()
+                mock_env.assert_not_called()
 
     @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
     @patch("launchpad.kubeconfig.get_kubeconfig_from_env")
@@ -407,33 +419,32 @@ class TestSetupKubeconfig:
         mock_get_env.return_value = None
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("launchpad.kubeconfig.Path.home") as mock_home:
-                mock_home.return_value = Path(tmpdir)
-
-                with pytest.raises(ConfigurationError, match="No kubeconfig available"):
+            root = Path(tmpdir)
+            with patch("launchpad.kubeconfig.Path.cwd", return_value=root):
+                with pytest.raises(
+                    ConfigurationError, match="Set KUBECONFIG to an existing"
+                ):
                     setup_kubeconfig()
 
     @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
     @patch("launchpad.kubeconfig.get_kubeconfig_from_env")
-    def test_force_env_skips_terraform(self, mock_get_env, mock_get_terraform):
+    def test_prefers_env_over_terraform_output(self, mock_get_env, mock_get_terraform):
         """
-        Test that when terraform returns None, env is used as fallback.
+        Test that env kubeconfig is used even when Terraform would provide one.
         """
-        mock_get_terraform.return_value = None
         mock_get_env.return_value = "kubeconfig from env"
+        mock_get_terraform.return_value = "kubeconfig from terraform"
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("launchpad.kubeconfig.Path.home") as mock_home:
-                mock_home.return_value = Path(tmpdir)
-
+            root = Path(tmpdir)
+            with patch("launchpad.kubeconfig.Path.cwd", return_value=root):
                 setup_kubeconfig()
 
-                kubeconfig_path = Path(tmpdir) / ".kube" / "config"
-                assert kubeconfig_path.exists()
-                assert kubeconfig_path.read_text() == "kubeconfig from env"
+            written = Path(os.environ["KUBECONFIG"])
+            assert written.exists()
+            assert written.read_text(encoding="utf-8") == "kubeconfig from env"
 
-        mock_get_terraform.assert_called_once()
-
+        mock_get_terraform.assert_not_called()
         mock_get_env.assert_called_once()
 
     @patch("launchpad.kubeconfig.get_kubeconfig_from_terraform")
@@ -444,15 +455,12 @@ class TestSetupKubeconfig:
         mock_get_terraform.return_value = "kubeconfig content"
         terraform_dir = Path("/custom/terraform/dir")
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("launchpad.kubeconfig.Path.home") as mock_home:
-                mock_home.return_value = Path(tmpdir)
+        with patch("launchpad.kubeconfig.Path.cwd", return_value=Path.cwd()):
+            setup_kubeconfig(terraform_dir=terraform_dir)
 
-                setup_kubeconfig(terraform_dir=terraform_dir)
-
-                kubeconfig_path = Path(tmpdir) / ".kube" / "config"
-                assert kubeconfig_path.exists()
-                assert kubeconfig_path.read_text() == "kubeconfig content"
+        written = Path(os.environ["KUBECONFIG"])
+        assert written.exists()
+        assert written.read_text(encoding="utf-8") == "kubeconfig content"
 
         mock_get_terraform.assert_called_once_with(terraform_dir)
 
@@ -464,40 +472,39 @@ class TestSetupKubeconfig:
         mock_get_terraform.return_value = "kubeconfig content"
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("launchpad.kubeconfig.Path.home") as mock_home:
-                mock_home.return_value = Path(tmpdir)
-
-                kube_dir = Path(tmpdir) / ".kube"
-                kube_dir.mkdir()
-                kube_dir.chmod(0o444)
-
-                with pytest.raises(
-                    ConfigurationError, match="Failed to write kubeconfig"
-                ):
-                    setup_kubeconfig()
-
-                kube_dir.chmod(0o755)
+            root = Path(tmpdir)
+            infra = root / "infrastructure"
+            infra.mkdir(parents=True)
+            infra.chmod(0o444)
+            try:
+                with patch("launchpad.kubeconfig.Path.cwd", return_value=root):
+                    with pytest.raises(
+                        ConfigurationError, match="Failed to write kubeconfig"
+                    ):
+                        setup_kubeconfig()
+            finally:
+                infra.chmod(0o755)
 
     def test_integration_with_real_tempfile(self):
         """
         Integration test using real temporary directory.
         """
 
-        kubeconfig_content = "apiVersion: v1\nkind: Config"
+        kubeconfig_content = MINIMAL_KUBECONFIG
 
         with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "infrastructure").mkdir(parents=True)
             with patch(
                 "launchpad.kubeconfig.get_kubeconfig_from_terraform"
             ) as mock_terraform:
                 mock_terraform.return_value = kubeconfig_content
 
-                with patch("launchpad.kubeconfig.Path.home") as mock_home:
-                    mock_home.return_value = Path(tmpdir)
-
+                with patch("launchpad.kubeconfig.Path.cwd", return_value=root):
                     setup_kubeconfig()
 
-                    kubeconfig_path = Path(tmpdir) / ".kube" / "config"
-                    assert kubeconfig_path.exists()
-                    assert kubeconfig_path.read_text() == kubeconfig_content
+                kubeconfig_path = root / "infrastructure" / ".kubeconfig"
+                assert kubeconfig_path.exists()
+                assert kubeconfig_path.read_text(encoding="utf-8") == kubeconfig_content
 
-                    assert oct(kubeconfig_path.stat().st_mode)[-3:] == "600"
+                assert oct(kubeconfig_path.stat().st_mode)[-3:] == "600"
