@@ -327,9 +327,11 @@ export LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS="base64_encoded_credentials"
 The Launchpad CLI includes kubeconfig detection and setup:
 
 **Detection Order**:
-1. **Terraform/OpenTofu Output**: Checks for `tofu` or `terraform` commands and retrieves the `kubeconfig` output
-2. **Environment Variable**: Uses `KUBECONFIG_CONTENT` (supports both base64-encoded and plain text)
-3. **Existing Configuration**: Falls back to `~/.kube/config` if present
+1. **`KUBECONFIG`**: If set, and any path in the list (split with the platform path separator) is an existing file, that configuration is used and nothing is written
+2. **`KUBECONFIG_CONTENT`**: Inline kubeconfig (base64-encoded or plain text)
+3. **Terraform/OpenTofu Output**: Checks for `tofu` or `terraform` commands and reads the `kubeconfig_content` output from the `infrastructure/` directory
+
+When using `KUBECONFIG_CONTENT` or Terraform/OpenTofu output, the CLI writes kubeconfig to `infrastructure/.kubeconfig` when that directory exists, or to a private file under the system temp directory, then sets `KUBECONFIG` for the process. Your `~/.kube/config` is not modified.
 
 **Local Development**:
 ```bash
@@ -356,9 +358,10 @@ If no kubeconfig can be found, the CLI provides a helpful error message:
 
 ```
 No kubeconfig available. Please ensure one of the following:
-1. Run this command from a directory with infrastructure directory present
-2. Set KUBECONFIG_CONTENT environment variable
-3. Have a valid kubeconfig at ~/.kube/config
+1. Run this command from a directory with an infrastructure directory present
+   (so Terraform/OpenTofu can provide kubeconfig), or
+2. Set KUBECONFIG_CONTENT environment variable, or
+3. Set KUBECONFIG to an existing kubeconfig file path for your cluster
 ```
 
 ## Security & RBAC
@@ -582,9 +585,9 @@ For GitHub Actions workflows to function properly, configure the following secre
 
 The Launchpad CLI automatically detects and configures kubeconfig from multiple sources:
 
-1. **Terraform/OpenTofu Output** (Recommended): If you're in a directory with Terraform/OpenTofu that has a `kubeconfig` output, it will be used automatically
-2. **Environment Variable**: Set `KUBECONFIG_CONTENT` (base64-encoded or plain text)
-3. **Existing Config**: Falls back to `~/.kube/config` if present
+1. **`KUBECONFIG`**: If it points at existing kubeconfig file(s), those are used as-is
+2. **Terraform/OpenTofu Output** (Recommended): From `infrastructure/` with a `kubeconfig_content` output
+3. **`KUBECONFIG_CONTENT`**: Base64-encoded or plain text kubeconfig (written to a managed file and exposed via `KUBECONFIG` for that process; `~/.kube/config` is not overwritten)
 
 For GitHub Actions, configure:
 - `KUBECONFIG_CONTENT`: Base64-encoded kubeconfig file for cluster access
