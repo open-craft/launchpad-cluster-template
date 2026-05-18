@@ -27,7 +27,7 @@ jobs:
     permissions:
       contents: write
     name: Delete Instance
-    uses: open-craft/launchpad-cluster-template/.github/workflows/delete-instance.yml@9cf8869e54b94b7e3e8c0803cb57f3b13f6ec326 # main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/delete-instance.yml@5633a3917d96663faf0ce6e48f8b086dfc5e461e # main
     secrets:
       TERRAFORM_SECRETS: "{% raw %}${{ secrets.TERRAFORM_SECRETS }}{% endraw %}"
       LAUNCHPAD_MYSQL_HOST: "{% raw %}${{ secrets.LAUNCHPAD_MYSQL_HOST }}{% endraw %}"
