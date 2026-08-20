@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: open-craft/launchpad-cluster-template/.github/workflows/cleanup-container-packages.yml@6dc6fd3d43db410365df3e0118aca9508ae5226e # main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/cleanup-container-packages.yml@da808c0345b800fc5c7b05cf7139e8cbd14075a9 # main
     with:
       RUNNER_WORKFLOW_LABEL: "{{ cookiecutter.runner_workflow_label }}"
       CLEANUP_POLICY: "max_count"
