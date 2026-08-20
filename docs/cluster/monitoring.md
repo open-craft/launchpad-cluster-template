@@ -29,7 +29,7 @@ Use the credentials configured in Terraform or stored in a Kubernetes secret (e.
 
 ## Open edX Instance Metrics
 
-Instance-level monitoring (e.g. LMS, Celery, Redis) may be documented under [Instances → Monitoring](../instances/monitoring.md). Ensure service monitors or scrape configs include the instance namespaces if you want them in cluster Prometheus.
+Instance-level monitoring (e.g. LMS, Celery, Redis) may be documented under [Instances -> Monitoring](../instances/monitoring.md). Ensure service monitors or scrape configs include the instance namespaces if you want them in cluster Prometheus.
 
 ## Related Documentation
 

@@ -1,12 +1,12 @@
 # Instances Overview
 
-Open edX instances run in dedicated Kubernetes namespaces and are managed via ArgoCD and Tutor-generated manifests. Each instance has its own configuration, databases, and storage.
+Open edX instances run in dedicated Kubernetes namespaces and are managed via ArgoCD and Tutor-generated manifests. Each instance has its own configuration, databases, and storage. Object storage is configured with tutor-contrib-s3 keys in `config.yml` (see [Object Storage](configuration.md#object-storage)).
 
 ## Topics
 
 - **[Provisioning](provisioning.md)** -  Creating a new instance (databases, storage, namespace, ArgoCD application)
 - **[Deprovisioning](deprovisioning.md)** -  Deleting an instance and cleaning up resources
-- **[Configuration](configuration.md)** -  Instance config files (e.g. `config.yml`), Tutor settings, and secrets
+- **[Configuration](configuration.md)** -  Instance config files (e.g. `config.yml`), Tutor settings, object storage, and secrets
 - **[Docker Images](docker-images.md)** -  Building and publishing images with Picasso
 - **[Auto-scaling](auto-scaling.md)** -  Scaling instance workloads
 - **[Tracking Logs](tracking-logs.md)** -  Accessing and following instance logs

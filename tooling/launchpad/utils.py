@@ -16,6 +16,8 @@ import launchpad
 from launchpad.config import get_config
 from launchpad.exceptions import CommandNotFoundError, ConfigurationError
 
+DIGITALOCEAN_SPACES_HOST_MARKER = "digitaloceanspaces.com"
+
 
 class ColoredFormatter(logging.Formatter):
     """Custom formatter with colored output matching shell script format."""
@@ -360,30 +362,66 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
         }
     )
 
-    # Storage parameters
-    instance_config.update(
-        {
-            "LAUNCHPAD_INSTANCE_STORAGE_BUCKET_NAME": config_data.get(
-                "STORAGE_BUCKET_NAME", ""
-            ),
-            "LAUNCHPAD_INSTANCE_STORAGE_TYPE": config_data.get("STORAGE_TYPE"),
-            "LAUNCHPAD_INSTANCE_STORAGE_REGION": config_data.get("STORAGE_REGION"),
-            "LAUNCHPAD_INSTANCE_STORAGE_ACCESS_KEY_ID": os.getenv(
-                "LAUNCHPAD_STORAGE_ACCESS_KEY_ID", ""
-            ),
-            "LAUNCHPAD_INSTANCE_STORAGE_SECRET_ACCESS_KEY": os.getenv(
-                "LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY", ""
-            ),
-            "LAUNCHPAD_INSTANCE_STORAGE_ENDPOINT_URL": config_data.get(
-                "STORAGE_ENDPOINT_URL", ""
-            ),
-            "LAUNCHPAD_INSTANCE_STORAGE_MAKE_PUBLIC": os.getenv(
-                "LAUNCHPAD_STORAGE_MAKE_PUBLIC", "false"
-            ),
-        }
-    )
+    # Storage parameters (tutor-contrib-s3 keys)
+    instance_config.update(_build_storage_instance_config(config_data))
 
     return instance_config
+
+
+def _parse_use_ssl(value) -> bool:
+    """Interpret S3_USE_SSL from config.yml (bool or string)."""
+    if isinstance(value, bool):
+        return value
+
+    if value is None or value == "":
+        return True
+
+    return str(value).lower() in {"1", "true", "yes", "on"}
+
+
+def _parse_s3_endpoint_url(host: str, port: str, use_ssl: bool) -> str:
+    """Parse S3 host from config.yml."""
+    scheme = "https" if use_ssl else "http"
+    if not (host := host or "").strip():
+        return ""
+    if port != "":
+        return f"{scheme}://{host}:{port}"
+    return f"{scheme}://{host}"
+
+
+def _build_storage_instance_config(config_data: dict) -> dict:
+    """
+    Derive Argo storage workflow parameters from Tutor S3 settings.
+
+    Reads tutor-contrib-s3 keys (`S3_*`, `OPENEDX_AWS_*`). Provider is Spaces when
+    ``S3_HOST`` contains ``digitaloceanspaces.com``; otherwise AWS.
+    """
+    s3_host = config_data.get("S3_HOST", "")
+    s3_port = config_data.get("S3_PORT", "")
+    use_ssl = _parse_use_ssl(config_data.get("S3_USE_SSL", True))
+
+    bucket_name = config_data.get("S3_STORAGE_BUCKET", "")
+    region = config_data.get("S3_REGION", "")
+
+    is_digitalocean_spaces = DIGITALOCEAN_SPACES_HOST_MARKER in s3_host.lower()
+    storage_type = "spaces" if is_digitalocean_spaces else "s3"
+    endpoint_url = _parse_s3_endpoint_url(s3_host, s3_port, use_ssl)
+
+    access_key = config_data.get("OPENEDX_AWS_ACCESS_KEY") or os.getenv(
+        "LAUNCHPAD_STORAGE_ACCESS_KEY_ID", ""
+    )
+    secret_key = config_data.get("OPENEDX_AWS_SECRET_ACCESS_KEY") or os.getenv(
+        "LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY", ""
+    )
+
+    return {
+        "LAUNCHPAD_INSTANCE_STORAGE_BUCKET_NAME": bucket_name,
+        "LAUNCHPAD_INSTANCE_STORAGE_TYPE": storage_type,
+        "LAUNCHPAD_INSTANCE_STORAGE_REGION": region,
+        "LAUNCHPAD_INSTANCE_STORAGE_ACCESS_KEY_ID": access_key,
+        "LAUNCHPAD_INSTANCE_STORAGE_SECRET_ACCESS_KEY": secret_key,
+        "LAUNCHPAD_INSTANCE_STORAGE_ENDPOINT_URL": endpoint_url,
+    }
 
 
 def load_instance_config(instance_name: str, logger: logging.Logger) -> dict:

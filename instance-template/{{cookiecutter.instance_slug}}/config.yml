@@ -52,15 +52,18 @@ MONGODB_REPLICA_SET: "{{ env('LAUNCHPAD_MONGODB_REPLICA_SET', '') }}"
 FORUM_MONGODB_DATABASE: "launchpad-{{ cookiecutter.instance_slug }}-forum"
 
 # Storage configuration
-STORAGE_BUCKET_NAME: "launchpad-{{ cookiecutter.instance_slug }}-{{ generate_password() | truncate(7, True, '', 0) }}"
-STORAGE_TYPE: "{{ env('LAUNCHPAD_STORAGE_TYPE') }}"
-STORAGE_REGION: "{{ env('LAUNCHPAD_STORAGE_REGION') }}"
-STORAGE_ENDPOINT_URL: "{{ storage_endpoint_url(env('LAUNCHPAD_STORAGE_TYPE'), env('LAUNCHPAD_STORAGE_REGION')) }}"
+OPENEDX_AWS_ACCESS_KEY: "{{ env('LAUNCHPAD_STORAGE_ACCESS_KEY_ID', '') }}"
+OPENEDX_AWS_SECRET_ACCESS_KEY: "{{ env('LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY', '') }}"
+S3_STORAGE_BUCKET: "launchpad-{{ cookiecutter.instance_slug }}-{{ generate_password() | truncate(7, True, '', 0) }}"
+S3_REGION: "{{ env('LAUNCHPAD_STORAGE_REGION') }}"
+S3_HOST: "{{ s3_host(env('LAUNCHPAD_STORAGE_TYPE'), env('LAUNCHPAD_STORAGE_REGION')) }}"
+S3_USE_SSL: true
 
 # Picasso configuration
 PICASSO_EXTRA_COMMANDS:
   - pip install tutor-contrib-drydock
+  - pip install git+https://github.com/cleura/tutor-contrib-s3@teak
   - tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-plugin-indexes/teak/
   - tutor plugins install forum mfe mfe-extensions
-  - tutor plugins enable drydock forum mfe mfe-extensions
+  - tutor plugins enable drydock forum mfe mfe-extensions s3
   - tutor picasso enable-private-packages

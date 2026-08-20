@@ -20,6 +20,7 @@ This page summarizes common issues and debugging steps for Open edX instances on
 - Verify Secrets in the instance namespace contain the correct credentials (e.g. MySQL, MongoDB, S3).
 - Check that provision workflows completed and that the instance config (and Tutor env) point to the right hosts and bucket names.
 - Test connectivity from a pod: `kubectl exec -n <instance-name> <pod-name> -- ...` and run a simple client (e.g. `mysql`, `mongosh`) or curl to the storage endpoint.
+- If the bucket exists but Open edX still stores files locally or fails uploads, confirm tutor-contrib-s3 is enabled and that `S3_*` / `OPENEDX_AWS_*` in `config.yml` match the provisioned bucket. See [Object Storage](configuration.md#object-storage).
 
 ## Image Not Found or Pull Errors
 

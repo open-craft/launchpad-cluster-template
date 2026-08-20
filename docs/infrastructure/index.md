@@ -34,7 +34,7 @@ Argo Workflows orchestrates the [provisioning](./provisioning.md) and [deprovisi
 The workflow system handles:
 
 - **Database Provisioning**: Automated creation of MySQL and MongoDB databases with proper credentials and access controls
-- **Storage Setup**: Provisioning of S3-compatible storage buckets for media files and static assets
+- **Storage Setup**: Provisioning of S3-compatible storage buckets from tutor-contrib-s3 settings in the instance config (see [Object Storage](../instances/configuration.md#object-storage))
 - **Resource Cleanup**: Automated deprovisioning workflows that safely remove resources when instances are deleted
 - **Workflow Templates**: Reusable workflow definitions for consistent resource management across instances
 

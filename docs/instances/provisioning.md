@@ -6,10 +6,13 @@ The provisioning system handles:
 
 - **MySQL Database**: Creates database and user with appropriate permissions
 - **MongoDB Database**: Creates databases and user with appropriate permissions
-- **Storage Buckets**: Creates S3-compatible storage buckets for media files and static assets
+- **Storage Buckets**: Creates S3-compatible storage buckets (AWS S3 or DigitalOcean Spaces)
 - **Kubernetes Resources**: Sets up namespaces, RBAC policies, and service accounts
 
 All provisioning workflows run in parallel and must complete successfully before the instance can be built and deployed.
+
+!!! note "Object storage uses tutor-contrib-s3 keys"
+    Instance `config.yml` stores Tutor `S3_*` / `OPENEDX_AWS_*` settings (seeded from `LAUNCHPAD_STORAGE_*` at create time). The same keys drive Open edX uploads and Launchpad bucket workflows. See [Object Storage](configuration.md#object-storage).
 
 ## Provisioning Steps
 
@@ -56,13 +59,15 @@ export LAUNCHPAD_ATLAS_PROJECT_ID="your_project_id"
 export LAUNCHPAD_ATLAS_CLUSTER_NAME="Cluster0"
 ```
 
-**Storage**:
+**Storage** (seeds tutor-contrib-s3 settings in `config.yml` at create time):
 ```bash
 export LAUNCHPAD_STORAGE_TYPE="spaces"  # or "s3"
 export LAUNCHPAD_STORAGE_REGION="nyc3"  # or "us-east-1"
 export LAUNCHPAD_STORAGE_ACCESS_KEY_ID="your_key"
 export LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY="your_secret"
 ```
+
+Use `spaces` for DigitalOcean Spaces (`S3_HOST={region}.digitaloceanspaces.com`) and `s3` for AWS (`S3_HOST` empty). After creation, edit the Tutor keys in `config.yml` if needed; Launchpad derives the workflow provider from whether `S3_HOST` contains `digitaloceanspaces.com`. See [Object Storage](configuration.md#object-storage).
 
 ### Provisioning Process
 
@@ -100,8 +105,11 @@ The workflows execute the following operations:
 - For API-based providers, uses the provider's API to manage users
 
 **Storage Provisioning**:
-- Creates an S3-compatible storage bucket
-- Configures bucket permissions (private by default)
+- Creates an S3-compatible storage bucket named from `S3_STORAGE_BUCKET` in the instance config
+- Derives provider from `S3_HOST` (`spaces` if the host contains `digitaloceanspaces.com`, otherwise AWS `s3`)
+- Uses a custom endpoint built from `S3_HOST` / `S3_PORT` / `S3_USE_SSL` when a host is set; AWS with an empty host uses default endpoints
+- Enables versioning for AWS S3 when possible; skips versioning for Spaces
+- Leaves the bucket private by default
 
 #### 4. Workflow Completion
 
@@ -162,10 +170,11 @@ If provisioning continues to fail:
 - [Instances Overview](index.md) -  Instance lifecycle
 - [Infrastructure Provisioning](../infrastructure/provisioning.md) -  Cluster and ArgoCD setup
 - [Deprovisioning](deprovisioning.md) -  Deleting an instance
-- [Configuration](configuration.md) -  Instance config generated at creation
+- [Configuration](configuration.md) -  Instance config, including Open edX object storage
 
 ## See Also
 
+- [Object Storage](configuration.md#object-storage) -  Bucket provisioning vs Tutor S3 plugins
 - [Docker Images](docker-images.md) -  Building images after provisioning
 - [Infrastructure Overview](../infrastructure/index.md) -  Argo Workflows and provisioning
 - [Cluster Authentication](../cluster/authentication.md) -  kubeconfig for running Launchpad CLI

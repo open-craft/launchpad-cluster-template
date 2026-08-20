@@ -467,10 +467,10 @@ export LAUNCHPAD_ATLAS_CLUSTER_NAME="Cluster0"
 
 ### Storage Providers
 
-The system automatically computes storage endpoint URLs based on provider type:
+At instance creation, `LAUNCHPAD_STORAGE_*` seeds tutor-contrib-s3 settings in `config.yml` (`S3_*` / `OPENEDX_AWS_*`). Those Tutor keys are the source of truth for Open edX and for bucket workflows. Provider is derived from `S3_HOST`: Spaces when the host contains `digitaloceanspaces.com`, otherwise AWS.
 
-- **DigitalOcean Spaces**: Automatic endpoint formatting (`https://{region}.digitaloceanspaces.com`)
-- **AWS S3**: Uses AWS default endpoints
+- **DigitalOcean Spaces** (`LAUNCHPAD_STORAGE_TYPE=spaces`): `S3_HOST={region}.digitaloceanspaces.com`
+- **AWS S3** (`LAUNCHPAD_STORAGE_TYPE=s3`): empty `S3_HOST` (AWS default endpoints)
 
 **Configuration**:
 ```bash
@@ -506,7 +506,7 @@ The repository includes automated GitHub Actions workflows for instance lifecycl
 7. Waits for provision workflows to complete
 
 **Usage**:
-1. Go to Actions → Create Instance
+1. Go to Actions -> Create Instance
 2. Click "Run workflow"
 3. Fill in the required parameters
 4. Monitor the workflow execution and logs
@@ -530,7 +530,7 @@ The repository includes automated GitHub Actions workflows for instance lifecycl
 8. Removes all instance artifacts
 
 **Usage**:
-1. Go to Actions → Delete Instance
+1. Go to Actions -> Delete Instance
 2. Click "Run workflow"
 3. Enter instance name and confirm by typing it again
 4. Monitor the workflow execution and logs

@@ -184,7 +184,7 @@ Use the DigitalOcean API to ensure the user has `readWrite` only on the instance
 
 Use the Atlas UI or CLI to give the user `readWrite` only on the instance databases.
 
-1. In Atlas: Project → Database Access → edit the user.
+1. In Atlas: Project -> Database Access -> edit the user.
 
 2. Ensure the user has roles:
 

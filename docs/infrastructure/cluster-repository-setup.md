@@ -36,7 +36,7 @@ Workflows read sensitive values from **repository secrets**. Configure them befo
 ### Where to Add Secrets
 
 1. Open your cluster repository on GitHub.
-2. Go to **Settings** → **Secrets and variables** → **Actions**.
+2. Go to **Settings** -> **Secrets and variables** -> **Actions**.
 3. Click **New repository secret**.
 4. Enter the **Name** and **Value** for each secret.
 
@@ -59,11 +59,14 @@ Workflows read sensitive values from **repository secrets**. Configure them befo
 | `LAUNCHPAD_MONGODB_REPLICA_SET`         | Create Instance, Delete Instance                                    | MongoDB replica set name                                              |
 | `LAUNCHPAD_MONGODB_AUTH_SOURCE`         | Create Instance, Delete Instance                                    | MongoDB auth source (default: `admin`)                                 |
 | `LAUNCHPAD_DIGITALOCEAN_TOKEN`          | Create Instance, Delete Instance                                    | DigitalOcean API token for provider-managed database cleanup          |
-| `LAUNCHPAD_STORAGE_TYPE`                | Create Instance, Delete Instance                                    | `s3` or `spaces`                                                      |
-| `LAUNCHPAD_STORAGE_REGION`              | Create Instance, Delete Instance                                    | Region (e.g. `us-east-1`, `nyc3`)                                     |
-| `LAUNCHPAD_STORAGE_ACCESS_KEY_ID`       | Create Instance, Delete Instance                                    | S3/Spaces access key ID                                               |
-| `LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY`   | Create Instance, Delete Instance                                    | S3/Spaces secret access key                                           |
+| `LAUNCHPAD_STORAGE_TYPE`                | Create Instance, Delete Instance                                    | `s3` or `spaces` (seeds `S3_HOST` at create; see note below)          |
+| `LAUNCHPAD_STORAGE_REGION`              | Create Instance, Delete Instance                                    | Region (e.g. `us-east-1`, `nyc3`) -> `S3_REGION`                        |
+| `LAUNCHPAD_STORAGE_ACCESS_KEY_ID`       | Create Instance, Delete Instance                                    | Written to `OPENEDX_AWS_ACCESS_KEY` (also used by bucket workflows)   |
+| `LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY`   | Create Instance, Delete Instance                                    | Written to `OPENEDX_AWS_SECRET_ACCESS_KEY`                            |
 | `SSH_PRIVATE_KEY`                 | Create Instance, Build, Build All, Delete Instance, Update Instance | Private SSH key for cloning the cluster repo and private dependencies |
+
+!!! note "Storage secrets seed tutor-contrib-s3 config"
+    `LAUNCHPAD_STORAGE_*` populate Tutor `S3_*` / `OPENEDX_AWS_*` keys in the instance `config.yml` at create time. After that, those Tutor keys are the source of truth for Open edX and for bucket create/delete (provider is Spaces when `S3_HOST` contains `digitaloceanspaces.com`). See [Object Storage](../instances/configuration.md#object-storage).
 
 ### TERRAFORM_SECRETS Format
 
@@ -106,7 +109,7 @@ Use a GitHub PAT with `read:packages` for GHCR.
 # Generate a new deploy key (if you don't have one)
 ssh-keygen -t ed25519 -C "github-actions-deploy" -f deploy_key -N ""
 
-# Add deploy_key.pub as a Deploy Key in your repo (Settings → Deploy keys)
+# Add deploy_key.pub as a Deploy Key in your repo (Settings -> Deploy keys)
 # Paste the contents of deploy_key (private key) as the SSH_PRIVATE_KEY secret
 cat deploy_key
 ```
@@ -165,12 +168,12 @@ ArgoCD must be able to clone the cluster repository to sync applications. Config
 ArgoCD applications use a project (e.g. `launchpad-production`). The default project may already exist. To create one:
 
 1. Log into the ArgoCD UI.
-2. Go to **Settings** → **Projects**.
+2. Go to **Settings** -> **Projects**.
 3. Create a project or use the default.
 
 ### Step 2: Connect the Repository
 
-1. In ArgoCD, go to **Settings** → **Repositories**.
+1. In ArgoCD, go to **Settings** -> **Repositories**.
 2. Click **Connect Repo**.
 3. Choose the connection method:
 
@@ -182,7 +185,7 @@ ArgoCD applications use a project (e.g. `launchpad-production`). The default pro
 
 To add the SSH key to GitHub as a Deploy Key:
 
-- Go to your cluster repo → **Settings** → **Deploy keys**.
+- Go to your cluster repo -> **Settings** -> **Deploy keys**.
 - Add the **public** key (`.pub` file).
 
 For read-only access, you can create a deploy key with only clone permission. For write access (e.g. if ArgoCD writes back), enable write access.
@@ -202,7 +205,7 @@ After adding the repository, ArgoCD should show it as connected. Applications th
 
 Ensure the project allows the repository:
 
-1. Go to **Settings** → **Projects** → your project.
+1. Go to **Settings** -> **Projects** -> your project.
 2. Under **Source Repositories**, add your cluster repository URL.
 3. Under **Destinations**, add the cluster (e.g. `https://kubernetes.default.svc`).
 
@@ -210,5 +213,6 @@ Ensure the project allows the repository:
 
 - [Infrastructure Provisioning](provisioning.md) - Cluster creation and ArgoCD installation
 - [Instance Provisioning](../instances/provisioning.md) - Creating instances
-- [Instance Configuration](../instances/configuration.md) - config.yml and manifests
+- [Instance Configuration](../instances/configuration.md) - config.yml, object storage, and manifests
+- [Object Storage](../instances/configuration.md#object-storage) - Bucket provisioning vs Tutor S3 plugins
 - [Instance Docker Images](../instances/docker-images.md) - Building images with Picasso

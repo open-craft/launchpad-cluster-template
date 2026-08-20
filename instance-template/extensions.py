@@ -1,6 +1,5 @@
 import os
 import secrets
-import subprocess
 
 from jinja2.ext import Extension
 
@@ -27,30 +26,28 @@ class PasswordExtension(Extension):
 
 class StorageExtension(Extension):
     """
-    Provides storage-related utilities for cloud providers.
+    Provides storage-related utilities for seeding tutor-contrib-s3 settings.
     """
-
-    # Mapping of storage types and regions to endpoint URLs
-    ENDPOINT_FORMATS = {
-        "spaces": "https://{region}.digitaloceanspaces.com",
-        "s3": "",  # AWS S3 uses default endpoints
-    }
 
     def __init__(self, environment):
         super(StorageExtension, self).__init__(environment)
-        environment.globals["storage_endpoint_url"] = self.__get_endpoint_url
+        environment.globals["s3_host"] = self.__get_s3_host
 
-    def __get_endpoint_url(self, storage_type, region):
+    def __get_s3_host(self, storage_type, region):
         """
-        Compute the storage endpoint URL based on storage type and region.
+        Return the S3_HOST value for tutor-contrib-s3.
+
+        AWS uses an empty host (default endpoints). DigitalOcean Spaces uses
+        ``{region}.digitaloceanspaces.com``.
         """
 
-        storage_type = storage_type.lower() if storage_type else "spaces"
-        region = region if region else "nyc3"
+        storage_type = (storage_type or "spaces").lower()
+        region = region or "nyc3"
 
-        endpoint_format = self.ENDPOINT_FORMATS.get(storage_type)
+        if storage_type == "spaces":
+            return f"{region}.digitaloceanspaces.com"
 
-        if endpoint_format is None:
-            raise ValueError(f"Unknown storage type: {storage_type}")
+        if storage_type == "s3":
+            return ""
 
-        return endpoint_format.format(region=region)
+        raise ValueError(f"Unknown storage type: {storage_type}")

@@ -345,7 +345,7 @@ If you need to recover data after deprovisioning:
 
 ### During Deprovisioning
 
-1. **Follow Order**: Remove instances → Uninstall tools → Destroy infrastructure
+1. **Follow Order**: Remove instances -> Uninstall tools -> Destroy infrastructure
 2. **Monitor Progress**: Watch for errors and address them promptly
 3. **Verify Removal**: Confirm resources are actually destroyed, not just marked for deletion
 4. **Keep Logs**: Save logs of the deprovisioning process for troubleshooting

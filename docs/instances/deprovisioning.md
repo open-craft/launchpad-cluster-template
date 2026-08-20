@@ -20,7 +20,7 @@ Before deprovisioning an instance, ensure:
 
 1. **Backup Important Data**: Deprovisioning permanently deletes all instance data. Ensure you have backups if needed
 2. **Database Access**: Admin credentials for MySQL and MongoDB servers
-3. **Storage Credentials**: Access keys for S3-compatible storage
+3. **Storage Credentials**: Access keys for S3-compatible storage (same `LAUNCHPAD_STORAGE_*` secrets used at create time to delete the provisioned bucket)
 
 ### Deprovisioning Process
 

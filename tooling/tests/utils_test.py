@@ -517,3 +517,87 @@ class TestBuildInstanceConfigMySQLProvider:
         assert result["LAUNCHPAD_INSTANCE_MYSQL_PROVIDER"] == "digitalocean_api"
         assert result["LAUNCHPAD_INSTANCE_MYSQL_CLUSTER_ID"] == "mysql-cluster-123"
         assert result["LAUNCHPAD_INSTANCE_DIGITALOCEAN_TOKEN"] == "dop_v1_example"
+
+
+class TestBuildInstanceConfigStorage:
+    """
+    Tests for storage parameter derivation in build_instance_config.
+    """
+
+    def test_aws_empty_host_is_s3(self):
+        config = {
+            "S3_STORAGE_BUCKET": "launchpad-demo-abc1234",
+            "S3_REGION": "us-east-1",
+            "S3_HOST": "",
+            "S3_USE_SSL": True,
+            "OPENEDX_AWS_ACCESS_KEY": "AKIAEXAMPLE",
+            "OPENEDX_AWS_SECRET_ACCESS_KEY": "secret",
+        }
+
+        result = build_instance_config("inst", config)
+
+        assert (
+            result["LAUNCHPAD_INSTANCE_STORAGE_BUCKET_NAME"] == "launchpad-demo-abc1234"
+        )
+        assert result["LAUNCHPAD_INSTANCE_STORAGE_TYPE"] == "s3"
+        assert result["LAUNCHPAD_INSTANCE_STORAGE_REGION"] == "us-east-1"
+        assert result["LAUNCHPAD_INSTANCE_STORAGE_ENDPOINT_URL"] == ""
+        assert result["LAUNCHPAD_INSTANCE_STORAGE_ACCESS_KEY_ID"] == "AKIAEXAMPLE"
+        assert result["LAUNCHPAD_INSTANCE_STORAGE_SECRET_ACCESS_KEY"] == "secret"
+
+    def test_spaces_host_detected_by_hostname(self):
+        config = {
+            "S3_STORAGE_BUCKET": "launchpad-demo-spaces",
+            "S3_REGION": "nyc3",
+            "S3_HOST": "nyc3.digitaloceanspaces.com",
+            "S3_USE_SSL": True,
+            "OPENEDX_AWS_ACCESS_KEY": "DOKEY",
+            "OPENEDX_AWS_SECRET_ACCESS_KEY": "dosecret",
+        }
+
+        result = build_instance_config("inst", config)
+
+        assert result["LAUNCHPAD_INSTANCE_STORAGE_TYPE"] == "spaces"
+        assert (
+            result["LAUNCHPAD_INSTANCE_STORAGE_ENDPOINT_URL"]
+            == "https://nyc3.digitaloceanspaces.com"
+        )
+
+    def test_non_spaces_custom_host_is_treated_as_aws(self):
+        config = {
+            "S3_STORAGE_BUCKET": "bucket",
+            "S3_REGION": "us-east-1",
+            "S3_HOST": "minio.example.com",
+            "S3_PORT": "9000",
+            "S3_USE_SSL": False,
+            "OPENEDX_AWS_ACCESS_KEY": "key",
+            "OPENEDX_AWS_SECRET_ACCESS_KEY": "secret",
+        }
+
+        result = build_instance_config("inst", config)
+
+        assert result["LAUNCHPAD_INSTANCE_STORAGE_TYPE"] == "s3"
+        assert (
+            result["LAUNCHPAD_INSTANCE_STORAGE_ENDPOINT_URL"]
+            == "http://minio.example.com:9000"
+        )
+
+    def test_credentials_fall_back_to_env(self):
+        config = {
+            "S3_STORAGE_BUCKET": "bucket",
+            "S3_REGION": "us-east-1",
+            "S3_HOST": "",
+        }
+
+        with mock.patch.dict(
+            os.environ,
+            {
+                "LAUNCHPAD_STORAGE_ACCESS_KEY_ID": "env-key",
+                "LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY": "env-secret",
+            },
+            clear=True,
+        ):
+            result = build_instance_config("inst", config)
+
+        assert result["LAUNCHPAD_INSTANCE_STORAGE_ACCESS_KEY_ID"] == "env-key"
+        assert result["LAUNCHPAD_INSTANCE_STORAGE_SECRET_ACCESS_KEY"] == "env-secret"
