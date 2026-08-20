@@ -2,19 +2,26 @@
 Unit tests for Argo install helpers.
 """
 
-import argparse
 from unittest import mock
 
 import pytest
+from pydantic import ValidationError
 
 from launchpad.cli.argo_install import (
-    _build_argocd_sso_cli_overrides,
+    ArgoInstallSettings,
     _build_dex_github_config,
     _configure_argocd_github_sso,
     _split_csv_values,
 )
-from launchpad.config import ClusterConfig
-from launchpad.exceptions import ConfigurationError
+
+
+def _settings(**overrides) -> ArgoInstallSettings:
+    """
+    Build ArgoInstallSettings from explicit kwargs only, without parsing
+    sys.argv or reading LAUNCHPAD_* environment variables from the test
+    process.
+    """
+    return ArgoInstallSettings(_cli_parse_args=False, **overrides)
 
 
 class TestSplitCsvValues:
@@ -51,43 +58,53 @@ class TestBuildDexGithubConfig:
         assert "      - name: example-org" in result
 
 
-class TestBuildArgocdSsoCliOverrides:
+class TestArgoInstallSettingsGithubSsoValidation:
     """
-    Test suite for _build_argocd_sso_cli_overrides.
+    Test suite for ArgoInstallSettings' eager GitHub SSO validation.
+
+    These replace the old runtime check inside _configure_argocd_github_sso:
+    invalid SSO configuration must now fail as soon as ArgoInstallSettings is
+    constructed, before any Kubernetes resource is touched.
     """
 
-    def test_build_argocd_sso_cli_overrides_returns_empty_dict(self):
+    def test_construction_succeeds_when_sso_disabled(self):
         """
-        Test no overrides are produced when CLI args are not provided.
-        """
-
-        args = argparse.Namespace(
-            argocd_github_sso_enabled=None,
-            argocd_github_oauth_client_id=None,
-            argocd_github_oauth_client_secret=None,
-            argocd_github_orgs=None,
-        )
-
-        assert _build_argocd_sso_cli_overrides(args) == {}
-
-    def test_build_argocd_sso_cli_overrides_returns_provided_values(self):
-        """
-        Test only explicitly provided CLI values are included as overrides.
+        Test no validation error occurs when SSO is disabled, regardless of
+        other GitHub fields being empty.
         """
 
-        args = argparse.Namespace(
+        settings = _settings(cluster_domain="cluster.domain")
+
+        assert settings.argocd_github_sso_enabled is False
+
+    def test_construction_fails_when_sso_enabled_without_required_fields(self):
+        """
+        Test constructing ArgoInstallSettings raises when SSO is enabled but
+        client id/orgs are missing.
+        """
+
+        with pytest.raises(ValidationError, match="GitHub SSO is enabled"):
+            _settings(
+                cluster_domain="cluster.domain",
+                argocd_github_sso_enabled=True,
+                argocd_github_oauth_client_secret="secret",
+            )
+
+    def test_construction_succeeds_when_sso_enabled_with_all_required_fields(self):
+        """
+        Test constructing ArgoInstallSettings succeeds when SSO is enabled and
+        all required GitHub fields are provided.
+        """
+
+        settings = _settings(
+            cluster_domain="cluster.domain",
             argocd_github_sso_enabled=True,
             argocd_github_oauth_client_id="client-id",
             argocd_github_oauth_client_secret="client-secret",
             argocd_github_orgs="open-craft,example-org",
         )
 
-        assert _build_argocd_sso_cli_overrides(args) == {
-            "argocd_github_sso_enabled": True,
-            "argocd_github_oauth_client_id": "client-id",
-            "argocd_github_oauth_client_secret": "client-secret",
-            "argocd_github_orgs": "open-craft,example-org",
-        }
+        assert settings.argocd_github_sso_enabled is True
 
 
 class TestConfigureArgocdGithubSso:
@@ -101,35 +118,12 @@ class TestConfigureArgocdGithubSso:
         """
 
         k8s = mock.Mock()
-        cluster_config = ClusterConfig(cluster_domain="cluster.domain")
+        settings = _settings(cluster_domain="cluster.domain")
 
-        _configure_argocd_github_sso(k8s, cluster_config)
+        _configure_argocd_github_sso(k8s, settings)
 
         k8s.patch_config_map.assert_not_called()
         k8s.patch_secret.assert_not_called()
-
-    def test_configure_argocd_github_sso_validates_required_settings(self):
-        """
-        Test SSO configuration fails when required values are missing.
-        """
-
-        k8s = mock.Mock()
-        cluster_config = ClusterConfig(
-            cluster_domain="cluster.domain",
-            argocd_github_sso_enabled=True,
-            argocd_github_oauth_client_id="",
-            argocd_github_oauth_client_secret="secret",
-            argocd_github_orgs="",
-        )
-
-        with pytest.raises(
-            ConfigurationError,
-            match=(
-                "LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_ID, "
-                "LAUNCHPAD_ARGOCD_GITHUB_ORGS"
-            ),
-        ):
-            _configure_argocd_github_sso(k8s, cluster_config)
 
     def test_configure_argocd_github_sso_patches_configmap_and_secret(
         self, monkeypatch
@@ -147,7 +141,7 @@ class TestConfigureArgocdGithubSso:
         )
 
         k8s = mock.Mock()
-        cluster_config = ClusterConfig(
+        settings = _settings(
             cluster_domain="cluster.domain",
             argocd_github_sso_enabled=True,
             argocd_github_oauth_client_id="client-id",
@@ -155,7 +149,7 @@ class TestConfigureArgocdGithubSso:
             argocd_github_orgs="open-craft,example-org",
         )
 
-        _configure_argocd_github_sso(k8s, cluster_config)
+        _configure_argocd_github_sso(k8s, settings)
 
         k8s.patch_config_map.assert_called_once()
         patch_cm_kwargs = k8s.patch_config_map.call_args.kwargs

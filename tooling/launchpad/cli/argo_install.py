@@ -2,14 +2,28 @@
 Argo install commands for ArgoCD and Argo Workflows.
 """
 
-import argparse
 import subprocess
 
+from pydantic import Field, ValidationError, model_validator
+from pydantic_settings import SettingsConfigDict
+
 from launchpad.cli.utils import exit_with_error, run_command_with_logging
-from launchpad.config import ClusterConfig, get_config
+from launchpad.config import (
+    ArgoAdminPasswordField,
+    ArgocdGithubOauthClientIdField,
+    ArgocdGithubOauthClientSecretField,
+    ArgocdGithubOrgsField,
+    ArgocdGithubSsoEnabledField,
+    ArgocdInstallUrlMixin,
+    ArgoWorkflowsInstallUrlMixin,
+    ClusterDomainField,
+    DockerRegistryCredentialsField,
+    DockerRegistryField,
+    LaunchpadBaseSettings,
+    OpencraftManifestsUrlMixin,
+)
 from launchpad.exceptions import (
     CommandNotFoundError,
-    ConfigurationError,
     KubernetesError,
     ManifestError,
     PasswordError,
@@ -31,6 +45,95 @@ SYSTEM_NAMESPACES = {
     "kube-node-lease",
 }
 ARGOCD_NAMESPACE = "argocd"
+
+DOCS_URL = (
+    "https://github.com/open-craft/launchpad-cluster-template/blob/main/"
+    "tooling/README.md#launchpad_install_argo"
+)
+
+
+class ArgoInstallSettings(
+    LaunchpadBaseSettings,
+    # Fields reused from ClusterConfig (see launchpad.config) -- only the
+    # ones this command actually reads, composed from single-field mixins
+    # so nothing unrelated (e.g. instances_directory, environment) leaks
+    # into this command's --help output or config surface.
+    ClusterDomainField,
+    ArgocdInstallUrlMixin,
+    ArgoWorkflowsInstallUrlMixin,
+    OpencraftManifestsUrlMixin,
+    DockerRegistryField,
+    DockerRegistryCredentialsField,
+    ArgoAdminPasswordField,
+    ArgocdGithubSsoEnabledField,
+    ArgocdGithubOauthClientIdField,
+    ArgocdGithubOauthClientSecretField,
+    ArgocdGithubOrgsField,
+):
+    __doc__ = f"""
+    Configuration for `launchpad_install_argo`.
+
+    Every option below can also be set via its matching LAUNCHPAD_<OPTION>
+    environment variable (shown per option below, e.g. --argocd-version is
+    LAUNCHPAD_ARGOCD_VERSION). CLI arguments take priority over environment
+    variables, which take priority over the defaults shown below.
+
+    Docs: {DOCS_URL}
+    """
+
+    model_config = SettingsConfigDict(
+        env_prefix="LAUNCHPAD_",
+        extra="forbid",
+        frozen=True,
+        cli_parse_args=True,
+        cli_prog_name="launchpad_install_argo",
+        cli_kebab_case=True,
+        cli_implicit_flags=True,
+        cli_show_env_vars=True,
+    )
+
+    argocd_only: bool = Field(
+        default=False,
+        description="Install only ArgoCD, skip Argo Workflows.",
+    )
+    workflows_only: bool = Field(
+        default=False,
+        description="Install only Argo Workflows, skip ArgoCD.",
+    )
+
+    @model_validator(mode="after")
+    def _validate_github_sso(self) -> "ArgoInstallSettings":
+        """
+        Ensure GitHub SSO settings are complete before any cluster work starts.
+        """
+
+        if not self.argocd_github_sso_enabled:
+            return self
+
+        client_id = self.argocd_github_oauth_client_id.strip()
+        client_secret = self.argocd_github_oauth_client_secret.strip()
+        github_orgs = self.argocd_github_orgs.strip()
+
+        missing = []
+        if not client_id:
+            missing.append(
+                "--argocd-github-oauth-client-id / LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_ID"
+            )
+        if not client_secret:
+            missing.append(
+                "--argocd-github-oauth-client-secret / "
+                "LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_SECRET"
+            )
+        if not github_orgs:
+            missing.append("--argocd-github-orgs / LAUNCHPAD_ARGOCD_GITHUB_ORGS")
+
+        if missing:
+            raise ValueError(
+                "GitHub SSO is enabled, but required settings are missing: "
+                + ", ".join(missing)
+            )
+
+        return self
 
 
 def _is_system_namespace(namespace: str) -> bool:
@@ -62,35 +165,16 @@ def _build_dex_github_config(client_id: str, github_orgs: list[str]) -> str:
     )
 
 
-def _build_argocd_sso_cli_overrides(args: argparse.Namespace) -> dict[str, str | bool]:
-    """
-    Build ClusterConfig override values from CLI arguments.
-    """
-    overrides: dict[str, str | bool] = {}
-
-    if args.argocd_github_sso_enabled is not None:
-        overrides["argocd_github_sso_enabled"] = args.argocd_github_sso_enabled
-
-    if args.argocd_github_oauth_client_id is not None:
-        overrides["argocd_github_oauth_client_id"] = args.argocd_github_oauth_client_id
-
-    if args.argocd_github_oauth_client_secret is not None:
-        overrides["argocd_github_oauth_client_secret"] = (
-            args.argocd_github_oauth_client_secret
-        )
-
-    if args.argocd_github_orgs is not None:
-        overrides["argocd_github_orgs"] = args.argocd_github_orgs
-
-    return overrides
-
-
 def _configure_argocd_github_sso(
     k8s: KubernetesClient,
-    cluster_config: ClusterConfig,
+    cluster_config: ArgoInstallSettings,
 ) -> None:
     """
     Configure optional GitHub SSO for ArgoCD using Dex.
+
+    Required settings (client id/secret/orgs) are already validated by
+    ArgoInstallSettings when SSO is enabled, so this only needs to build
+    and apply the Dex connector config.
     """
     if not cluster_config.argocd_github_sso_enabled:
         return
@@ -98,20 +182,6 @@ def _configure_argocd_github_sso(
     client_id = cluster_config.argocd_github_oauth_client_id.strip()
     client_secret = cluster_config.argocd_github_oauth_client_secret.strip()
     github_orgs = _split_csv_values(cluster_config.argocd_github_orgs)
-
-    missing_vars = []
-    if not client_id:
-        missing_vars.append("LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_ID")
-    if not client_secret:
-        missing_vars.append("LAUNCHPAD_ARGOCD_GITHUB_OAUTH_CLIENT_SECRET")
-    if not github_orgs:
-        missing_vars.append("LAUNCHPAD_ARGOCD_GITHUB_ORGS")
-
-    if missing_vars:
-        raise ConfigurationError(
-            "GitHub SSO is enabled, but required settings are missing: "
-            + ", ".join(missing_vars)
-        )
 
     run_command_with_logging(
         logger,
@@ -147,7 +217,7 @@ def _configure_argocd_github_sso(
 
 def _configure_registry_pull_secrets(
     k8s: KubernetesClient,
-    cluster_config: ClusterConfig,
+    cluster_config: ArgoInstallSettings,
     namespaces: list[str],
     *,
     scan_existing_namespaces: bool = False,
@@ -229,7 +299,7 @@ def _apply_argo_workflows_template(url: str, namespace: str) -> None:
         ) from e
 
 
-def _install_argo_workflows_templates(cluster_config: ClusterConfig) -> None:
+def _install_argo_workflows_templates(cluster_config: ArgoInstallSettings) -> None:
     """
     Install Argo Workflows templates for provisioning/deprovisioning.
 
@@ -260,7 +330,7 @@ def _install_argo_workflows_templates(cluster_config: ClusterConfig) -> None:
     log_success(logger, "Argo Workflows templates installed successfully")
 
 
-def install_argo_workflows(cluster_config: ClusterConfig) -> None:
+def install_argo_workflows(cluster_config: ArgoInstallSettings) -> None:
     """
     Install Argo Workflows in the Kubernetes cluster.
 
@@ -269,7 +339,6 @@ def install_argo_workflows(cluster_config: ClusterConfig) -> None:
 
     Raises:
         CommandNotFoundError: If required commands are not installed
-        ConfigurationError: If required configuration is missing
         KubernetesError: If Kubernetes operations fail
         ManifestError: If manifest operations fail
     """
@@ -321,7 +390,7 @@ type: kubernetes.io/service-account-token""",
     log_success(logger, "Argo Workflows installed successfully")
 
 
-def install_argocd(cluster_config: ClusterConfig) -> None:
+def install_argocd(cluster_config: ArgoInstallSettings) -> None:
     """
     Install ArgoCD in the Kubernetes cluster.
 
@@ -330,7 +399,6 @@ def install_argocd(cluster_config: ClusterConfig) -> None:
 
     Raises:
         CommandNotFoundError: If required commands are not installed
-        ConfigurationError: If required configuration is missing
         KubernetesError: If Kubernetes operations fail
         ManifestError: If manifest operations fail
         PasswordError: If password operations fail
@@ -421,70 +489,26 @@ def main():
     Main entry point for argo install command.
     """
 
-    parser = argparse.ArgumentParser(
-        description="Install ArgoCD and Argo Workflows in a Kubernetes cluster"
-    )
-    parser.add_argument(
-        "--argocd-only",
-        action="store_true",
-        help="Install only ArgoCD",
-    )
-    parser.add_argument(
-        "--workflows-only",
-        action="store_true",
-        help="Install only Argo Workflows",
-    )
-    sso_toggle_group = parser.add_mutually_exclusive_group()
-    sso_toggle_group.add_argument(
-        "--enable-argocd-github-sso",
-        dest="argocd_github_sso_enabled",
-        action="store_true",
-        help="Enable ArgoCD GitHub SSO via Dex for this install run",
-    )
-    sso_toggle_group.add_argument(
-        "--disable-argocd-github-sso",
-        dest="argocd_github_sso_enabled",
-        action="store_false",
-        help="Disable ArgoCD GitHub SSO via Dex for this install run",
-    )
-    parser.set_defaults(argocd_github_sso_enabled=None)
-    parser.add_argument(
-        "--argocd-github-oauth-client-id",
-        default=None,
-        help="GitHub OAuth App client ID for ArgoCD Dex connector",
-    )
-    parser.add_argument(
-        "--argocd-github-oauth-client-secret",
-        default=None,
-        help="GitHub OAuth App client secret for ArgoCD Dex connector",
-    )
-    parser.add_argument(
-        "--argocd-github-orgs",
-        default=None,
-        help="Comma-separated GitHub org slugs allowed to sign in via Dex",
-    )
-
-    args = parser.parse_args()
+    try:
+        settings = ArgoInstallSettings()  # type: ignore[call-arg]
+    except ValidationError as e:
+        exit_with_error(logger, f"Invalid configuration:\n{e}", exc_info=False)
+        return
 
     setup_kubeconfig()
 
     try:
-        config = get_config()
-        install_both = not args.argocd_only and not args.workflows_only
+        install_both = not settings.argocd_only and not settings.workflows_only
 
-        if install_both or args.argocd_only:
-            cluster_payload = dict(config.model_dump()["cluster"])
-            cluster_payload.update(_build_argocd_sso_cli_overrides(args))
-            cluster_config = ClusterConfig.model_validate(cluster_payload)
+        if install_both or settings.argocd_only:
             logger.info("Installing ArgoCD...")
-            install_argocd(cluster_config)
+            install_argocd(settings)
 
-        if install_both or args.workflows_only:
+        if install_both or settings.workflows_only:
             logger.info("Installing Argo Workflows...")
-            install_argo_workflows(config.cluster)
+            install_argo_workflows(settings)
     except (
         CommandNotFoundError,
-        ConfigurationError,
         KubernetesError,
         ManifestError,
         PasswordError,

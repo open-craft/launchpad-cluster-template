@@ -111,6 +111,15 @@ launchpad_install_argo --argocd-only
 launchpad_install_argo --workflows-only
 ```
 
+Every configuration option (ArgoCD/Argo Workflows versions, Docker registry
+credentials, GitHub SSO settings, etc.) can be set via a CLI flag or its
+matching `LAUNCHPAD_<OPTION>` environment variable — see `launchpad_install_argo --help`
+for the full list, including each option's environment variable and default.
+When both are set, the CLI flag wins. Configuration (including GitHub SSO
+completeness) is validated before any cluster resource is touched, so a
+missing or invalid value fails immediately with a clear message instead of
+partway through the install.
+
 #### `launchpad_create_argo_user`
 Creates a new ArgoCD user with specified permissions.
 
