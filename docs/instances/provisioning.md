@@ -79,7 +79,7 @@ The provisioning process is automatically executed when creating a new instance 
 
 - **Retry / same-name migration**: if `instances/<name>/config.yml` already belongs to this instance (`K8S_NAMESPACE` or `TUTOR_APP_NAME` matches the instance slug), generation is skipped. Passwords and the S3 bucket name are not regenerated. You do not need to delete the instance directory to re-run create after a failure.
 - **Based on another instance**: copy `config.yml` and `application.yml` from an existing instance, or pass `--from-instance <name>`. Extra keys (plugins, theming, Tutor extras) are kept. Identity and credentials are rewritten so the new instance does not share databases, bucket, namespace, or hosts.
-- **Fresh create**: if there is no dest `config.yml`, cookiecutter generates a new instance directory as before.
+- **Fresh create**: if there is no dest `config.yml`, cookiecutter generates a new instance directory.
 
 Rewritten identity fields include Docker image tags, `K8S_NAMESPACE` / `TUTOR_APP_NAME`, LMS/CMS hosts, MySQL and MongoDB names/users/passwords/hosts, and S3 bucket/region/credentials. `application.yml` is copied from the source and patched (`metadata.name`, labels, `spec.source.path` / `repoURL` / `targetRevision`, `spec.destination.namespace`); custom `syncPolicy` is preserved.
 
