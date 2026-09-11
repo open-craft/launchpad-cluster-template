@@ -77,11 +77,12 @@ The provisioning process is automatically executed when creating a new instance 
 
 `launchpad_create_instance` reuses or clones instance files instead of failing when `instances/<name>/` already exists:
 
-- **Retry / same-name migration**: if `instances/<name>/config.yml` already belongs to this instance (`K8S_NAMESPACE` or `TUTOR_APP_NAME` matches the instance slug), generation is skipped. Passwords and the S3 bucket name are not regenerated. You do not need to delete the instance directory to re-run create after a failure.
+- **Retry / same-name migration**: if `instances/<name>/config.yml` already belongs to this instance (`K8S_NAMESPACE` or `TUTOR_APP_NAME` matches the instance slug), generation is skipped. Passwords and the S3 bucket name are not regenerated. Missing `application.yml` is generated from the template without rewriting `config.yml`. You do not need to delete the instance directory to re-run create after a failure.
 - **Based on another instance**: copy `config.yml` and `application.yml` from an existing instance, or pass `--from-instance <name>`. Extra keys (plugins, theming, Tutor extras) are kept. Identity and credentials are rewritten so the new instance does not share databases, bucket, namespace, or hosts.
+- **Existing dest config, different identity**: if `instances/<name>/config.yml` already exists but `K8S_NAMESPACE` / `TUTOR_APP_NAME` do not match the new slug, cookiecutter runs into a temp dir and identity/credentials are overlaid (same rebase as `--from-instance` after copy).
 - **Fresh create**: if there is no dest `config.yml`, cookiecutter generates a new instance directory.
 
-Rewritten identity fields include Docker image tags, `K8S_NAMESPACE` / `TUTOR_APP_NAME`, LMS/CMS hosts, MySQL and MongoDB names/users/passwords/hosts, and S3 bucket/region/credentials. `application.yml` is copied from the source and patched (`metadata.name`, labels, `spec.source.path` / `repoURL` / `targetRevision`, `spec.destination.namespace`); custom `syncPolicy` is preserved.
+Rewritten identity fields include Docker image tags, `K8S_NAMESPACE` / `TUTOR_APP_NAME`, LMS/CMS hosts, MySQL and MongoDB names/users/passwords/hosts, and S3 bucket/region/credentials. When destination `application.yml` exists it is copied from the source and patched (`metadata.name`, labels, `spec.source.path` / `repoURL` / `targetRevision`, `spec.destination.namespace`); custom `syncPolicy` is preserved. When it is missing, the generated `application.yml` is used instead.
 
 `--from-instance` is refused when dest config already matches this instance, so a retry or same-name migration is not overwritten.
 

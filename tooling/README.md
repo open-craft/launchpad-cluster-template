@@ -81,7 +81,9 @@ launchpad_create_instance my-instance \
   --tutor-version "v20.0.1"
 ```
 
-If `instances/my-instance/config.yml` already belongs to this instance, generation is skipped and the existing files are reused (retries do not require deleting the config).
+If `instances/my-instance/config.yml` already exists and belongs to this instance (`K8S_NAMESPACE` or `TUTOR_APP_NAME` equals the instance slug), generation is skipped and the existing files are reused, including passwords and the S3 bucket name. Missing `application.yml` is generated. Retries do not require deleting the config.
+
+If that destination `config.yml` exists but does not belong to this instance, it is treated as a clone source: identity and credentials are rewritten (namespace, hosts, database names/passwords, bucket) while plugins, theming, and other extra keys are kept.
 
 To create an instance based on another instance's config:
 

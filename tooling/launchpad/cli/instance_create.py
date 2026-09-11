@@ -31,6 +31,7 @@ from launchpad.utils import (
     apply_generated_identity,
     build_instance_config,
     config_belongs_to_instance,
+    copy_generated_application_if_missing,
     copy_instance_config_files,
     detect_local_template,
     get_logger,
@@ -297,11 +298,35 @@ def _generate_instance_config(  # pylint: disable=too-many-positional-arguments,
 
     if dest_config.exists():
         if config_belongs_to_instance(load_yaml(dest_config), instance_name):
+            dest_application = dest_dir / "application.yml"
+            if dest_application.exists():
+                logger.info(
+                    "Instance '%s' configuration already exists at %s; "
+                    "skipping generation",
+                    instance_name,
+                    dest_config,
+                )
+                return
+
             logger.info(
-                "Instance '%s' configuration already exists at %s; skipping generation",
+                "Instance '%s' configuration already exists at %s; "
+                "generating missing application.yml",
                 instance_name,
                 dest_config,
             )
+
+            with tempfile.TemporaryDirectory() as tmp:
+                tmp_path = Path(tmp)
+                render(tmp_path)
+                copy_generated_application_if_missing(
+                    dest_dir, _cookiecutter_output_dir(tmp_path)
+                )
+
+            log_success(
+                logger,
+                f"Instance '{instance_name}' application.yml generated from template",
+            )
+
             return
         rebase()
         log_success(

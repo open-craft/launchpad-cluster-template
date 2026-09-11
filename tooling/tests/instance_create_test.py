@@ -256,11 +256,33 @@ class TestGenerateInstanceConfig:
         original = _source_config("bar")
         original["MYSQL_PASSWORD"] = "keep-this-password"
         _dump(dest / "config.yml", original)
+        _dump(dest / "application.yml", _source_application("bar"))
 
         generate(tmp_path, "bar")
 
         mock_cookiecutter.assert_not_called()
         assert _load(dest / "config.yml")["MYSQL_PASSWORD"] == "keep-this-password"
+
+    @mock.patch(
+        "launchpad.cli.instance_create.cookiecutter", side_effect=fake_cookiecutter
+    )
+    def test_matching_config_generates_missing_application(
+        self, mock_cookiecutter, mock_git, tmp_path
+    ):
+        dest = tmp_path / "bar"
+        original = _source_config("bar")
+        original["MYSQL_PASSWORD"] = "keep-this-password"
+        _dump(dest / "config.yml", original)
+
+        generate(tmp_path, "bar")
+
+        mock_cookiecutter.assert_called_once()
+        assert mock_cookiecutter.call_args.kwargs["output_dir"] != str(tmp_path)
+        assert _load(dest / "config.yml")["MYSQL_PASSWORD"] == "keep-this-password"
+        application = _load(dest / "application.yml")
+        assert application["metadata"]["name"] == "bar-production"
+        assert application["spec"]["syncPolicy"]["automated"]["enabled"] is True
+        assert mock_git["get_git_repo_url"].called
 
     @mock.patch(
         "launchpad.cli.instance_create.cookiecutter", side_effect=fake_cookiecutter

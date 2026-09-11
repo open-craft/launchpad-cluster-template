@@ -40,13 +40,18 @@ on:
         required: false
         default: "{{ cookiecutter.runner_workflow_label }}"
         type: string
+      FROM_INSTANCE:
+        description: "Existing instance name to clone and patch"
+        required: false
+        default: ""
+        type: string
 
 jobs:
   create-instance:
     permissions:
       contents: write
     name: Create Instance
-    uses: open-craft/launchpad-cluster-template/.github/workflows/create-instance.yml@6dc6fd3d43db410365df3e0118aca9508ae5226e # main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/create-instance.yml@d0344d6f9b39a455dc0b423b0260f2ad698a881d # main
     secrets:
       TERRAFORM_SECRETS: "{% raw %}${{ secrets.TERRAFORM_SECRETS }}{% endraw %}"
       LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS: "{% raw %}${{ secrets.LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS }}{% endraw %}"
@@ -76,3 +81,4 @@ jobs:
       TUTOR_VERSION: "{% raw %}${{ inputs.TUTOR_VERSION }}{% endraw %}"
       LAUNCHPAD_CLI_VERSION: "{% raw %}${{ inputs.LAUNCHPAD_CLI_VERSION }}{% endraw %}"
       RUNNER_WORKFLOW_LABEL: "{% raw %}${{ inputs.RUNNER_WORKFLOW_LABEL }}{% endraw %}"
+      FROM_INSTANCE: "{% raw %}${{ inputs.FROM_INSTANCE }}{% endraw %}"

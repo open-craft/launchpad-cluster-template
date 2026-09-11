@@ -611,6 +611,20 @@ def copy_instance_config_files(source_config: Path, dest_dir: Path) -> None:
         shutil.copy2(sibling_application, dest_dir / "application.yml")
 
 
+def copy_generated_application_if_missing(dest_dir: Path, generated_dir: Path) -> None:
+    """
+    Copy generated application.yml into dest when dest has no application.yml.
+    """
+
+    dest_application = dest_dir / "application.yml"
+    if dest_application.exists():
+        return
+
+    generated_application = generated_dir / "application.yml"
+    if generated_application.exists():
+        shutil.copy2(generated_application, dest_application)
+
+
 def apply_generated_identity(dest_dir: Path, generated_dir: Path) -> None:
     """
     Overlay generated identity onto dest config.yml and patch application.yml.
@@ -641,5 +655,6 @@ def apply_generated_identity(dest_dir: Path, generated_dir: Path) -> None:
                 load_yaml(dest_application), load_yaml(generated_application)
             ),
         )
-    elif generated_application.exists():
-        shutil.copy2(generated_application, dest_application)
+        return
+
+    copy_generated_application_if_missing(dest_dir, generated_dir)
