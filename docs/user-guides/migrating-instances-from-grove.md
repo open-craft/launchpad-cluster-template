@@ -3,7 +3,7 @@
 ## Configure the new instance
 
 - set the DNS record TTL to 300s
-- copy the old instance `config.yml` into `instances/<name>/` on the new cluster repo. Grove instances have no ArgoCD `application.yml`; create generates that file when it is missing
+- copy the old instance `config.yml` into `instances/<name>/` on the new cluster repo. Grove instances have no ArgoCD `application.yml`; create workflow generates that file when it is missing
 - make sure the new instance's `application.yml` has `spec.syncPolicy.automated.enabled` set to `false` (after create generates it, or on a copied file before enabling auto-sync later)
 - create the instance using the "create instance" GitHub workflow (or `launchpad_create_instance` locally):
     - **Same instance name**: create reuses the copied `config.yml` as-is, including database credentials and bucket name, only if `K8S_NAMESPACE` or `TUTOR_APP_NAME` matches the instance slug. Missing `application.yml` is generated. Ensure both set to the instance slug **before** running create, otherwise identity and credentials are rewritten
