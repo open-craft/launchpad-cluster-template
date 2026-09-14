@@ -14,7 +14,7 @@ from launchpad.password import bcrypt_password
 from launchpad.utils import (
     get_logger,
     log_success,
-    sanitize_username,
+    slugify,
 )
 
 logger = get_logger(__name__)
@@ -116,7 +116,7 @@ def _configure_argocd_user(
 
     logger.info("Configuring ArgoCD user '%s'", username)
 
-    sanitized_username = sanitize_username(username)
+    sanitized_username = slugify(username)
 
     argocd_cm = run_command_with_logging(
         logger,

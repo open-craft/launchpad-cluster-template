@@ -17,7 +17,7 @@ from launchpad.utils import (
     check_env_var_set,
     get_logger,
     log_success,
-    sanitize_username,
+    slugify,
 )
 
 
@@ -396,23 +396,23 @@ class TestUtilsIntegration:
             check_command_installed("nonexistent_cmd")
 
 
-class TestSanitizeUsername:
+class TestSlugify:
     """
-    Tests for sanitize_username.
+    Tests for slugify.
     """
 
     def test_basic_email(self):
-        assert sanitize_username("User@Example.com") == "user-example.com"
+        assert slugify("User@Example.com") == "user-example.com"
 
     def test_invalid_chars_collapsed(self):
-        assert sanitize_username("a@@@b___c..d--e") == "a-b-c.d-e"
+        assert slugify("a@@@b___c..d--e") == "a-b-c.d-e"
 
     def test_trim_edges(self):
-        assert sanitize_username("--.name.--") == "name"
+        assert slugify("--.name.--") == "name"
 
     def test_only_invalid_raises(self):
         with pytest.raises(ValueError):
-            sanitize_username("@@@@")
+            slugify("@@@@")
 
 
 class TestBuildInstanceConfigMongoDB:

@@ -6,9 +6,9 @@ import argparse
 import base64
 import os
 import subprocess
+import tempfile
 from pathlib import Path
 
-import yaml
 from cookiecutter.main import cookiecutter
 
 from launchpad.cli.argo_install import install_argo_workflows
@@ -18,7 +18,7 @@ from launchpad.cli.utils import (
     wait_for_workflow_completion,
 )
 from launchpad.config import get_config
-from launchpad.exceptions import KubernetesError
+from launchpad.exceptions import ConfigurationError, KubernetesError
 from launchpad.git import (
     get_git_repo_branch,
     get_git_repo_url,
@@ -28,10 +28,17 @@ from launchpad.git import (
 from launchpad.kubeconfig import setup_kubeconfig
 from launchpad.kubernetes import KubernetesClient
 from launchpad.utils import (
+    apply_generated_identity,
     build_instance_config,
+    config_belongs_to_instance,
+    copy_generated_application_if_missing,
+    copy_instance_config_files,
     detect_local_template,
     get_logger,
+    load_yaml,
     log_success,
+    slugify,
+    write_yaml,
 )
 
 logger = get_logger(__name__)
@@ -66,38 +73,11 @@ def _ensure_argo_workflows_installed() -> None:
         raise KubernetesError(f"Argo Workflows installation failed: {e}") from e
 
 
-def _generate_instance_config(  # pylint: disable=too-many-positional-arguments,too-many-branches,too-many-locals
-    instance_name: str,
-    template_repository: str | None,
-    template_version: str | None,
-    platform_name: str | None,
-    edx_platform_repository: str | None,
-    edx_platform_version: str | None,
-    tutor_version: str | None,
-    instances_dir: Path,
-    cluster_domain: str,
-    environment: str,
-) -> None:
+def _resolve_template_repository(template_repository: str | None) -> str:
     """
-    Generate instance configuration using cookiecutter.
-
-    Args:
-        instance_name: Name of the instance to create
-        template_repository: Git URL of the instance template repository
-        template_version: Version of the instance template to use
-        platform_name: Display name for the platform
-        edx_platform_repository: Git URL of the edx-platform repository
-        edx_platform_version: Version/branch of edx-platform to use
-        tutor_version: Version of Tutor to use
-        instances_dir: Directory where instances are stored
-        cluster_domain: Cluster domain name
-        environment: Environment name (production, staging, etc.)
-
-    Raises:
-        Exception: If cookiecutter fails
+    Resolve a local instance-template path when the default GitHub URL is used.
     """
 
-    # Detect local template if using default GitHub repository
     if template_repository == DEFAULT_TEMPLATE_REPOSITORY:
         potential_local_template = detect_local_template("instance-template", logger)
         if potential_local_template:
@@ -116,18 +96,22 @@ def _generate_instance_config(  # pylint: disable=too-many-positional-arguments,
             if instance_template_path.is_dir():
                 template_repository = str(instance_template_path)
 
-    logger.info(
-        "Bootstrapping instance '%s' from template '%s'",
-        instance_name,
-        template_repository,
-    )
+    return template_repository
 
-    # Set environment variables for cookiecutter template
-    # The template uses env() function which reads from os.environ
-    os.environ["LAUNCHPAD_CLUSTER_DOMAIN"] = cluster_domain
-    os.environ["LAUNCHPAD_ENVIRONMENT"] = environment
 
-    # Detect cluster repository information from the current git repo
+def _build_cookiecutter_extra_context(  # pylint: disable=too-many-positional-arguments
+    instance_name: str,
+    template_repository: str | None,
+    template_version: str | None,
+    platform_name: str | None,
+    edx_platform_repository: str | None,
+    edx_platform_version: str | None,
+    tutor_version: str | None,
+) -> dict:
+    """
+    Build cookiecutter extra_context, including cluster repository metadata.
+    """
+
     cluster_repo_url = get_git_repo_url()
     cluster_repo_branch = get_git_repo_branch()
     cluster_repo_owner = parse_repo_owner(cluster_repo_url)
@@ -147,7 +131,6 @@ def _generate_instance_config(  # pylint: disable=too-many-positional-arguments,
         "platform_name": platform_name,
         "platform_version": edx_platform_version,
         "tutor_version": tutor_version,
-        # Cluster repository metadata for templates
         "cluster_repository": cluster_repo_url,
         "cluster_repository_branch": cluster_repo_branch,
         "cluster_repository_owner": cluster_repo_owner,
@@ -160,9 +143,22 @@ def _generate_instance_config(  # pylint: disable=too-many-positional-arguments,
     if template_version:
         extra_context["template_version"] = template_version
 
+    return extra_context
+
+
+def _run_cookiecutter(
+    template_repository: str,
+    template_version: str | None,
+    extra_context: dict,
+    output_dir: Path,
+) -> None:
+    """
+    Render the instance template into output_dir.
+    """
+
     cookiecutter_kwargs = {
         "checkout": template_version,
-        "output_dir": str(instances_dir),
+        "output_dir": str(output_dir),
         "overwrite_if_exists": False,
         "no_input": True,
         "extra_context": extra_context,
@@ -179,6 +175,172 @@ def _generate_instance_config(  # pylint: disable=too-many-positional-arguments,
         **cookiecutter_kwargs,
     )
 
+
+def _render_instance_template(  # pylint: disable=too-many-positional-arguments
+    output_dir: Path,
+    instance_name: str,
+    template_repository: str | None,
+    template_version: str | None,
+    platform_name: str | None,
+    edx_platform_repository: str | None,
+    edx_platform_version: str | None,
+    tutor_version: str | None,
+    cluster_domain: str,
+    environment: str,
+) -> None:
+    """
+    Resolve the template and cookiecutter-render an instance into output_dir.
+    """
+
+    template_repository = _resolve_template_repository(template_repository)
+    logger.info(
+        "Bootstrapping instance '%s' from template '%s'",
+        instance_name,
+        template_repository,
+    )
+    os.environ["LAUNCHPAD_CLUSTER_DOMAIN"] = cluster_domain
+    os.environ["LAUNCHPAD_ENVIRONMENT"] = environment
+    extra_context = _build_cookiecutter_extra_context(
+        instance_name,
+        template_repository,
+        template_version,
+        platform_name,
+        edx_platform_repository,
+        edx_platform_version,
+        tutor_version,
+    )
+    _run_cookiecutter(template_repository, template_version, extra_context, output_dir)
+
+
+def _cookiecutter_output_dir(output_dir: Path) -> Path:
+    """
+    Return the instance directory cookiecutter created under output_dir.
+    """
+
+    generated = [path for path in output_dir.iterdir() if path.is_dir()]
+    if len(generated) != 1:
+        raise FileNotFoundError(
+            f"Expected one generated instance directory in {output_dir}, "
+            f"found {len(generated)}"
+        )
+    return generated[0]
+
+
+def _generate_instance_config(  # pylint: disable=too-many-positional-arguments,too-many-arguments,too-many-locals
+    instance_name: str,
+    template_repository: str | None,
+    template_version: str | None,
+    platform_name: str | None,
+    edx_platform_repository: str | None,
+    edx_platform_version: str | None,
+    tutor_version: str | None,
+    instances_dir: Path,
+    cluster_domain: str,
+    environment: str,
+    *,
+    from_instance: str | None = None,
+) -> None:
+    """
+    Generate or reuse instance configuration.
+
+    - Fresh create: cookiecutter into the instance directory
+    - Retry / same-name migration: skip when dest config already belongs to this instance
+    - Based on another instance: copy source files (optional) and rebase identity fields
+    """
+
+    dest_dir = instances_dir / instance_name
+    dest_config = dest_dir / "config.yml"
+
+    def render(output_dir: Path) -> None:
+        _render_instance_template(
+            output_dir,
+            instance_name,
+            template_repository,
+            template_version,
+            platform_name,
+            edx_platform_repository,
+            edx_platform_version,
+            tutor_version,
+            cluster_domain,
+            environment,
+        )
+
+    def rebase() -> None:
+        logger.info("Rebasing identity fields for instance '%s'", instance_name)
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            render(tmp_path)
+            apply_generated_identity(dest_dir, _cookiecutter_output_dir(tmp_path))
+
+    if from_instance:
+        if slugify(from_instance) == slugify(instance_name):
+            raise ConfigurationError(
+                "Cannot use --from-instance with the same instance name"
+            )
+        if dest_config.exists() and config_belongs_to_instance(
+            load_yaml(dest_config), instance_name
+        ):
+            raise ConfigurationError(
+                f"Instance '{instance_name}' already has matching configuration at "
+                f"{dest_config}; refusing to overwrite with --from-instance"
+            )
+        source_config = instances_dir / from_instance / "config.yml"
+        logger.info(
+            "Copying instance configuration from %s into %s", source_config, dest_dir
+        )
+        copy_instance_config_files(source_config, dest_dir)
+        rebase()
+        log_success(
+            logger,
+            f"Instance '{instance_name}' configuration created from existing config",
+        )
+        return
+
+    if dest_config.exists():
+        if config_belongs_to_instance(load_yaml(dest_config), instance_name):
+            dest_application = dest_dir / "application.yml"
+            if dest_application.exists():
+                logger.info(
+                    "Instance '%s' configuration already exists at %s; "
+                    "skipping generation",
+                    instance_name,
+                    dest_config,
+                )
+                return
+
+            logger.info(
+                "Instance '%s' configuration already exists at %s; "
+                "generating missing application.yml",
+                instance_name,
+                dest_config,
+            )
+
+            with tempfile.TemporaryDirectory() as tmp:
+                tmp_path = Path(tmp)
+                render(tmp_path)
+                copy_generated_application_if_missing(
+                    dest_dir, _cookiecutter_output_dir(tmp_path)
+                )
+
+            log_success(
+                logger,
+                f"Instance '{instance_name}' application.yml generated from template",
+            )
+
+            return
+        rebase()
+        log_success(
+            logger,
+            f"Instance '{instance_name}' configuration rebased from existing config",
+        )
+        return
+
+    if dest_dir.exists():
+        raise FileNotFoundError(
+            f"Instance directory exists but config.yml is missing: {dest_config}"
+        )
+
+    render(instances_dir)
     log_success(logger, f"Instance '{instance_name}' configuration generated")
 
 
@@ -208,6 +370,51 @@ def _setup_instance_rbac(
     log_success(logger, f"Instance RBAC configured for namespace '{instance_name}'")
 
 
+def _provision_workflows(instance_name: str) -> list[tuple[str, str, str]]:
+    """
+    Return (type, manifest file, workflow name) for instance provision workflows.
+    """
+
+    return [
+        (
+            "MySQL",
+            "launchpad-mysql-provision-workflow.yml",
+            f"mysql-provision-{instance_name}",
+        ),
+        (
+            "MongoDB",
+            "launchpad-mongodb-provision-workflow.yml",
+            f"mongodb-provision-{instance_name}",
+        ),
+        (
+            "Storage",
+            "launchpad-storage-provision-workflow.yml",
+            f"storage-provision-{instance_name}",
+        ),
+    ]
+
+
+def _delete_provision_workflows(instance_name: str) -> None:
+    """
+    Delete existing provision workflows so a retry can re-run them.
+    """
+
+    for _, _, workflow_name in _provision_workflows(instance_name):
+        subprocess.run(
+            [
+                "kubectl",
+                "delete",
+                "workflow",
+                workflow_name,
+                "-n",
+                instance_name,
+                "--ignore-not-found=true",
+            ],
+            check=False,
+            capture_output=True,
+        )
+
+
 def _create_provision_workflows(  # pylint: disable=duplicate-code
     k8s_client: KubernetesClient,
     instance_name: str,
@@ -229,25 +436,12 @@ def _create_provision_workflows(  # pylint: disable=duplicate-code
 
     logger.info("Creating parameterized workflows for instance '%s'", instance_name)
 
-    workflows = [
-        (
-            "MySQL",
-            "launchpad-mysql-provision-workflow.yml",
-            f"mysql-provision-{instance_name}",
-        ),
-        (
-            "MongoDB",
-            "launchpad-mongodb-provision-workflow.yml",
-            f"mongodb-provision-{instance_name}",
-        ),
-        (
-            "Storage",
-            "launchpad-storage-provision-workflow.yml",
-            f"storage-provision-{instance_name}",
-        ),
-    ]
+    workflows = _provision_workflows(instance_name)
 
-    for workflow_type, manifest_file, workflow_name in workflows:
+    logger.info("Deleting existing provision workflows if present...")
+    _delete_provision_workflows(instance_name)
+
+    for workflow_type, manifest_file, _workflow_name in workflows:
         run_command_with_logging(
             logger,
             f"apply {workflow_type} provision workflow",
@@ -277,12 +471,7 @@ def _create_provision_workflows(  # pylint: disable=duplicate-code
         )
 
     logger.warning("Cleaning up workflows to save resources...")
-    for _, _, workflow_name in workflows:
-        subprocess.run(
-            ["kubectl", "delete", "workflow", workflow_name, "-n", instance_name],
-            check=False,
-            capture_output=True,
-        )
+    _delete_provision_workflows(instance_name)
 
     log_success(
         logger,
@@ -353,8 +542,7 @@ def _update_mongodb_password(
             mongodb_password_data[LAUNCHPAD_MONGODB_USER_PASSWORD_SECRET]
         ).decode("utf-8")
         config_data["MONGODB_PASSWORD"] = mongodb_password
-        with open(config_file, "w", encoding="utf-8") as f:
-            yaml.safe_dump(config_data, f, sort_keys=False)
+        write_yaml(config_file, config_data)
         k8s_client.delete_secret(LAUNCHPAD_MONGODB_USER_PASSWORD_SECRET, instance_name)
     except KubernetesError as e:
         logger.info(
@@ -365,7 +553,7 @@ def _update_mongodb_password(
         )
 
 
-def create_instance(  # pylint: disable=too-many-positional-arguments
+def create_instance(  # pylint: disable=too-many-positional-arguments,too-many-locals
     instance_name: str,
     template_repository: str | None = DEFAULT_TEMPLATE_REPOSITORY,
     template_version: str | None = DEFAULT_TEMPLATE_VERSION,
@@ -373,12 +561,14 @@ def create_instance(  # pylint: disable=too-many-positional-arguments
     edx_platform_repository: str | None = DEFAULT_EDX_PLATFORM_REPOSITORY,
     edx_platform_version: str | None = DEFAULT_EDX_PLATFORM_VERSION,
     tutor_version: str | None = DEFAULT_TUTOR_VERSION,
+    *,
+    from_instance: str | None = None,
 ) -> None:
     """
     Create a new OpenEdX instance with all required resources.
 
     This orchestrates:
-    - Generating instance configuration from template
+    - Generating instance configuration from template, or reusing/cloning existing config
     - Creating namespace
     - Setting up RBAC
     - Running provision workflows
@@ -392,6 +582,7 @@ def create_instance(  # pylint: disable=too-many-positional-arguments
         edx_platform_repository: Git URL of the edx-platform repository
         edx_platform_version: Version/branch of edx-platform to use
         tutor_version: Version of Tutor to use
+        from_instance: Existing instance name whose config to clone
 
     Raises:
         KubernetesError: If instance creation fails
@@ -419,6 +610,7 @@ def create_instance(  # pylint: disable=too-many-positional-arguments
         instances_dir,
         config.cluster.cluster_domain,  # pylint: disable=no-member
         config.cluster.environment,  # pylint: disable=no-member
+        from_instance=from_instance,
     )
 
     run_command_with_logging(
@@ -437,8 +629,7 @@ def create_instance(  # pylint: disable=too-many-positional-arguments
     if not config_file.exists():
         raise FileNotFoundError(f"Instance config file not found: {config_file}")
 
-    with open(config_file, "r", encoding="utf-8") as f:
-        config_data = yaml.safe_load(f)
+    config_data = load_yaml(config_file)
 
     instance_config = build_instance_config(
         instance_name,
@@ -498,6 +689,11 @@ def main() -> None:
         default=DEFAULT_TUTOR_VERSION,
         help=f"Version of Tutor to use (default: {DEFAULT_TUTOR_VERSION})",
     )
+    parser.add_argument(
+        "--from-instance",
+        default=None,
+        help="Clone config.yml and application.yml from an existing instance, then rewrite identity and credentials",
+    )
 
     args = parser.parse_args()
 
@@ -512,9 +708,12 @@ def main() -> None:
             edx_platform_repository=args.edx_platform_repository,
             edx_platform_version=args.edx_platform_version,
             tutor_version=args.tutor_version,
+            from_instance=args.from_instance,
         )
     except FileNotFoundError as e:
         exit_with_error(logger, f"File not found: {e}", exc_info=False)
+    except ConfigurationError as e:
+        exit_with_error(logger, f"Configuration error: {e}", exc_info=False)
     except subprocess.CalledProcessError as e:
         exit_with_error(logger, f"Command failed: {e}")
     except KubernetesError as e:

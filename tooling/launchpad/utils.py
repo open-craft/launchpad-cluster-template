@@ -16,6 +16,40 @@ import launchpad
 from launchpad.config import get_config
 from launchpad.exceptions import CommandNotFoundError, ConfigurationError
 
+INSTANCE_IDENTITY_KEYS = (
+    "MFE_DOCKER_IMAGE",
+    "DOCKER_IMAGE_OPENEDX",
+    "DOCKER_IMAGE_OPENEDX_DEV",
+    "DOCKER_REGISTRY",
+    "DRYDOCK_REGISTRY_CREDENTIALS",
+    "K8S_NAMESPACE",
+    "TUTOR_APP_NAME",
+    "LMS_HOST",
+    "CMS_HOST",
+    "PREVIEW_LMS_HOST",
+    "MYSQL_DATABASE",
+    "MYSQL_USERNAME",
+    "MYSQL_PASSWORD",
+    "MYSQL_HOST",
+    "MYSQL_PORT",
+    "MONGODB_DATABASE",
+    "MONGODB_USERNAME",
+    "MONGODB_PASSWORD",
+    "MONGODB_HOST",
+    "MONGODB_PORT",
+    "MONGODB_AUTH_SOURCE",
+    "MONGODB_REPLICA_SET",
+    "FORUM_MONGODB_DATABASE",
+    "OPENEDX_AWS_ACCESS_KEY",
+    "OPENEDX_AWS_SECRET_ACCESS_KEY",
+    "S3_STORAGE_BUCKET",
+    "S3_REGION",
+    "S3_HOST",
+    "S3_USE_SSL",
+)
+
+APPLICATION_LABEL_NAME = "app.kubernetes.io/name"
+
 DIGITALOCEAN_SPACES_HOST_MARKER = "digitaloceanspaces.com"
 
 
@@ -135,11 +169,9 @@ def check_command_installed(command: str) -> None:
         raise CommandNotFoundError(f"{command} command is not installed")
 
 
-def sanitize_username(username: str) -> str:
+def slugify(value: str) -> str:
     """
-    Sanitize a username to a single canonical form suitable for:
-    - Kubernetes resource names (DNS-1123 subdomain)
-    - Kubernetes secret/config keys (stricter subset also allowed)
+    Convert a string to a DNS-1123 subdomain slug.
 
     Rules:
     - Lowercase
@@ -149,16 +181,16 @@ def sanitize_username(username: str) -> str:
     - Raise ValueError if result is empty
     """
 
-    lowered = username.lower()
-    sanitized = re.sub(r"[^a-z0-9.-]", "-", lowered)
-    sanitized = re.sub(r"-+", "-", sanitized)
-    sanitized = re.sub(r"\.+", ".", sanitized)
-    sanitized = sanitized.strip("-.")
+    slug = value.lower()
+    slug = re.sub(r"[^a-z0-9.-]", "-", slug)
+    slug = re.sub(r"-+", "-", slug)
+    slug = re.sub(r"\.+", ".", slug)
+    slug = slug.strip("-.")
 
-    if not sanitized:
-        raise ValueError("Username cannot be sanitized to a non-empty string")
+    if not slug:
+        raise ValueError("Value cannot be slugified to a non-empty string")
 
-    return sanitized
+    return slug
 
 
 def detect_local_template(  # pylint: disable=too-many-locals,too-many-nested-blocks
@@ -448,10 +480,7 @@ def load_instance_config(instance_name: str, logger: logging.Logger) -> dict:
         logger.warning("Using minimal configuration")
         return {"LAUNCHPAD_INSTANCE_NAME": instance_name}
 
-    with open(config_file, "r", encoding="utf-8") as f:
-        config_data = yaml.safe_load(f)
-
-    return build_instance_config(instance_name, config_data)
+    return build_instance_config(instance_name, load_yaml(config_file))
 
 
 def load_application_config(instance_name: str) -> dict:
@@ -477,7 +506,155 @@ def load_application_config(instance_name: str) -> dict:
             f"Instance application config file not found: {config_file}"
         )
 
-    with open(config_file, "r", encoding="utf-8") as f:
-        config_data = yaml.safe_load(f)
+    return load_yaml(config_file)
 
-    return config_data
+
+def load_yaml(path: Path) -> dict:
+    """
+    Load a YAML mapping from disk.
+
+    Returns an empty dict when the file is empty.
+
+    Raises:
+        ConfigurationError: If the file does not contain a mapping
+    """
+
+    with open(path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if data is None:
+        return {}
+
+    if not isinstance(data, dict):
+        raise ConfigurationError(f"Expected a YAML mapping in {path}")
+
+    return data
+
+
+def write_yaml(path: Path, data: dict) -> None:
+    """
+    Write a YAML mapping to disk.
+    """
+
+    with open(path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(data, f, sort_keys=False)
+
+
+def config_belongs_to_instance(config_data: dict, instance_name: str) -> bool:
+    """
+    Return True when config already identifies this instance.
+    """
+
+    slug = slugify(instance_name)
+    return (
+        config_data.get("K8S_NAMESPACE") == slug
+        or config_data.get("TUTOR_APP_NAME") == slug
+    )
+
+
+def overlay_identity_config(source: dict, generated: dict) -> dict:
+    """
+    Keep source keys and overwrite identity/credential fields from generated config.
+    """
+
+    result = dict(source)
+    for key in INSTANCE_IDENTITY_KEYS:
+        if key in generated:
+            result[key] = generated[key]
+    return result
+
+
+def patch_application_identity(application: dict, generated: dict) -> dict:
+    """
+    Patch instance identity fields on a copied ArgoCD Application.
+
+    Leaves custom spec (syncPolicy, ignoreDifferences, annotations, etc.) intact.
+    """
+
+    generated_metadata = generated.get("metadata", {})
+    metadata = application.setdefault("metadata", {})
+    if "name" in generated_metadata:
+        metadata["name"] = generated_metadata["name"]
+
+    generated_label = generated_metadata.get("labels", {}).get(APPLICATION_LABEL_NAME)
+    if generated_label is not None:
+        metadata.setdefault("labels", {})[APPLICATION_LABEL_NAME] = generated_label
+
+    generated_spec = generated.get("spec", {})
+    spec = application.setdefault("spec", {})
+    generated_source = generated_spec.get("source", {})
+    source = spec.setdefault("source", {})
+    for field in ("path", "repoURL", "targetRevision"):
+        if field in generated_source:
+            source[field] = generated_source[field]
+
+    generated_namespace = generated_spec.get("destination", {}).get("namespace")
+    if generated_namespace is not None:
+        spec.setdefault("destination", {})["namespace"] = generated_namespace
+
+    return application
+
+
+def copy_instance_config_files(source_config: Path, dest_dir: Path) -> None:
+    """
+    Copy config.yml and sibling application.yml into the destination instance dir.
+    """
+
+    if not source_config.exists():
+        raise FileNotFoundError(f"Source instance config not found: {source_config}")
+
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source_config, dest_dir / "config.yml")
+
+    sibling_application = source_config.parent / "application.yml"
+    if sibling_application.exists():
+        shutil.copy2(sibling_application, dest_dir / "application.yml")
+
+
+def copy_generated_application_if_missing(dest_dir: Path, generated_dir: Path) -> None:
+    """
+    Copy generated application.yml into dest when dest has no application.yml.
+    """
+
+    dest_application = dest_dir / "application.yml"
+    if dest_application.exists():
+        return
+
+    generated_application = generated_dir / "application.yml"
+    if generated_application.exists():
+        shutil.copy2(generated_application, dest_application)
+
+
+def apply_generated_identity(dest_dir: Path, generated_dir: Path) -> None:
+    """
+    Overlay generated identity onto dest config.yml and patch application.yml.
+    """
+
+    dest_config = dest_dir / "config.yml"
+    generated_config = generated_dir / "config.yml"
+    if not generated_config.exists():
+        raise FileNotFoundError(
+            f"Generated instance config file not found: {generated_config}"
+        )
+
+    write_yaml(
+        dest_config,
+        overlay_identity_config(load_yaml(dest_config), load_yaml(generated_config)),
+    )
+
+    dest_application = dest_dir / "application.yml"
+    generated_application = generated_dir / "application.yml"
+    if dest_application.exists():
+        if not generated_application.exists():
+            raise FileNotFoundError(
+                f"Generated application file not found: {generated_application}"
+            )
+        write_yaml(
+            dest_application,
+            patch_application_identity(
+                load_yaml(dest_application), load_yaml(generated_application)
+            ),
+        )
+        return
+
+    copy_generated_application_if_missing(dest_dir, generated_dir)

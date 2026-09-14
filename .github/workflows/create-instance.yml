@@ -46,6 +46,11 @@ on:
         required: false
         default: "ubuntu-latest"
         type: string
+      FROM_INSTANCE:
+        description: "Existing instance name to clone and patch"
+        required: false
+        default: ""
+        type: string
     secrets:
       TERRAFORM_SECRETS:
         required: true
@@ -182,7 +187,8 @@ jobs:
             --platform-name "${{ inputs.PLATFORM_NAME }}" \
             --edx-platform-repository "${{ inputs.EDX_PLATFORM_REPOSITORY }}" \
             --edx-platform-version "${{ inputs.EDX_PLATFORM_VERSION }}" \
-            --tutor-version "${{ inputs.TUTOR_VERSION }}"
+            --tutor-version "${{ inputs.TUTOR_VERSION }}" \
+            --from-instance "${{ inputs.FROM_INSTANCE }}"
 
       - name: Push changes to remote repository
         run: |

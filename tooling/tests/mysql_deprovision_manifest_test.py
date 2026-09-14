@@ -5,7 +5,7 @@ Tests for MySQL deprovision manifests.
 import re
 from pathlib import Path
 
-import yaml
+from launchpad.utils import load_yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MYSQL_DEPROVISION_WORKFLOW = (
@@ -14,11 +14,6 @@ MYSQL_DEPROVISION_WORKFLOW = (
 MYSQL_DEPROVISION_TEMPLATE = (
     REPO_ROOT / "manifests" / "launchpad-mysql-deprovision-template.yml"
 )
-
-
-def _load_yaml(path: Path) -> dict:
-    with open(path, "r", encoding="utf-8") as file_obj:
-        return yaml.safe_load(file_obj)
 
 
 def _parameter_names(document: dict) -> set[str]:
@@ -38,7 +33,7 @@ class TestMySQLDeprovisionWorkflowManifest:
         """
         Test that workflow manifest wires provider-specific MySQL parameters.
         """
-        manifest = _load_yaml(MYSQL_DEPROVISION_WORKFLOW)
+        manifest = load_yaml(MYSQL_DEPROVISION_WORKFLOW)
         parameters = {
             param["name"]: param.get("value")
             for param in manifest["spec"]["arguments"]["parameters"]
@@ -58,8 +53,8 @@ class TestMySQLDeprovisionWorkflowManifest:
         """
         Test workflow parameter names and template parameter names stay in sync.
         """
-        workflow = _load_yaml(MYSQL_DEPROVISION_WORKFLOW)
-        template = _load_yaml(MYSQL_DEPROVISION_TEMPLATE)
+        workflow = load_yaml(MYSQL_DEPROVISION_WORKFLOW)
+        template = load_yaml(MYSQL_DEPROVISION_TEMPLATE)
 
         assert _parameter_names(workflow) == _parameter_names(template)
 
@@ -73,7 +68,7 @@ class TestMySQLDeprovisionTemplateManifest:
         """
         Test that main workflow routes deprovision logic by provider.
         """
-        manifest = _load_yaml(MYSQL_DEPROVISION_TEMPLATE)
+        manifest = load_yaml(MYSQL_DEPROVISION_TEMPLATE)
         templates = _template_map(manifest)
 
         main_steps = templates["main"]["steps"]
@@ -106,7 +101,7 @@ class TestMySQLDeprovisionTemplateManifest:
         """
         Test direct SQL deprovision script includes post-delete verification.
         """
-        manifest = _load_yaml(MYSQL_DEPROVISION_TEMPLATE)
+        manifest = load_yaml(MYSQL_DEPROVISION_TEMPLATE)
         templates = _template_map(manifest)
         script_source = templates["deprovision-direct-sql"]["script"]["source"]
 
@@ -117,7 +112,7 @@ class TestMySQLDeprovisionTemplateManifest:
         """
         Test DigitalOcean deprovision script checks API status and verifies absence.
         """
-        manifest = _load_yaml(MYSQL_DEPROVISION_TEMPLATE)
+        manifest = load_yaml(MYSQL_DEPROVISION_TEMPLATE)
         templates = _template_map(manifest)
         script_source = templates["deprovision-digitalocean-api"]["script"]["source"]
 
@@ -129,7 +124,7 @@ class TestMySQLDeprovisionTemplateManifest:
         """
         Test providers listed in route conditions are covered by provider validation.
         """
-        manifest = _load_yaml(MYSQL_DEPROVISION_TEMPLATE)
+        manifest = load_yaml(MYSQL_DEPROVISION_TEMPLATE)
         templates = _template_map(manifest)
 
         main_steps = templates["main"]["steps"]
