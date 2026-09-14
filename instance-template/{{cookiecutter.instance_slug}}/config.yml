@@ -62,8 +62,9 @@ S3_USE_SSL: true
 # Picasso configuration
 PICASSO_EXTRA_COMMANDS:
   - pip install tutor-contrib-drydock
-  - pip install git+https://github.com/cleura/tutor-contrib-s3@teak
-  - tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-plugin-indexes/teak/
+  - pip install git+https://github.com/cleura/tutor-contrib-s3@verawood
+  - pip install 'git+https://github.com/openedx/openedx-k8s-harmony.git@harmony-chart-0.14.0#egg=tutor-contrib-harmony&subdirectory=tutor-contrib-harmony-plugin'
+  - tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-plugin-indexes/verawood/
   - tutor plugins install forum mfe mfe-extensions
   - tutor plugins enable drydock forum mfe mfe-extensions s3
   - tutor picasso enable-private-packages
