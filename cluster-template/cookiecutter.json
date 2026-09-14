@@ -10,11 +10,11 @@
     "digitalocean"
   ],
   "cloud_region": "{{ 'us-east-1' if cookiecutter.cloud_provider=='aws' else 'nyc3' }}",
-  "harmony_module_version": "deaf58ed6dc8d2d60ba5fed42d0ad472944dfaf7",
-  "opencraft_module_version": "d55c99f57ee6cdadbfe3b01e19e456fb38b29e21",
+  "harmony_module_version": "c48d973f068af30ad75147c09e5cf03d919d01bb",
+  "opencraft_module_version": "b8929138e958b3d991359582f58761f9c448b52a",
   "picasso_version": "kaustav/new_ghcr_test",
   "launchpad_cluster_template_version": "main",
-  "tutor_version": "v20.0.5",
+  "tutor_version": "v22.0.2",
   "github_organization": "open-craft",
   "github_repository": "git@github.com:{{ cookiecutter.github_organization }}/launchpad-{{ cookiecutter.cluster_slug_normalized }}-cluster.git",
   "runner_workflow_label": [
