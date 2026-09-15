@@ -35,7 +35,7 @@ on:
 jobs:
   build:
     name: Build '{% raw %}${{ inputs.SERVICE }}{% endraw %}' image
-    uses: open-craft/launchpad-cluster-template/.github/workflows/build.yml@6dc6fd3d43db410365df3e0118aca9508ae5226e # main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/build.yml@aefb6dad1f1798ea94ec2bc1d9b08c944510f123 # main
     secrets:
       SSH_PRIVATE_KEY: {% raw %}${{ secrets.SSH_PRIVATE_KEY }}{% endraw %}
     with:
