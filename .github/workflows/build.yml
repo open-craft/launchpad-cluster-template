@@ -19,6 +19,10 @@ on:
         description: "Branch to clone the strain from"
         required: true
         type: string
+      PICASSO_ORGANIZATION:
+        description: "The GitHub organization where Picasso is located."
+        required: false
+        type: string
       PICASSO_VERSION:
         description: "Picasso version"
         required: true
@@ -52,7 +56,7 @@ on:
 jobs:
   build:
     name: Build Service
-    uses: open-craft/picasso/.github/workflows/build.yml@agrendalath/bb-10290-enterprise
+    uses: open-craft/picasso/.github/workflows/build.yml@agrendalath/dynamic-services
     concurrency:
       group: build:${{ inputs.STRAIN_REPOSITORY }}:${{ inputs.STRAIN_REPOSITORY_BRANCH }}:${{ inputs.INSTANCE_NAME }}:${{ inputs.SERVICE }}
       cancel-in-progress: false
@@ -66,11 +70,12 @@ jobs:
       STRAIN_REPOSITORY_BRANCH: ${{ inputs.STRAIN_REPOSITORY_BRANCH }}
       STRAIN_PATH: "instances/${{ inputs.INSTANCE_NAME }}"
       SERVICE: ${{ inputs.SERVICE }}
-      IMAGE_TAG_PREFIX: "${{ inputs.INSTANCE_NAME }}-"
+      IMAGE_TAG_PREFIX: "${{ inputs.INSTANCE_NAME }}-${{ inputs.SERVICE }}-"
       USE_DYNAMIC_IMAGE_TAG: true
       ADD_RANDOM_SUFFIX_TO_IMAGE_TAG: true
       RANDOM_SUFFIX_LENGTH: "8"
       TIMESTAMP_FORMAT: "%Y%m%d"
+      PICASSO_ORGANIZATION: ${{ inputs.PICASSO_ORGANIZATION }}
       PICASSO_VERSION: ${{ inputs.PICASSO_VERSION }}
       PYTHON_VERSION: 3.12
       UPDATE_IMAGE_TAG_IN_REPO: true

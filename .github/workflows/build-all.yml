@@ -16,6 +16,10 @@ on:
         description: "Branch to clone the strain from"
         required: true
         type: string
+      PICASSO_ORGANIZATION:
+        description: "The GitHub organization where Picasso is located."
+        required: false
+        type: string
       PICASSO_VERSION:
         description: "Picasso version"
         required: true
@@ -42,7 +46,7 @@ on:
 jobs:
   build:
     name: Build ${{ matrix.service }} service
-    uses: open-craft/launchpad-cluster-template/.github/workflows/build.yml@agrendalath/bb-10290-aws
+    uses: open-craft/launchpad-cluster-template/.github/workflows/build.yml@agrendalath/bb-10290-aws-temp
     strategy:
       matrix:
         service: ${{ fromJSON(inputs.SERVICES) }}
@@ -53,6 +57,7 @@ jobs:
       SERVICE: ${{ matrix.service }}
       STRAIN_REPOSITORY: ${{ inputs.STRAIN_REPOSITORY }}
       STRAIN_REPOSITORY_BRANCH: ${{ inputs.STRAIN_REPOSITORY_BRANCH }}
+      PICASSO_ORGANIZATION: ${{ inputs.PICASSO_ORGANIZATION }}
       PICASSO_VERSION: ${{ inputs.PICASSO_VERSION }}
       LAUNCHPAD_CLI_VERSION: ${{ inputs.LAUNCHPAD_CLI_VERSION }}
       RUNNER_WORKFLOW_LABEL: ${{ inputs.RUNNER_WORKFLOW_LABEL }}
