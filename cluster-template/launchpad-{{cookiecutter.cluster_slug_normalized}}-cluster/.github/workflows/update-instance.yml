@@ -23,7 +23,7 @@ jobs:
     permissions:
       contents: write
     name: Update Instance
-    uses: open-craft/launchpad-cluster-template/.github/workflows/update-instance.yml@6dc6fd3d43db410365df3e0118aca9508ae5226e # main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/update-instance.yml@146ae90456a0b96323f2fe5126a0b1e005caf0e9 # main
     secrets:
       SSH_PRIVATE_KEY: "{% raw %}${{ secrets.SSH_PRIVATE_KEY }}{% endraw %}"
     with:
