@@ -13,6 +13,7 @@ DRYDOCK_INIT_JOBS_EXCLUDED:
 DRYDOCK_REGISTRY_CREDENTIALS: '{ "auths": { "{{ cookiecutter.docker_registry }}": { "auth": "{{ cookiecutter.docker_registry_credentials }}" } } }'
 
 # Tutor configuration
+K8S_HARMONY_NAMESPACE: "harmony"
 K8S_NAMESPACE: "{{ cookiecutter.instance_slug }}"
 TUTOR_APP_NAME: "{{ cookiecutter.instance_slug }}"
 TUTOR_VERSION: "{{ cookiecutter.tutor_version }}"

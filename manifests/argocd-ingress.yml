@@ -5,15 +5,11 @@ metadata:
   namespace: argocd
   annotations:
     kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: harmony-letsencrypt-global
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/proxy-body-size: "128M"
-    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   rules:
     - host: argocd.{{ LAUNCHPAD_CLUSTER_DOMAIN }}
       http:
@@ -24,7 +20,7 @@ spec:
               service:
                 name: argocd-server
                 port:
-                  name: https
+                  name: http
   tls:
     - hosts:
         - argocd.{{ LAUNCHPAD_CLUSTER_DOMAIN }}

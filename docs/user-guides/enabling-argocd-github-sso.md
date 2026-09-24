@@ -133,32 +133,22 @@ orgs:
 
 ### Patch the ingress
 
-The ArgoCD ingress must not use `nginx.ingress.kubernetes.io/app-root: /login`
-with SSO. That nginx redirect can send the browser back to the login page after
-Dex reports a successful login.
+The ArgoCD ingress must use the Traefik ingress class
+(`manifests/argocd-ingress.yml`). Do not add an `app-root` / login redirect;
+that can send the browser back to the login page after Dex reports a successful
+login.
 
-Remove the annotation from an existing ingress:
-
-```bash
-set -euo pipefail
-
-kubectl annotate ingress argocd-server-ingress \
-  -n argocd \
-  nginx.ingress.kubernetes.io/app-root- \
-  --overwrite
-```
-
-Confirm it is gone:
+Confirm the live ingress is Traefik:
 
 ```bash
 set -euo pipefail
 
 kubectl get ingress argocd-server-ingress \
   -n argocd \
-  -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/app-root}{"\n"}'
+  -o jsonpath='{.spec.ingressClassName}{"\n"}'
 ```
 
-The command should print an empty line.
+The command should print `traefik`.
 
 ### Restart ArgoCD
 
@@ -257,4 +247,5 @@ kubectl get ingress argocd-server-ingress \
   -o yaml
 ```
 
-Make sure `nginx.ingress.kubernetes.io/app-root` is not present.
+Make sure `spec.ingressClassName` is `traefik` and that there is no login
+`app-root` redirect annotation.
