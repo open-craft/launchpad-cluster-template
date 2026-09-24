@@ -11,7 +11,7 @@
   ],
   "cloud_region": "{{ 'us-east-1' if cookiecutter.cloud_provider=='aws' else 'nyc3' }}",
   "harmony_module_version": "c48d973f068af30ad75147c09e5cf03d919d01bb",
-  "opencraft_module_version": "b8929138e958b3d991359582f58761f9c448b52a",
+  "opencraft_module_version": "e2630dd6da5d5460560700888c73048fb144df04",
   "picasso_version": "kaustav/new_ghcr_test",
   "launchpad_cluster_template_version": "main",
   "tutor_version": "v22.0.2",
