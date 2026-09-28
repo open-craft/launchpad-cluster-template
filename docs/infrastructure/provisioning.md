@@ -14,7 +14,7 @@ Before provisioning infrastructure, ensure you have:
 
 - **Launchpad CLI**: Installed and configured (see [Quick Start](../index.md#quick-start))
 - **Cookiecutter**: Installed for cluster template generation (`pip install cookiecutter`)
-- **Cloud Provider Access**: Valid credentials for AWS or DigitalOcean
+- **Cloud Provider Access**: Valid credentials for AWS, DigitalOcean, or UpCloud. AWS and UpCloud also need a MongoDB Atlas project and API keys.
 - **Terraform/OpenTofu**: Installed (OpenTofu is recommended)
 - **kubectl**: Installed
 - **Git Repository**: Access to a GitHub organization with repository create access (will create the repository during provisioning)
@@ -55,7 +55,7 @@ launchpad_create_cluster "Launchpad Production Cluster" "cluster.domain" \
 - `cluster_name`: Display name for the cluster
 - `cluster_domain`: Domain name for the cluster (e.g., `cluster.domain`)
 - `--environment`: Environment name (default: `production`)
-- `--cloud-provider`: Cloud provider - `aws` or `digitalocean`
+- `--cloud-provider`: Cloud provider - `aws`, `digitalocean`, or `upcloud`
 - `--cloud-region`: Region for the cloud provider
 - `--harmony-module-version`: Harmony Terraform module version/commit hash
 - `--opencraft-module-version`: OpenCraft Terraform module version
@@ -96,6 +96,22 @@ access_key = "access-key"
 secret_key = "secret-key"
 ```
 
+UpCloud state buckets use a Managed Object Storage hostname that is created with the service, so `backend.hcl` also sets the endpoint and region:
+
+```hcl
+endpoints = {
+  s3 = "https://<service-id>.upcloudobjects.com"
+}
+
+bucket     = "tfstate-bucket-name"
+key        = "terraform.tfstate"
+region     = "us-1"
+access_key = "access-key"
+secret_key = "secret-key"
+```
+
+`--cloud-region us-nyc1` is the UKS zone. Object storage is chosen from that zone: `us-1` for `us-nyc1`, and `europe-1` for `de-fra1`. Set `object_storage_region` only to override the European default with `europe-2` or `europe-3`. Atlas is a separate region: set `atlas_region_name` to `US_EAST_1` for `us-nyc1`, or `EU_CENTRAL_1` for `de-fra1`. Put those values in `secrets.auto.tfvars` with the UpCloud token, `atlas_project_id`, and the Atlas API keys. MySQL instance cleanup uses `direct_sql`. Instance MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. The workers group starts at `worker_node_count` and Cluster Autoscaler resizes it between `worker_node_min_count` and `worker_node_max_count`. `secrets.auto.tfvars` must set `upcloud_autoscaler_token`.
+
 **Initialize and Deploy**:
 
 ```bash
@@ -111,10 +127,10 @@ tofu apply
 
 **What Gets Deployed**:
 
-- **Kubernetes Cluster**: EKS (AWS) or DOKS (DigitalOcean)
-- **Databases**: Managed MySQL and MongoDB instances
-- **Storage**: S3 buckets or DigitalOcean Spaces
-- **Networking**: VPC with private/public subnets, load balancers
+- **Kubernetes Cluster**: EKS (AWS), DOKS (DigitalOcean), or UKS (UpCloud)
+- **Databases**: Managed MySQL. MongoDB is MongoDB Atlas on AWS and UpCloud, and managed MongoDB on DigitalOcean.
+- **Storage**: S3 buckets, DigitalOcean Spaces, or UpCloud Managed Object Storage
+- **Networking**: VPC or private network, and load balancers
 - **Harmony Components**: Ingress controllers, monitoring (optional), backups (optional)
 
 **Important**: After deployment completes, note the `.kubeconfig`will be created. You'll need this to access the cluster.
@@ -190,6 +206,7 @@ launchpad_install_argo --workflows-only
 **What Gets Installed**:
 
 **ArgoCD**:
+
 - ArgoCD namespace and core components
 - Ingress configuration for web UI access
 - Admin password (auto-generated if not provided via `LAUNCHPAD_ARGO_ADMIN_PASSWORD`)
@@ -197,6 +214,7 @@ launchpad_install_argo --workflows-only
 - Docker registry pull credentials
 
 **Argo Workflows**:
+
 - Argo Workflows namespace and core components
 - Ingress configuration for workflow UI
 - Admin authentication setup
@@ -296,14 +314,17 @@ launchpad_create_argo_user viewer.user \
 The system supports three user roles with different ArgoCD permission levels:
 
 **Admin Role**:
+
 - Full access to all applications and projects
 - Create, read, update, delete all applications and projects
 
 **Developer Role**:
+
 - Access to assigned applications and projects
 - Create, read, update, delete assigned applications and projects
 
 **Readonly Role**:
+
 - Read-only access to applications and projects
 - View applications and projects only
 
@@ -355,6 +376,7 @@ Users can access ArgoCD via:
 ### Environment Variables
 
 **Required**:
+
 - `LAUNCHPAD_CLUSTER_DOMAIN`: Cluster domain name (e.g., `cluster.domain`)
 
 **Optional**:
@@ -494,13 +516,13 @@ See the [Instance Provisioning](../instances/provisioning.md) documentation for 
 
 ## Related Documentation
 
-- [Infrastructure Overview](index.md) -  Core components (Kubernetes, ArgoCD, Argo Workflows)
-- [Deprovisioning](deprovisioning.md) -  Removing cluster infrastructure
-- [Cluster Overview](../cluster/index.md) -  Post-provisioning cluster operations
-- [Instance Provisioning](../instances/provisioning.md) -  Creating Open edX instances
+- [Infrastructure Overview](index.md) - Core components (Kubernetes, ArgoCD, Argo Workflows)
+- [Deprovisioning](deprovisioning.md) - Removing cluster infrastructure
+- [Cluster Overview](../cluster/index.md) - Post-provisioning cluster operations
+- [Instance Provisioning](../instances/provisioning.md) - Creating Open edX instances
 
 ## See Also
 
-- [Cluster Authentication](../cluster/authentication.md) -  kubeconfig and Argo users
-- [Cluster Configuration](../cluster/configuration.md) -  Environment variables and Terraform
-- [Custom Resources](custom-resources.md) -  Workflow templates and manifests
+- [Cluster Authentication](../cluster/authentication.md) - kubeconfig and Argo users
+- [Cluster Configuration](../cluster/configuration.md) - Environment variables and Terraform
+- [Custom Resources](custom-resources.md) - Workflow templates and manifests

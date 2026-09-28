@@ -80,6 +80,20 @@ class TestClusterConfig:
         expected_url = "https://raw.githubusercontent.com/open-craft/launchpad-cluster-template/v1.0.0/manifests"
         assert config.opencraft_manifests_url == expected_url
 
+    def test_cluster_config_opencraft_kustomize_overlay_url(self):
+        """
+        Test kustomize overlays use a git repository URL and ref.
+        """
+
+        config = ClusterConfig(
+            cluster_domain="cluster.domain", opencraft_manifests_version="v1.0.0"
+        )
+
+        assert config.opencraft_kustomize_overlay_url("argocd") == (
+            "https://github.com/open-craft/launchpad-cluster-template.git"
+            "//manifests/argocd?ref=v1.0.0"
+        )
+
     def test_cluster_config_argocd_install_url(self):
         """
         Test the argocd_install_url property.

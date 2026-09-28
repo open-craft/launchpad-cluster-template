@@ -40,12 +40,17 @@ output "mysql_root_password" {
   sensitive   = true
 }
 
-output "mongodb_address" {
-  description = "MongoDB database address"
-  value       = module.mongodb_database.cluster_address
+output "mongodb_host" {
+  description = "MongoDB Atlas SRV address. Set this as LAUNCHPAD_MONGODB_HOST."
+  value       = module.mongodb_database.atlas_srv_address
 }
 
-output "mongodb_connection_string" {
-  description = "MongoDB database connection string"
-  value       = module.mongodb_database.cluster_connection_strings[0].standard_srv
+output "atlas_cluster_name" {
+  description = "MongoDB Atlas cluster name. Set this as LAUNCHPAD_ATLAS_CLUSTER_NAME."
+  value       = module.mongodb_database.atlas_cluster_name
+}
+
+output "atlas_project_id" {
+  description = "MongoDB Atlas project ID. Set this as LAUNCHPAD_ATLAS_PROJECT_ID."
+  value       = var.atlas_project_id
 }

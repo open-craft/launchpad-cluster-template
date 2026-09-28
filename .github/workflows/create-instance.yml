@@ -77,15 +77,27 @@ on:
       LAUNCHPAD_MONGODB_AUTH_SOURCE:
         required: false
       LAUNCHPAD_DIGITALOCEAN_TOKEN:
-        required: true
+        required: false
+      LAUNCHPAD_ATLAS_PUBLIC_KEY:
+        required: false
+      LAUNCHPAD_ATLAS_PRIVATE_KEY:
+        required: false
+      LAUNCHPAD_ATLAS_PROJECT_ID:
+        required: false
+      LAUNCHPAD_ATLAS_CLUSTER_NAME:
+        required: false
       LAUNCHPAD_STORAGE_TYPE:
         required: true
       LAUNCHPAD_STORAGE_REGION:
         required: true
+      LAUNCHPAD_STORAGE_HOST:
+        required: false
       LAUNCHPAD_STORAGE_ACCESS_KEY_ID:
         required: true
       LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY:
         required: true
+      TERRAFORM_BACKEND_CONFIG:
+        required: false
       SSH_PRIVATE_KEY:
         required: true
 
@@ -149,8 +161,15 @@ jobs:
           TF_CLI_ARGS: "-no-color"
           AWS_ACCESS_KEY_ID: ${{ secrets.LAUNCHPAD_STORAGE_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY }}
+          TERRAFORM_BACKEND_CONFIG: ${{ secrets.TERRAFORM_BACKEND_CONFIG }}
         run: |
-          tofu init -input=false
+          if [ -n "${TERRAFORM_BACKEND_CONFIG}" ]; then
+            printf '%s\n' "$TERRAFORM_BACKEND_CONFIG" > backend.hcl
+            unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+            tofu init -input=false -backend-config=backend.hcl
+          else
+            tofu init -input=false
+          fi
           tofu refresh
           mkdir -p ~/.kube
           tofu output -raw kubeconfig_content > ~/.kube/config
@@ -170,8 +189,13 @@ jobs:
           LAUNCHPAD_MONGODB_REPLICA_SET: ${{ secrets.LAUNCHPAD_MONGODB_REPLICA_SET }}
           LAUNCHPAD_MONGODB_AUTH_SOURCE: ${{ secrets.LAUNCHPAD_MONGODB_AUTH_SOURCE }}
           LAUNCHPAD_DIGITALOCEAN_TOKEN: ${{ secrets.LAUNCHPAD_DIGITALOCEAN_TOKEN }}
+          LAUNCHPAD_ATLAS_PUBLIC_KEY: ${{ secrets.LAUNCHPAD_ATLAS_PUBLIC_KEY }}
+          LAUNCHPAD_ATLAS_PRIVATE_KEY: ${{ secrets.LAUNCHPAD_ATLAS_PRIVATE_KEY }}
+          LAUNCHPAD_ATLAS_PROJECT_ID: ${{ secrets.LAUNCHPAD_ATLAS_PROJECT_ID }}
+          LAUNCHPAD_ATLAS_CLUSTER_NAME: ${{ secrets.LAUNCHPAD_ATLAS_CLUSTER_NAME }}
           LAUNCHPAD_STORAGE_TYPE: ${{ secrets.LAUNCHPAD_STORAGE_TYPE }}
           LAUNCHPAD_STORAGE_REGION: ${{ secrets.LAUNCHPAD_STORAGE_REGION }}
+          LAUNCHPAD_STORAGE_HOST: ${{ secrets.LAUNCHPAD_STORAGE_HOST }}
           LAUNCHPAD_STORAGE_ACCESS_KEY_ID: ${{ secrets.LAUNCHPAD_STORAGE_ACCESS_KEY_ID }}
           LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY: ${{ secrets.LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY }}
           # OpenCraft manifests version override

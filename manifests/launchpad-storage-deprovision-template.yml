@@ -60,7 +60,7 @@ spec:
           echo "Emptying bucket: $BUCKET_NAME"
 
           ENDPOINT_ARGS=""
-          if [ "$STORAGE_TYPE" = "spaces" ] && [ -n "$ENDPOINT_URL" ]; then
+          if [ -n "$ENDPOINT_URL" ]; then
             ENDPOINT_ARGS="--endpoint-url=$ENDPOINT_URL"
           fi
 
@@ -73,7 +73,7 @@ spec:
             echo "Removing all objects from bucket"
             aws s3 rm "s3://$BUCKET_NAME" --recursive $ENDPOINT_ARGS || true
 
-            if [ "$STORAGE_TYPE" != "spaces" ]; then
+            if [ -z "$ENDPOINT_URL" ]; then
               aws s3api list-object-versions --bucket "$BUCKET_NAME" $ENDPOINT_ARGS --query 'Versions[].{Key:Key,VersionId:VersionId}' --output text | \
               while read -r key version; do
                 if [ -n "$key" ] && [ -n "$version" ]; then
@@ -88,7 +88,7 @@ spec:
                 fi
               done
             else
-              echo "Skipping version cleanup for Spaces (versioning not supported)"
+              echo "Skipping version cleanup for custom S3 endpoint"
             fi
           else
             OBJECT_COUNT=$(aws s3 ls "s3://$BUCKET_NAME" --recursive $ENDPOINT_ARGS | wc -l)
@@ -120,7 +120,7 @@ spec:
           echo "Deleting bucket: $BUCKET_NAME"
 
           ENDPOINT_ARGS=""
-          if [ "$STORAGE_TYPE" = "spaces" ] && [ -n "$ENDPOINT_URL" ]; then
+          if [ -n "$ENDPOINT_URL" ]; then
             ENDPOINT_ARGS="--endpoint-url=$ENDPOINT_URL"
           fi
 

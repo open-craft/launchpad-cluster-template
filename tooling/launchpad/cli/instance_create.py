@@ -634,7 +634,7 @@ def create_instance(  # pylint: disable=too-many-positional-arguments,too-many-l
     instance_config = build_instance_config(
         instance_name,
         config_data,
-        k8s_api_bearer_token=k8s_client.get_api_bearer_token(),
+        k8s_api_bearer_token=k8s_client.get_api_bearer_token(instance_name),
         platform_name=platform_name,
         edx_platform_repository=edx_platform_repository,
         edx_platform_version=edx_platform_version,

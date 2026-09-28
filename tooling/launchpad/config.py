@@ -117,6 +117,27 @@ class ClusterConfig(LaunchpadBaseSettings):
 
         return f"https://raw.githubusercontent.com/open-craft/launchpad-cluster-template/{self.opencraft_manifests_version}/manifests"
 
+    def opencraft_kustomize_overlay_url(self, overlay: str) -> str:
+        """
+        Git URL for a kustomize overlay under manifests/.
+
+        ``kubectl apply -k`` clones a repository. We cannot use
+        raw.githubusercontent.com URLs because they are file downloads,
+        not git remotes. We construct the the overlay URL as a repository
+        path plus ref.
+
+        Args:
+            overlay: Overlay directory name under manifests/
+
+        Returns:
+            Remote kustomize URL for the overlay
+        """
+
+        return (
+            "https://github.com/open-craft/launchpad-cluster-template.git"
+            f"//manifests/{overlay}?ref={self.opencraft_manifests_version}"
+        )
+
     @property
     def argocd_install_url(self) -> str:
         """
