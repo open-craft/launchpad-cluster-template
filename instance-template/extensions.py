@@ -33,13 +33,17 @@ class StorageExtension(Extension):
         super(StorageExtension, self).__init__(environment)
         environment.globals["s3_host"] = self.__get_s3_host
 
-    def __get_s3_host(self, storage_type, region):
+    def __get_s3_host(self, storage_type, region, host=""):
         """
         Return the S3_HOST value for tutor-contrib-s3.
 
-        AWS uses an empty host (default endpoints). DigitalOcean Spaces uses
-        ``{region}.digitaloceanspaces.com``.
+        An explicit host, such as an UpCloud Managed Object Storage hostname,
+        is returned unchanged. AWS uses an empty host (default endpoints).
+        DigitalOcean Spaces uses ``{region}.digitaloceanspaces.com``.
         """
+
+        if host:
+            return host
 
         storage_type = (storage_type or "spaces").lower()
         region = region or "nyc3"

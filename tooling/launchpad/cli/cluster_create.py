@@ -52,7 +52,7 @@ def create_cluster(  # pylint: disable=too-many-branches,too-many-arguments,too-
         cluster_domain: Domain for the cluster (e.g., "cluster.cluster.domain")
         environment: Environment name (default: "production")
         short_description: Short description of the cluster
-        cloud_provider: Cloud provider (aws or digitalocean)
+        cloud_provider: Cloud provider (aws, digitalocean, or upcloud)
         cloud_region: Region of the chosen cloud provider
         harmony_module_version: Harmony module version/commit hash
         opencraft_module_version: OpenCraft module version
@@ -181,7 +181,7 @@ def main() -> None:
     parser.add_argument(
         "--cloud-provider",
         default=DEFAULT_CLOUD_PROVIDER,
-        choices=["aws", "digitalocean"],
+        choices=["aws", "digitalocean", "upcloud"],
         help=f"Cloud provider (default: {DEFAULT_CLOUD_PROVIDER})",
     )
     parser.add_argument(

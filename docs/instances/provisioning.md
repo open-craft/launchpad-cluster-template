@@ -62,12 +62,13 @@ export LAUNCHPAD_ATLAS_CLUSTER_NAME="Cluster0"
 **Storage** (seeds tutor-contrib-s3 settings in `config.yml` at create time):
 ```bash
 export LAUNCHPAD_STORAGE_TYPE="spaces"  # or "s3"
-export LAUNCHPAD_STORAGE_REGION="nyc3"  # or "us-east-1"
+export LAUNCHPAD_STORAGE_REGION="nyc3"  # or "us-east-1", or "us-1" for UpCloud
+export LAUNCHPAD_STORAGE_HOST=""        # UpCloud Managed Object Storage hostname
 export LAUNCHPAD_STORAGE_ACCESS_KEY_ID="your_key"
 export LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY="your_secret"
 ```
 
-Use `spaces` for DigitalOcean Spaces (`S3_HOST={region}.digitaloceanspaces.com`) and `s3` for AWS (`S3_HOST` empty). After creation, edit the Tutor keys in `config.yml` if needed; Launchpad derives the workflow provider from whether `S3_HOST` contains `digitaloceanspaces.com`. See [Object Storage](configuration.md#object-storage).
+Use `spaces` for DigitalOcean Spaces (`S3_HOST={region}.digitaloceanspaces.com`) and `s3` for AWS (`S3_HOST` empty). For UpCloud, use `s3`, set `LAUNCHPAD_STORAGE_REGION` to the object storage region, and set `LAUNCHPAD_STORAGE_HOST` to the Terraform output `object_storage_endpoint_hostname`. After creation, edit the Tutor keys in `config.yml` if needed; Launchpad derives the workflow provider from whether `S3_HOST` contains `digitaloceanspaces.com`. See [Object Storage](configuration.md#object-storage).
 
 ### Provisioning Process
 
@@ -125,7 +126,7 @@ The workflows execute the following operations:
 - Creates an S3-compatible storage bucket named from `S3_STORAGE_BUCKET` in the instance config
 - Derives provider from `S3_HOST` (`spaces` if the host contains `digitaloceanspaces.com`, otherwise AWS `s3`)
 - Uses a custom endpoint built from `S3_HOST` / `S3_PORT` / `S3_USE_SSL` when a host is set; AWS with an empty host uses default endpoints
-- Enables versioning for AWS S3 when possible; skips versioning for Spaces
+- Enables versioning for AWS S3 when the endpoint is empty; skips versioning and public-bucket API calls when a custom endpoint is set
 - Leaves the bucket private by default
 
 #### 4. Workflow Completion

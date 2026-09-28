@@ -29,6 +29,11 @@ terraform {
       source  = "hashicorp/helm"
       version = "2.17.0"
     }
+
+    mongodbatlas = {
+      source  = "mongodb/mongodbatlas"
+      version = ">= 1.21.0, < 2.0.0"
+    }
   }
 }
 
@@ -36,6 +41,11 @@ provider "aws" {
   region     = var.region
   access_key = var.aws_access_key_id
   secret_key = var.aws_secret_access_key
+}
+
+provider "mongodbatlas" {
+  public_key  = var.atlas_public_key
+  private_key = var.atlas_private_key
 }
 
 provider "kubernetes" {
