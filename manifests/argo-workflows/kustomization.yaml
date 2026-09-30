@@ -7,3 +7,7 @@ patches:
     target:
       kind: Deployment
       name: argo-server
+  - path: executor-k8sapi.yaml
+    target:
+      kind: ConfigMap
+      name: workflow-controller-configmap
