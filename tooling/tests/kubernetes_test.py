@@ -95,6 +95,92 @@ class TestKubernetesClient:
     @mock.patch("launchpad.kubernetes.client.ApiClient")
     @mock.patch("launchpad.kubernetes.config.load_kube_config")
     @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    def test_get_api_bearer_token_uses_kubeconfig_token(
+        self,
+        _mock_get_logger,
+        _mock_load_config,
+        mock_api_client,
+        _mock_apps_v1,
+        _mock_core_v1,
+        _mock_rbac_v1,
+    ):
+        """
+        Test a kubeconfig bearer token is returned unchanged.
+        """
+
+        mock_api_client.return_value.configuration.auth_settings.return_value = {
+            "BearerToken": {"value": "Bearer static-token"}
+        }
+
+        assert KubernetesClient().get_api_bearer_token() == "Bearer static-token"
+
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    def test_get_api_bearer_token_requests_service_account_token(
+        self,
+        _mock_get_logger,
+        _mock_load_config,
+        mock_api_client,
+        _mock_apps_v1,
+        mock_core_v1,
+        _mock_rbac_v1,
+    ):
+        """
+        Test client-certificate kubeconfigs mint a workflow-executor token.
+        """
+
+        mock_api_client.return_value.configuration.auth_settings.return_value = {
+            "BearerToken": None
+        }
+        token_request = mock.Mock()
+        token_request.status.token = "minted-token"
+        create_token = mock_core_v1.return_value.create_namespaced_service_account_token
+        create_token.return_value = token_request
+
+        assert KubernetesClient().get_api_bearer_token("demo") == "Bearer minted-token"
+
+        create_token.assert_called_once_with(
+            name="workflow-executor",
+            namespace="demo",
+            body=mock.ANY,
+        )
+        body = create_token.call_args.kwargs["body"]
+        assert body.spec.expiration_seconds == 3600
+
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    def test_get_api_bearer_token_requires_namespace_without_kubeconfig_token(
+        self,
+        _mock_get_logger,
+        _mock_load_config,
+        mock_api_client,
+        _mock_apps_v1,
+        _mock_core_v1,
+        _mock_rbac_v1,
+    ):
+        """
+        Test client-certificate auth without a namespace cannot invent a token.
+        """
+
+        mock_api_client.return_value.configuration.auth_settings.return_value = {}
+
+        with pytest.raises(KubernetesError, match="no bearer token"):
+            KubernetesClient().get_api_bearer_token()
+
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
     @mock.patch("launchpad.kubernetes.requests.get")
     def test_get_manifest_from_url_success(
         self,
