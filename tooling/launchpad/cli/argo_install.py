@@ -15,7 +15,11 @@ from launchpad.exceptions import (
     PasswordError,
 )
 from launchpad.kubeconfig import setup_kubeconfig
-from launchpad.kubernetes import DEFAULT_DOCKER_PULL_SECRET_NAME, KubernetesClient
+from launchpad.kubernetes import (
+    DEFAULT_DOCKER_PULL_SECRET_NAME,
+    KubernetesClient,
+    is_server_side_apply_conflict,
+)
 from launchpad.password import (
     bcrypt_password,
     get_password_mtime,
@@ -229,6 +233,78 @@ def _apply_argo_workflows_template(url: str, namespace: str) -> None:
         ) from e
 
 
+def _apply_kustomize(url: str, namespace: str) -> None:
+    """
+    Apply a remote kustomize overlay with server-side apply.
+
+    A field-manager conflict is retried once with ``--force-conflicts`` so
+    this installer takes ownership of fields previously set by ``kubectl patch``.
+
+    Args:
+        url: Directory URL containing kustomization.yaml
+        namespace: Namespace to apply into
+
+    Raises:
+        KubernetesError: If kubectl apply fails
+    """
+
+    apply_command = [
+        "kubectl",
+        "apply",
+        "--server-side",
+        "-k",
+        url,
+        "-n",
+        namespace,
+    ]
+
+    try:
+        result = subprocess.run(
+            apply_command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as error:
+        raise KubernetesError(
+            f"Failed to apply kustomization {url}: {error}"
+        ) from error
+
+    if result.returncode == 0:
+        return
+
+    stderr = result.stderr or ""
+    if not is_server_side_apply_conflict(stderr):
+        raise KubernetesError(f"Failed to apply kustomization {url}: {stderr.strip()}")
+
+    logger.warning(
+        (
+            "Server-side apply conflict for kustomization %s; "
+            "retrying once with --force-conflicts"
+        ),
+        url,
+    )
+
+    try:
+        retry = subprocess.run(
+            apply_command + ["--force-conflicts"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as error:
+        raise KubernetesError(
+            f"Failed to apply kustomization {url}: {error}"
+        ) from error
+
+    if retry.returncode != 0:
+        raise KubernetesError(
+            f"Failed to apply kustomization {url}: {(retry.stderr or '').strip()}"
+        )
+
+    logger.info("Kustomization %s applied with --force-conflicts", url)
+
+
 def _install_argo_workflows_templates(cluster_config: ClusterConfig) -> None:
     """
     Install Argo Workflows templates for provisioning/deprovisioning.
@@ -286,8 +362,8 @@ def install_argo_workflows(cluster_config: ClusterConfig) -> None:
     run_command_with_logging(
         logger,
         "install Argo Workflows core components",
-        k8s.apply_manifest_from_url,
-        cluster_config.argo_workflows_install_url,
+        _apply_kustomize,
+        f"{cluster_config.opencraft_manifests_url}/argo-workflows",
         "argo",
     )
 
@@ -351,8 +427,8 @@ def install_argocd(cluster_config: ClusterConfig) -> None:
     run_command_with_logging(
         logger,
         "install ArgoCD core components",
-        k8s.apply_manifest_from_url,
-        cluster_config.argocd_install_url,
+        _apply_kustomize,
+        f"{cluster_config.opencraft_manifests_url}/argocd",
         ARGOCD_NAMESPACE,
     )
 

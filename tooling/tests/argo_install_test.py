@@ -8,13 +8,16 @@ from unittest import mock
 import pytest
 
 from launchpad.cli.argo_install import (
+    _apply_kustomize,
     _build_argocd_sso_cli_overrides,
     _build_dex_github_config,
     _configure_argocd_github_sso,
     _split_csv_values,
+    install_argo_workflows,
+    install_argocd,
 )
 from launchpad.config import ClusterConfig
-from launchpad.exceptions import ConfigurationError
+from launchpad.exceptions import ConfigurationError, KubernetesError
 
 
 class TestSplitCsvValues:
@@ -171,3 +174,154 @@ class TestConfigureArgocdGithubSso:
             namespace="argocd",
             string_data={"dex.github.clientSecret": "client-secret"},
         )
+
+
+def _run_logged_command(_logger, _description, func, *args, **kwargs):
+    """
+    Invoke the wrapped installer step without CLI logging.
+    """
+
+    return func(*args, **kwargs)
+
+
+class TestInstallArgo:
+    """
+    Test suite for Argo install orchestration.
+    """
+
+    def test_install_argocd_applies_kustomize_overlay(self, monkeypatch):
+        """
+        Test Argo CD is installed from the kustomize overlay.
+        """
+
+        applied = []
+        k8s = mock.Mock()
+
+        def apply_kustomize(url, namespace):
+            applied.append((url, namespace))
+
+        monkeypatch.setattr(
+            "launchpad.cli.argo_install._apply_kustomize", apply_kustomize
+        )
+        monkeypatch.setattr("launchpad.cli.argo_install.KubernetesClient", lambda: k8s)
+        monkeypatch.setattr(
+            "launchpad.cli.argo_install.resolve_plaintext_password",
+            lambda _password: "generated",
+        )
+        monkeypatch.setattr(
+            "launchpad.cli.argo_install.bcrypt_password", lambda _password: "hashed"
+        )
+        monkeypatch.setattr(
+            "launchpad.cli.argo_install.get_password_mtime", lambda: "mtime"
+        )
+        monkeypatch.setattr(
+            "launchpad.cli.argo_install.run_command_with_logging",
+            _run_logged_command,
+        )
+
+        config = ClusterConfig(cluster_domain="cluster.domain")
+        install_argocd(config)
+
+        assert applied == [(f"{config.opencraft_manifests_url}/argocd", "argocd")]
+        k8s.apply_manifest_from_url.assert_any_call(
+            f"{config.opencraft_manifests_url}/argocd-base-config.yml",
+            "argocd",
+        )
+
+    def test_install_argo_workflows_applies_kustomize_overlay(self, monkeypatch):
+        """
+        Test Argo Workflows is installed from the kustomize overlay.
+        """
+
+        applied = []
+        k8s = mock.Mock()
+
+        def apply_kustomize(url, namespace):
+            applied.append((url, namespace))
+
+        monkeypatch.setattr(
+            "launchpad.cli.argo_install._apply_kustomize", apply_kustomize
+        )
+        monkeypatch.setattr("launchpad.cli.argo_install.KubernetesClient", lambda: k8s)
+        monkeypatch.setattr(
+            "launchpad.cli.argo_install._install_argo_workflows_templates",
+            lambda _config: None,
+        )
+        monkeypatch.setattr(
+            "launchpad.cli.argo_install.run_command_with_logging",
+            _run_logged_command,
+        )
+
+        config = ClusterConfig(cluster_domain="cluster.domain")
+        install_argo_workflows(config)
+
+        assert applied == [(f"{config.opencraft_manifests_url}/argo-workflows", "argo")]
+
+    def test_apply_kustomize_invokes_kubectl(self, monkeypatch):
+        """
+        Test the overlay is applied with kubectl apply -k.
+        """
+
+        completed = mock.Mock(returncode=0, stderr="")
+        run = mock.Mock(return_value=completed)
+        monkeypatch.setattr("launchpad.cli.argo_install.subprocess.run", run)
+
+        _apply_kustomize("https://example.test/manifests/argocd", "argocd")
+
+        run.assert_called_once_with(
+            [
+                "kubectl",
+                "apply",
+                "--server-side",
+                "-k",
+                "https://example.test/manifests/argocd",
+                "-n",
+                "argocd",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def test_apply_kustomize_reports_kubectl_failure(self, monkeypatch):
+        """
+        Test a failed kubectl apply -k raises KubernetesError.
+        """
+
+        completed = mock.Mock(returncode=1, stderr="apply failed")
+        run = mock.Mock(return_value=completed)
+        monkeypatch.setattr("launchpad.cli.argo_install.subprocess.run", run)
+
+        with pytest.raises(KubernetesError, match="apply failed"):
+            _apply_kustomize("https://example.test/manifests/argocd", "argocd")
+
+        run.assert_called_once()
+        assert "--force-conflicts" not in run.call_args[0][0]
+
+    def test_apply_kustomize_retries_server_side_conflicts(self, monkeypatch):
+        """
+        Test a server-side apply conflict retries once with --force-conflicts.
+        """
+
+        conflict = mock.Mock(
+            returncode=1,
+            stderr=(
+                "error: Apply failed with 2 conflicts: conflicts with "
+                '"kubectl-patch" using apps/v1:\n'
+                '- .spec.template.spec.containers[name="argo-server"].args\n'
+                '- .spec.template.spec.containers[name="argo-server"]'
+                ".readinessProbe.httpGet.scheme"
+            ),
+        )
+        success = mock.Mock(returncode=0, stderr="")
+        run = mock.Mock(side_effect=[conflict, success])
+        monkeypatch.setattr("launchpad.cli.argo_install.subprocess.run", run)
+
+        _apply_kustomize("https://example.test/manifests/argo-workflows", "argo")
+
+        assert run.call_count == 2
+        first_command = run.call_args_list[0][0][0]
+        second_command = run.call_args_list[1][0][0]
+        assert "--server-side" in first_command
+        assert "--force-conflicts" not in first_command
+        assert "--force-conflicts" in second_command

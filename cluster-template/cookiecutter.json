@@ -11,8 +11,8 @@
     "upcloud"
   ],
   "cloud_region": "{{ 'us-east-1' if cookiecutter.cloud_provider=='aws' else ('nyc3' if cookiecutter.cloud_provider=='digitalocean' else 'us-nyc1') }}",
-  "harmony_module_version": "31c84c63fcbb0dc1733e2afa73f2213d362055f1",
-  "opencraft_module_version": "5239c687ce7aad33174b48044873b1c3fec4c69e",
+  "harmony_module_version": "b831cafc0f3e80db01638459804bd34acc8a9949",
+  "opencraft_module_version": "f251b2c0c67b761dfc44b46ea4e1c33b419d0b11",
   "picasso_version": "kaustav/new_ghcr_test",
   "launchpad_cluster_template_version": "main",
   "tutor_version": "v22.0.2",

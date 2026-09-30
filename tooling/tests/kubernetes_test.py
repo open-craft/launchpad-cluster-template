@@ -10,7 +10,45 @@ import requests
 from kubernetes import client
 
 from launchpad.exceptions import KubernetesError, ManifestError
-from launchpad.kubernetes import KubernetesClient, build_dockerconfigjson
+from launchpad.kubernetes import (
+    KubernetesClient,
+    build_dockerconfigjson,
+    is_server_side_apply_conflict,
+)
+
+
+class TestIsServerSideApplyConflict:
+    """
+    Test suite for server-side apply conflict detection.
+    """
+
+    @pytest.mark.parametrize(
+        "stderr",
+        [
+            'Apply failed with 1 conflict: conflict with "kubectl-patch"',
+            (
+                "error: Apply failed with 2 conflicts: conflicts with "
+                '"kubectl-patch" using apps/v1:\n'
+                '- .spec.template.spec.containers[name="argo-server"].args\n'
+                '- .spec.template.spec.containers[name="argo-server"]'
+                ".readinessProbe.httpGet.scheme"
+            ),
+        ],
+    )
+    def test_detects_singular_and_plural_conflict_messages(self, stderr):
+        """
+        Test both kubectl conflict wordings count as apply conflicts.
+        """
+
+        assert is_server_side_apply_conflict(stderr)
+
+    def test_ignores_other_apply_failures(self):
+        """
+        Test unrelated kubectl errors are not treated as field conflicts.
+        """
+
+        assert not is_server_side_apply_conflict("error: the server rejected the apply")
+        assert not is_server_side_apply_conflict("")
 
 
 class TestKubernetesClient:
@@ -378,7 +416,7 @@ class TestKubernetesClient:
         _mock_rbac_v1,
     ):
         """
-        Test server-side apply conflict retries once with --force-conflicts.
+        Test a multi-field apply conflict retries once with --force-conflicts.
         """
 
         mock_api_client_instance = mock.Mock()
@@ -395,7 +433,13 @@ class TestKubernetesClient:
         conflict_error = subprocess.CalledProcessError(
             1,
             ["kubectl", "apply"],
-            stderr='Apply failed with 1 conflict: conflict with "kubectl-patch"',
+            stderr=(
+                "error: Apply failed with 2 conflicts: conflicts with "
+                '"kubectl-patch" using apps/v1:\n'
+                '- .spec.template.spec.containers[name="argo-server"].args\n'
+                '- .spec.template.spec.containers[name="argo-server"]'
+                ".readinessProbe.httpGet.scheme"
+            ),
         )
         success_result = mock.Mock()
         success_result.returncode = 0

@@ -41,11 +41,18 @@ variable "zone" {
 
 variable "object_storage_region" {
   type        = string
-  description = "Managed Object Storage region that contains var.zone. UpCloud hosts us-nyc1, us-chi1, and us-sjo1 in us-1. European zones can use europe-1 (Harmony uses europe-1 for de-fra1; europe-2 and europe-3 also cover those zones). au-syd1 and sg-sin1 use apac-1."
+  default     = null
+  description = "Managed Object Storage region. Null uses us-1 for us-nyc1, us-chi1, and us-sjo1, apac-1 for au-syd1 and sg-sin1, and europe-1 for every European zone. Set europe-2 or europe-3 to override that European default."
 
   validation {
-    condition     = length(trimspace(var.object_storage_region)) > 0
-    error_message = "object_storage_region is required. us-nyc1 belongs to us-1."
+    condition = var.object_storage_region == null || contains([
+      "us-1",
+      "europe-1",
+      "europe-2",
+      "europe-3",
+      "apac-1",
+    ], var.object_storage_region)
+    error_message = "object_storage_region must be us-1, europe-1, europe-2, europe-3, or apac-1. de-fra1 is a zone; its object storage region is europe-1."
   }
 }
 
@@ -74,7 +81,7 @@ variable "kubernetes_cluster_name" {
 
 variable "kubernetes_version" {
   type        = string
-  default     = "1.32"
+  default     = "1.35"
   description = "Kubernetes minor version. List supported versions with `upctl kubernetes versions`."
 }
 
@@ -142,7 +149,7 @@ variable "mysql_plan" {
 
 variable "atlas_project_id" {
   type        = string
-  description = "MongoDB Atlas project that hosts the cluster. UpCloud has no managed MongoDB."
+  description = "MongoDB Atlas project that hosts the cluster."
 }
 
 variable "atlas_region_name" {

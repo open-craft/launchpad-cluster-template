@@ -102,15 +102,14 @@ atlas_private_key     = "atlas-private-key"
 **UpCloud**:
 
 ```hcl
-upcloud_token         = "your-upcloud-token"
-object_storage_region = "us-1"
-atlas_region_name     = "US_EAST_1"
-atlas_project_id      = "atlas-project-id"
-atlas_public_key      = "atlas-public-key"
-atlas_private_key     = "atlas-private-key"
+upcloud_token     = "your-upcloud-token"
+atlas_region_name = "US_EAST_1"
+atlas_project_id  = "atlas-project-id"
+atlas_public_key  = "atlas-public-key"
+atlas_private_key = "atlas-private-key"
 ```
 
-`us-1` is the object storage region for zone `us-nyc1`. Use `europe-1` and Atlas region `EU_CENTRAL_1` for zone `de-fra1`. MySQL deprovision uses `LAUNCHPAD_MYSQL_PROVIDER=direct_sql` with the MySQL host, port, and root credentials from Terraform outputs. MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. `LAUNCHPAD_MONGODB_CLUSTER_ID` is only for `digitalocean_api`. `LAUNCHPAD_MONGODB_HOST` is the Atlas SRV address from output `mongodb_host`. `LAUNCHPAD_ATLAS_CLUSTER_NAME` is output `atlas_cluster_name`, and `LAUNCHPAD_ATLAS_PROJECT_ID` is output `atlas_project_id`.
+`object_storage_region` is optional. Zone `us-nyc1` uses `us-1`. Zone `de-fra1` uses `europe-1`. Set `object_storage_region` only to choose `europe-2` or `europe-3` instead of `europe-1`. Use Atlas region `EU_CENTRAL_1` for zone `de-fra1`. MySQL deprovision uses `LAUNCHPAD_MYSQL_PROVIDER=direct_sql` with the MySQL host, port, and root credentials from Terraform outputs. MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. `LAUNCHPAD_MONGODB_CLUSTER_ID` is only for `digitalocean_api`. `LAUNCHPAD_MONGODB_HOST` is the Atlas SRV address from output `mongodb_host`. `LAUNCHPAD_ATLAS_CLUSTER_NAME` is output `atlas_cluster_name`, and `LAUNCHPAD_ATLAS_PROJECT_ID` is output `atlas_project_id`.
 
 UpCloud `tofu init` in GitHub Actions reads `TERRAFORM_BACKEND_CONFIG`. Store the same `backend.hcl` contents there, including `endpoints.s3`, `bucket`, `region`, `access_key`, and `secret_key`. The state bucket must exist before the first init.
 

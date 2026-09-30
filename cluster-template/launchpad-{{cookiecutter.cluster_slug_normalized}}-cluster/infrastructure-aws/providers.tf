@@ -32,7 +32,7 @@ terraform {
 
     mongodbatlas = {
       source  = "mongodb/mongodbatlas"
-      version = ">= 1.21.0, < 2.0.0"
+      version = ">= 2.17.0"
     }
   }
 }

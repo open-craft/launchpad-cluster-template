@@ -4,6 +4,7 @@ Utility functions to support working with Kubernetes.
 
 import io
 import json
+import re
 import subprocess
 from typing import Dict, List, Optional, Sequence
 
@@ -16,6 +17,7 @@ from launchpad.exceptions import KubernetesError, ManifestError
 from launchpad.utils import get_logger
 
 DEFAULT_DOCKER_PULL_SECRET_NAME = "launchpad-docker-registry"
+_SERVER_SIDE_APPLY_CONFLICT = re.compile(r"Apply failed with \d+ conflicts?:")
 
 
 def build_dockerconfigjson(registry: str, auth: str) -> str:
@@ -38,6 +40,24 @@ def build_dockerconfigjson(registry: str, auth: str) -> str:
         raise KubernetesError("Docker registry credentials are empty")
 
     return json.dumps({"auths": {registry: {"auth": auth}}}, separators=(",", ":"))
+
+
+def is_server_side_apply_conflict(stderr: str) -> bool:
+    """
+    Return whether kubectl stderr is a server-side apply field-manager conflict.
+
+    Kubectl uses ``Apply failed with 1 conflict:`` for a single field and
+    ``Apply failed with N conflicts:`` when more than one field conflicts.
+    Callers retry those applies once with ``--force-conflicts``.
+
+    Args:
+        stderr: Standard error from a failed ``kubectl apply --server-side``
+
+    Returns:
+        True when stderr reports a server-side apply conflict
+    """
+
+    return _SERVER_SIDE_APPLY_CONFLICT.search(stderr or "") is not None
 
 
 class KubernetesClient:
@@ -199,10 +219,7 @@ class KubernetesClient:
                 )
             except subprocess.CalledProcessError as e:
                 stderr = e.stderr or ""
-                has_apply_conflict = (
-                    "Apply failed with" in stderr and "conflict with" in stderr
-                )
-                if not has_apply_conflict:
+                if not is_server_side_apply_conflict(stderr):
                     raise KubernetesError(
                         f"Failed to apply {resource_kind} '{resource_name}': {stderr}"
                     ) from e

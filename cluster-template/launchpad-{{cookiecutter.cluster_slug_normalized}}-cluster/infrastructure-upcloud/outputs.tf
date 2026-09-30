@@ -38,7 +38,7 @@ output "object_storage_secret_access_key" {
 
 output "object_storage_region" {
   description = "Managed Object Storage region. Use this as LAUNCHPAD_STORAGE_REGION."
-  value       = var.object_storage_region
+  value       = local.object_storage_region
 }
 
 output "mysql_host" {

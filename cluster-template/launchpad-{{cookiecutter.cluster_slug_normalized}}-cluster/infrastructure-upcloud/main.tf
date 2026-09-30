@@ -9,10 +9,33 @@ locals {
   opencraft_terraform_module_version = "{{ cookiecutter.opencraft_module_version }}"
 
   # https://github.com/vmware-tanzu/velero-plugin-for-aws/releases
-  velero_aws_plugin_tag = "v1.9.0"
+  velero_aws_plugin_tag = "v1.14.4"
 
   atlas_region_name     = var.atlas_region_name
   atlas_ip_access_cidrs = ["${module.network.gateway_public_ip}/32"]
+
+  object_storage_region_by_zone = {
+    "au-syd1" = "apac-1"
+    "sg-sin1" = "apac-1"
+    "us-chi1" = "us-1"
+    "us-nyc1" = "us-1"
+    "us-sjo1" = "us-1"
+    "de-fra1" = "europe-1"
+    "dk-cph1" = "europe-1"
+    "es-mad1" = "europe-1"
+    "fi-hel1" = "europe-1"
+    "fi-hel2" = "europe-1"
+    "nl-ams1" = "europe-1"
+    "pl-waw1" = "europe-1"
+    "no-svg1" = "europe-1"
+    "se-sto1" = "europe-1"
+    "uk-lon1" = "europe-1"
+  }
+
+  object_storage_region = coalesce(
+    var.object_storage_region,
+    local.object_storage_region_by_zone[var.zone],
+  )
 
   labels = {
     environment = local.kubernetes_cluster_environment
@@ -83,7 +106,7 @@ module "mongodb_database" {
 module "velero_backups" {
   source = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/upcloud/object-storage?ref=${local.harmony_terraform_module_version}"
 
-  region      = var.object_storage_region
+  region      = local.object_storage_region
   environment = local.kubernetes_cluster_environment
 
   bucket_prefix = "backup-${var.kubernetes_cluster_name}"
@@ -109,7 +132,7 @@ module "harmony" {
   alertmanager_config             = var.alertmanager_config
   velero_enabled                  = var.velero_enabled
   velero_backup_bucket            = module.velero_backups.bucket_name
-  velero_backup_region            = var.object_storage_region
+  velero_backup_region            = local.object_storage_region
   velero_backup_s3_url            = "https://${module.velero_backups.endpoint_hostname}"
   velero_backup_access_key_id     = module.velero_backups.access_key_id
   velero_backup_secret_access_key = module.velero_backups.secret_access_key

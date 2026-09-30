@@ -26,7 +26,7 @@ access_key = "<ACCESS KEY ID>"
 secret_key = "<SECRET ACCESS KEY>"
 ```
 
-Zone `us-nyc1` uses object storage region `us-1`. Zone `de-fra1` uses `europe-1`. Set `object_storage_region`, `atlas_region_name`, `atlas_project_id`, `atlas_public_key`, and `atlas_private_key` in `secrets.auto.tfvars` as well. For `us-nyc1`, a nearby Atlas region is `US_EAST_1`. For `de-fra1`, Harmony uses `EU_CENTRAL_1`. `atlas_public_key` and `atlas_private_key` may be omitted when `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` are set.
+Zone `us-nyc1` uses object storage region `us-1`. Zone `de-fra1` uses `europe-1`. `object_storage_region` can be omitted; set it only to choose `europe-2` or `europe-3`. Set `atlas_region_name`, `atlas_project_id`, `atlas_public_key`, and `atlas_private_key` in `secrets.auto.tfvars` as well. For `us-nyc1`, a nearby Atlas region is `US_EAST_1`. For `de-fra1`, Harmony uses `EU_CENTRAL_1`. `atlas_public_key` and `atlas_private_key` may be omitted when `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` are set.
 {% else -%}
 Create `infrastructure/backend.hcl`:
 
