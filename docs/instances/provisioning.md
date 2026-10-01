@@ -174,6 +174,37 @@ If provisioning partially succeeds (some workflows succeed, others fail):
 1. **Check Dependencies**: Ensure all required services (databases, storage) are available
 2. **Retry**: Re-run `launchpad_create_instance` without deleting the instance config. Existing matching config is reused; failed provision workflows are deleted and re-run.
 
+### Init jobs not starting
+
+In some rare cases when a deployment initially failed, init jobs may stuck.
+
+To restart them, use the following script from the repo root:
+
+```shell
+set -euo pipefail
+
+export namespace=demo
+export rendered="$(kubectl kustomize instances/demo/env)"
+
+for job in \
+  drydock-lms-job-0 \
+  drydock-lms-job-3 \
+  drydock-lms-job-4 \
+  drydock-cms-job-5 \
+  drydock-lms-job-6 \
+  drydock-lms-job-7
+do
+  echo "Starting ${job}"
+  kubectl -n "${namespace}" delete job "${job}" --ignore-not-found
+  printf '%s\n' "${rendered}" | awk -v name="${job}" '
+    BEGIN { RS = "\n---\n" }
+    $0 ~ "\n  name: " name "\n" { print "---\n" $0 }
+  ' | kubectl apply -n "${namespace}" -f -
+  kubectl -n "${namespace}" wait --for=condition=complete "job/${job}" --timeout=30m
+  kubectl -n "${namespace}" logs "job/${job}"
+done
+```
+
 ### Getting Help
 
 If provisioning continues to fail:
