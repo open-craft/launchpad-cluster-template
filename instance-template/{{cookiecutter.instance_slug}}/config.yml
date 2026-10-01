@@ -66,7 +66,7 @@ PICASSO_EXTRA_COMMANDS:
   - pip install git+https://github.com/cleura/tutor-contrib-s3@v2.5.0
   - pip install 'git+https://github.com/openedx/openedx-k8s-harmony.git@harmony-chart-0.16.0#egg=tutor-contrib-harmony&subdirectory=tutor-contrib-harmony-plugin'
   - pip install git+https://gitlab.com/opencraft/dev/tutor-contrib-grove@d04daba96b9c19a79653695c78863eef2f21c8e4
-  - tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-plugin-indexes/ulmo/
-  - tutor plugins install forum mfe
-  - tutor plugins enable drydock forum mfe s3 newrelic k8s_harmony mfe_bookworm
+  - pip install 'tutor-mfe<22.0.0'
+  - pip install 'tutor-forum<22.0.0'
+  - tutor plugins enable drydock forum mfe s3 k8s_harmony mfe_bookworm
   - tutor picasso enable-private-packages
