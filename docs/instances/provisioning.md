@@ -123,7 +123,7 @@ The workflows execute the following operations:
 **MongoDB Provisioning**:
 - Detects the MongoDB provider (DigitalOcean API, Atlas, or direct connection)
 - Creates the main database and forum database
-- Creates a user with appropriate permissions
+- Creates a user with `readWrite` on both `MONGODB_DATABASE` and `FORUM_MONGODB_DATABASE`
 - For API-based providers, uses the provider's API to manage users
 
 **Storage Provisioning**:
@@ -170,6 +170,34 @@ kubectl logs -n <instance-name> workflow/<workflow-name>
 - **Permission Errors**: Ensure admin credentials have sufficient privileges to create databases and users
 - **Network Issues**: Check that the Kubernetes cluster can reach the database servers
 - **Provider API Errors**: For MongoDB Atlas or DigitalOcean, verify API credentials and permissions
+
+### Forum index creation is unauthorized
+
+Open edX startup can print warnings for `pkg_resources`, `imghdr`, the Django 6 URL scheme change, Swagger renderers, and `embargo.GlobalRestrictedCountry`. Those warnings leave initialization running.
+
+The forum init job fails when `forum_create_mongodb_indexes` returns MongoDB code 13 (`Unauthorized`) for `createIndexes` on `FORUM_MONGODB_DATABASE`. On Atlas, that means the instance user has `readWrite` on the Open edX database and lacks it on the forum database. DigitalOcean provisioning already grants both databases. AWS and UpCloud use the Atlas provider, so they need both roles.
+
+Add the forum role to an existing user. Use `MONGODB_USERNAME`, `MONGODB_DATABASE`, and `FORUM_MONGODB_DATABASE` from that instance's `config.yml`. Omit `--password` so the password already stored in `config.yml` stays valid. The Atlas `--role` flag replaces the user's full role list, so include both databases:
+
+```bash
+set -euo pipefail
+
+export ATLAS_PROJECT_ID="your-atlas-project-id"
+export MONGODB_USERNAME="launchpad-demo"
+export MONGODB_DATABASE="launchpad-demo-openedx"
+export FORUM_MONGODB_DATABASE="launchpad-demo-forum"
+
+atlas dbusers update "$MONGODB_USERNAME" \
+  --projectId "$ATLAS_PROJECT_ID" \
+  --role "readWrite@${MONGODB_DATABASE},readWrite@${FORUM_MONGODB_DATABASE}"
+
+atlas dbusers describe "$MONGODB_USERNAME" \
+  --projectId "$ATLAS_PROJECT_ID"
+```
+
+Confirm the description lists `readWrite` for both database names. Then delete the failed Drydock init job, the one whose logs contain `forum_create_mongodb_indexes`, and sync the Argo CD application so it recreates that job. The recreated job should finish successfully. `forum_create_mongodb_indexes` can still log the MySQL forum setup line `Forum indices initialized successfully` before it creates the MongoDB indexes; success means that command exits without MongoDB code 13.
+
+For later instances, install the updated workflow template with `launchpad_install_argo --workflows-only` before provisioning. That template grants both roles when it creates or updates the Atlas user.
 
 ### Partial Provisioning
 
