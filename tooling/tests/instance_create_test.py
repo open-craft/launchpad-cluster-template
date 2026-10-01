@@ -40,7 +40,7 @@ def _source_config(slug: str = "foo") -> dict:
         "MYSQL_USERNAME": f"launchpad-{slug}",
         "MYSQL_PASSWORD": "old-mysql-pass",
         "S3_STORAGE_BUCKET": f"launchpad-{slug}-oldbuck",
-        "TUTOR_VERSION": "v20.0.5",
+        "TUTOR_VERSION": "v21.0.9",
         "PLATFORM_NAME": "Copied Platform",
         "PICASSO_EXTRA_COMMANDS": ["custom-plugin"],
         "OPENEDX_EXTRA_PIP_REQUIREMENTS": ["some-pkg"],
@@ -208,7 +208,7 @@ class TestOverlayIdentityConfig:
         assert result["K8S_NAMESPACE"] == "bar"
         assert result["MYSQL_PASSWORD"] == "generated-mysql-pass"
         assert result["S3_STORAGE_BUCKET"] == "launchpad-bar-newbuck"
-        assert result["TUTOR_VERSION"] == "v20.0.5"
+        assert result["TUTOR_VERSION"] == "v21.0.9"
         assert result["PLATFORM_NAME"] == "Copied Platform"
         assert result["PICASSO_EXTRA_COMMANDS"] == ["custom-plugin"]
         assert result["OPENEDX_EXTRA_PIP_REQUIREMENTS"] == ["some-pkg"]
@@ -303,7 +303,7 @@ class TestGenerateInstanceConfig:
         assert config["K8S_NAMESPACE"] == "bar"
         assert config["MYSQL_PASSWORD"] == "generated-mysql-pass"
         assert config["S3_STORAGE_BUCKET"] == "launchpad-bar-newbuck"
-        assert config["TUTOR_VERSION"] == "v20.0.5"
+        assert config["TUTOR_VERSION"] == "v21.0.9"
         assert config["PICASSO_EXTRA_COMMANDS"] == ["custom-plugin"]
         assert config["MYSQL_PASSWORD"] != "old-mysql-pass"
 

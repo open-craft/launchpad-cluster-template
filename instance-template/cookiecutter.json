@@ -6,7 +6,7 @@
   "platform_description": "Open edX Instance for {{ cookiecutter.instance_name }}",
   "platform_repository": "https://github.com/openedx/edx-platform.git",
   "platform_version": "release/verawood.1",
-  "tutor_version": "v22.0.2",
+  "tutor_version": "v21.0.9",
   "cluster_repository": "",
   "cluster_repository_branch": "main",
   "cluster_repository_owner": "",
