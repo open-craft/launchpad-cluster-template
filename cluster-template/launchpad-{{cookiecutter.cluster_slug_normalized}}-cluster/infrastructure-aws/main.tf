@@ -14,17 +14,15 @@ locals {
   opencraft_terraform_module_version = "{{ cookiecutter.opencraft_module_version }}"
 
   # Velero plugin versions
-  velero_aws_plugin_tag = "v1.9.0" # https://github.com/vmware-tanzu/velero-plugin-for-aws/releases
+  velero_aws_plugin_tag = "v1.14.4" # https://github.com/vmware-tanzu/velero-plugin-for-aws/releases
 
   # MySQL
   mysql_version           = "8"
   mysql_instance_size     = "db.t3.micro"
   mysql_cluster_instances = 1
 
-  # MongoDB
-  mongodb_version           = "7"
-  mongodb_instance_size     = "db.t3.medium"
-  mongodb_cluster_instances = 3
+  atlas_region_name     = upper(replace(var.region, "-", "_"))
+  atlas_ip_access_cidrs = [module.main_vpc.vpc_cidr_block]
 }
 
 data "aws_caller_identity" "current" {}
@@ -148,28 +146,26 @@ module "mysql_database" {
   ]
 }
 
+module "atlas_network" {
+  source = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/aws/atlas-network?ref=${local.harmony_terraform_module_version}"
+
+  region            = var.region
+  aws_account_id    = data.aws_caller_identity.current.account_id
+  atlas_project_id  = var.atlas_project_id
+  atlas_region_name = local.atlas_region_name
+  atlas_cidr_block  = var.atlas_cidr_block
+  vpc_id            = module.main_vpc.vpc_id
+}
+
 module "mongodb_database" {
-  source = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/digitalocean/database?ref=${local.harmony_terraform_module_version}"
+  source = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/mongodb?ref=${local.harmony_terraform_module_version}"
 
-  region                  = var.region
-  environment             = local.kubernetes_cluster_environment
-  access_token            = var.access_token
-  vpc_id                  = module.main_vpc.vpc_id
-  kubernetes_cluster_name = var.kubernetes_cluster_name
+  depends_on = [module.atlas_network]
 
-  database_engine                  = "mongodb"
-  database_engine_version          = local.mongodb_version
-  database_cluster_instances       = local.mongodb_cluster_instances
-  database_cluster_instance_size   = local.mongodb_instance_size
-  database_maintenance_window_day  = "sunday"
-  database_maintenance_window_time = "1:00"
-
-  # Database cluster firewalls cannot use VPC CIDR, therefore the access is
-  # limited to the k8s cluster
-  firewall_rules = [
-    {
-      type  = "k8s"
-      value = module.kubernetes_cluster.cluster_id
-    },
-  ]
+  environment           = local.kubernetes_cluster_environment
+  database_cluster_name = "${var.kubernetes_cluster_name}-mongodb"
+  atlas_project_id      = var.atlas_project_id
+  atlas_region_name     = local.atlas_region_name
+  atlas_provider_name   = "AWS"
+  ip_access_cidrs       = local.atlas_ip_access_cidrs
 }

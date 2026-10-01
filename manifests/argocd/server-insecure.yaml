@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cmd-params-cm
+data:
+  # Traefik terminates TLS. This ConfigMap is part of the upstream install,
+  # so the server process starts with HTTP on port 8080.
+  server.insecure: "true"

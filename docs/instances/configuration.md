@@ -31,7 +31,7 @@ At instance creation, cluster secrets seed:
 | `OPENEDX_AWS_ACCESS_KEY` / `OPENEDX_AWS_SECRET_ACCESS_KEY` | Credentials (from `LAUNCHPAD_STORAGE_ACCESS_KEY_ID` / `LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY`) |
 | `S3_STORAGE_BUCKET` | Generated bucket name |
 | `S3_REGION` | From `LAUNCHPAD_STORAGE_REGION` |
-| `S3_HOST` | Empty for AWS; `{region}.digitaloceanspaces.com` when `LAUNCHPAD_STORAGE_TYPE=spaces` |
+| `S3_HOST` | Empty for AWS; `{region}.digitaloceanspaces.com` when `LAUNCHPAD_STORAGE_TYPE=spaces`; `LAUNCHPAD_STORAGE_HOST` when that secret is set (UpCloud Managed Object Storage) |
 | `S3_USE_SSL` | `true` by default |
 
 The instance template installs and enables the `s3` plugin via `PICASSO_EXTRA_COMMANDS`.
@@ -41,13 +41,13 @@ The instance template installs and enables the `s3` plugin via `PICASSO_EXTRA_CO
 Bucket workflows still need a provider flag and optional endpoint URL. Tooling derives them from the Tutor keys:
 
 - If `S3_HOST` contains `digitaloceanspaces.com`, the provider is DigitalOcean Spaces (`spaces`), and the endpoint is built from `S3_HOST` / `S3_PORT` / `S3_USE_SSL`.
-- Otherwise the provider is AWS (`s3`). An empty `S3_HOST` uses AWS default endpoints (no custom endpoint URL).
+- Otherwise the provider is AWS (`s3`). An empty `S3_HOST` uses AWS default endpoints (no custom endpoint URL). A non-empty host, such as an UpCloud `*.upcloudobjects.com` hostname, still uses provider `s3` and sets the endpoint URL.
 
-Versioning and other AWS-specific bucket options follow that derived provider (enabled for AWS, skipped for Spaces).
+Versioning and public-bucket API calls run only when the endpoint URL is empty. Spaces, UpCloud, and other custom endpoints skip those calls.
 
 ### Cluster secrets
 
-`LAUNCHPAD_STORAGE_TYPE`, `LAUNCHPAD_STORAGE_REGION`, and the access key pair remain GitHub Actions / CLI inputs. They seed `config.yml` at create time and can still supply credentials to create/delete if keys are missing from the instance file. They are not a second schema operators must keep in sync inside `config.yml`.
+`LAUNCHPAD_STORAGE_TYPE`, `LAUNCHPAD_STORAGE_REGION`, optional `LAUNCHPAD_STORAGE_HOST`, and the access key pair remain GitHub Actions / CLI inputs. They seed `config.yml` at create time and can still supply credentials to create/delete if keys are missing from the instance file. They are not a second schema operators must keep in sync inside `config.yml`. On UpCloud, set `LAUNCHPAD_STORAGE_TYPE=s3`, `LAUNCHPAD_STORAGE_REGION` to the object storage region (for example `us-1`), and `LAUNCHPAD_STORAGE_HOST` to the Terraform output `object_storage_endpoint_hostname`.
 
 ## Secrets and Sensitive Data
 

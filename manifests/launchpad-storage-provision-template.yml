@@ -69,7 +69,7 @@ spec:
           echo "Using region: $STORAGE_REGION"
 
           ENDPOINT_ARGS=""
-          if [ "$STORAGE_TYPE" = "spaces" ] && [ -n "$ENDPOINT_URL" ]; then
+          if [ -n "$ENDPOINT_URL" ]; then
             ENDPOINT_ARGS="--endpoint-url=$ENDPOINT_URL"
           fi
 
@@ -113,22 +113,23 @@ spec:
           export AWS_DEFAULT_REGION="$STORAGE_REGION"
 
           ENDPOINT_ARGS=""
-          if [ "$STORAGE_TYPE" = "spaces" ] && [ -n "$ENDPOINT_URL" ]; then
+          if [ -n "$ENDPOINT_URL" ]; then
             ENDPOINT_ARGS="--endpoint-url=$ENDPOINT_URL"
           fi
 
-          # Only enable versioning for AWS S3 (not supported by DigitalOcean Spaces)
-          if [ "$STORAGE_TYPE" != "spaces" ]; then
+          # AWS S3 uses an empty endpoint. Spaces, UpCloud, and other custom
+          # endpoints do not support these bucket APIs.
+          if [ -z "$ENDPOINT_URL" ]; then
             echo "Enabling versioning for S3 bucket"
             aws s3api put-bucket-versioning --bucket "$BUCKET_NAME" $ENDPOINT_ARGS --versioning-configuration Status=Enabled || echo "Warning: Failed to enable versioning"
           else
-            echo "Skipping versioning for DigitalOcean Spaces (not supported)"
+            echo "Skipping versioning for custom S3 endpoint"
           fi
 
           # Make bucket public if requested
           if [ "$MAKE_PUBLIC" = "true" ]; then
-            if [ "$STORAGE_TYPE" = "spaces" ]; then
-              echo "Warning: Making Spaces buckets public is not managed by this workflow. Configure access manually if needed."
+            if [ -n "$ENDPOINT_URL" ]; then
+              echo "Warning: Making buckets public is not managed by this workflow for custom S3 endpoints. Configure access manually if needed."
             else
               echo "Making S3 bucket public"
               aws s3api put-public-access-block \

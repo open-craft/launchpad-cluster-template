@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workflow-controller-configmap
+data:
+  # Nodes run containerd, so the default Docker executor cannot mount docker.sock.
+  containerRuntimeExecutor: k8sapi

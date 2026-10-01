@@ -467,15 +467,17 @@ export LAUNCHPAD_ATLAS_CLUSTER_NAME="Cluster0"
 
 ### Storage Providers
 
-At instance creation, `LAUNCHPAD_STORAGE_*` seeds tutor-contrib-s3 settings in `config.yml` (`S3_*` / `OPENEDX_AWS_*`). Those Tutor keys are the source of truth for Open edX and for bucket workflows. Provider is derived from `S3_HOST`: Spaces when the host contains `digitaloceanspaces.com`, otherwise AWS.
+At instance creation, `LAUNCHPAD_STORAGE_*` seeds tutor-contrib-s3 settings in `config.yml` (`S3_*` / `OPENEDX_AWS_*`). Those Tutor keys are the source of truth for Open edX and for bucket workflows. Provider is derived from `S3_HOST`: Spaces when the host contains `digitaloceanspaces.com`, otherwise AWS. A non-empty host  sets the S3 endpoint URL, including UpCloud Managed Object Storage.
 
 - **DigitalOcean Spaces** (`LAUNCHPAD_STORAGE_TYPE=spaces`): `S3_HOST={region}.digitaloceanspaces.com`
 - **AWS S3** (`LAUNCHPAD_STORAGE_TYPE=s3`): empty `S3_HOST` (AWS default endpoints)
+- **UpCloud** (`LAUNCHPAD_STORAGE_TYPE=s3`): `S3_HOST` is `LAUNCHPAD_STORAGE_HOST` (Terraform output `object_storage_endpoint_hostname`). `LAUNCHPAD_STORAGE_REGION` is the object storage region, for example `us-1` for zone `us-nyc1`.
 
 **Configuration**:
 ```bash
 export LAUNCHPAD_STORAGE_TYPE="spaces"  # or "s3"
-export LAUNCHPAD_STORAGE_REGION="nyc3"  # or "us-east-1"
+export LAUNCHPAD_STORAGE_REGION="nyc3"  # or "us-east-1", or "us-1" for UpCloud
+export LAUNCHPAD_STORAGE_HOST=""        # UpCloud Managed Object Storage hostname
 export LAUNCHPAD_STORAGE_ACCESS_KEY_ID="your_key"
 export LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY="your_secret"
 ```

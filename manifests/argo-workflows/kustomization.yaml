@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - https://raw.githubusercontent.com/argoproj/argo-workflows/stable/manifests/install.yaml
+patches:
+  - path: server-http.yaml
+    target:
+      kind: Deployment
+      name: argo-server
+  - path: executor-k8sapi.yaml
+    target:
+      kind: ConfigMap
+      name: workflow-controller-configmap

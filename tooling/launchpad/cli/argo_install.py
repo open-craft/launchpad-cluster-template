@@ -3,8 +3,11 @@ Argo install commands for ArgoCD and Argo Workflows.
 """
 
 import argparse
+import json
 import subprocess
+from pathlib import Path
 
+import launchpad
 from launchpad.cli.utils import exit_with_error, run_command_with_logging
 from launchpad.config import ClusterConfig, get_config
 from launchpad.exceptions import (
@@ -15,7 +18,11 @@ from launchpad.exceptions import (
     PasswordError,
 )
 from launchpad.kubeconfig import setup_kubeconfig
-from launchpad.kubernetes import DEFAULT_DOCKER_PULL_SECRET_NAME, KubernetesClient
+from launchpad.kubernetes import (
+    DEFAULT_DOCKER_PULL_SECRET_NAME,
+    KubernetesClient,
+    is_server_side_apply_conflict,
+)
 from launchpad.password import (
     bcrypt_password,
     get_password_mtime,
@@ -229,6 +236,156 @@ def _apply_argo_workflows_template(url: str, namespace: str) -> None:
         ) from e
 
 
+def _candidate_repo_roots() -> list[Path]:
+    """
+    Return checkouts that may contain this repository's manifests directory.
+    """
+
+    roots: list[Path] = []
+    module_file = Path(launchpad.__file__).resolve()
+    if (
+        len(module_file.parents) > 2
+        and module_file.parent.name == "launchpad"
+        and module_file.parents[1].name == "tooling"
+    ):
+        roots.append(module_file.parents[2])
+
+    site_packages = module_file.parent.parent
+    for dist_info in site_packages.glob("launchpad-*.dist-info"):
+        direct_url_file = dist_info / "direct_url.json"
+        if not direct_url_file.is_file():
+            continue
+        try:
+            direct_url_data = json.loads(direct_url_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        url = direct_url_data.get("url", "")
+        if not url.startswith("file://"):
+            continue
+        source_path = Path(url.removeprefix("file://"))
+        repo_root = source_path.parent if source_path.name == "tooling" else source_path
+        roots.append(repo_root)
+
+    cwd = Path.cwd().resolve()
+    for parent in [cwd, *cwd.parents]:
+        if (parent / "tooling" / "pyproject.toml").is_file() and (
+            parent / "manifests"
+        ).is_dir():
+            roots.append(parent)
+            break
+
+    return roots
+
+
+def _local_kustomize_overlay(overlay: str) -> Path | None:
+    """
+    Return a local overlay directory when this checkout contains one.
+
+    Args:
+        overlay: Overlay directory name under manifests/
+
+    Returns:
+        Path to the overlay, or None when it is not present locally
+    """
+
+    for root in _candidate_repo_roots():
+        overlay_dir = root / "manifests" / overlay
+        if (overlay_dir / "kustomization.yaml").is_file():
+            return overlay_dir
+    return None
+
+
+def _kustomize_overlay_target(cluster_config: ClusterConfig, overlay: str) -> str:
+    """
+    Resolve a kustomize overlay to a local directory or a git URL.
+
+    Args:
+        cluster_config: Cluster configuration with the manifests ref
+        overlay: Overlay directory name under manifests/
+
+    Returns:
+        Local path or remote kustomize URL
+    """
+
+    local_overlay = _local_kustomize_overlay(overlay)
+    if local_overlay is not None:
+        logger.info("Using local kustomize overlay: %s", local_overlay)
+        return str(local_overlay)
+    return cluster_config.opencraft_kustomize_overlay_url(overlay)
+
+
+def _apply_kustomize(url: str, namespace: str) -> None:
+    """
+    Apply a remote kustomize overlay with server-side apply.
+
+    A field-manager conflict is retried once with ``--force-conflicts`` so
+    this installer takes ownership of fields previously set by ``kubectl patch``.
+
+    Args:
+        url: Directory URL containing kustomization.yaml
+        namespace: Namespace to apply into
+
+    Raises:
+        KubernetesError: If kubectl apply fails
+    """
+
+    apply_command = [
+        "kubectl",
+        "apply",
+        "--server-side",
+        "-k",
+        url,
+        "-n",
+        namespace,
+    ]
+
+    try:
+        result = subprocess.run(
+            apply_command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as error:
+        raise KubernetesError(
+            f"Failed to apply kustomization {url}: {error}"
+        ) from error
+
+    if result.returncode == 0:
+        return
+
+    stderr = result.stderr or ""
+    if not is_server_side_apply_conflict(stderr):
+        raise KubernetesError(f"Failed to apply kustomization {url}: {stderr.strip()}")
+
+    logger.warning(
+        (
+            "Server-side apply conflict for kustomization %s; "
+            "retrying once with --force-conflicts"
+        ),
+        url,
+    )
+
+    try:
+        retry = subprocess.run(
+            apply_command + ["--force-conflicts"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as error:
+        raise KubernetesError(
+            f"Failed to apply kustomization {url}: {error}"
+        ) from error
+
+    if retry.returncode != 0:
+        raise KubernetesError(
+            f"Failed to apply kustomization {url}: {(retry.stderr or '').strip()}"
+        )
+
+    logger.info("Kustomization %s applied with --force-conflicts", url)
+
+
 def _install_argo_workflows_templates(cluster_config: ClusterConfig) -> None:
     """
     Install Argo Workflows templates for provisioning/deprovisioning.
@@ -286,8 +443,8 @@ def install_argo_workflows(cluster_config: ClusterConfig) -> None:
     run_command_with_logging(
         logger,
         "install Argo Workflows core components",
-        k8s.apply_manifest_from_url,
-        cluster_config.argo_workflows_install_url,
+        _apply_kustomize,
+        _kustomize_overlay_target(cluster_config, "argo-workflows"),
         "argo",
     )
 
@@ -351,8 +508,8 @@ def install_argocd(cluster_config: ClusterConfig) -> None:
     run_command_with_logging(
         logger,
         "install ArgoCD core components",
-        k8s.apply_manifest_from_url,
-        cluster_config.argocd_install_url,
+        _apply_kustomize,
+        _kustomize_overlay_target(cluster_config, "argocd"),
         ARGOCD_NAMESPACE,
     )
 

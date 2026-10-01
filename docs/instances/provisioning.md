@@ -40,14 +40,18 @@ export LAUNCHPAD_MYSQL_ROOT_USER="root"
 export LAUNCHPAD_MYSQL_ROOT_PASSWORD="secure_password"
 ```
 
-**MongoDB Database** (DigitalOcean):
+**MongoDB Database** (Required for all):
 ```bash
 export LAUNCHPAD_MONGODB_HOST="mongodb.cluster.domain"
 export LAUNCHPAD_MONGODB_PORT="27017"
 export LAUNCHPAD_MONGODB_ADMIN_USER="admin"
 export LAUNCHPAD_MONGODB_ADMIN_PASSWORD="secure_password"
-export LAUNCHPAD_MONGODB_CLUSTER_ID="abc12345-xyz67890"
 export LAUNCHPAD_MONGODB_AUTH_SOURCE="admin"
+```
+
+**MongoDB Database** (DigitalOcean):
+```bash
+export LAUNCHPAD_MONGODB_CLUSTER_ID="abc12345-xyz67890"
 export LAUNCHPAD_DIGITALOCEAN_TOKEN="dop_v1_your_token"
 ```
 
@@ -62,12 +66,13 @@ export LAUNCHPAD_ATLAS_CLUSTER_NAME="Cluster0"
 **Storage** (seeds tutor-contrib-s3 settings in `config.yml` at create time):
 ```bash
 export LAUNCHPAD_STORAGE_TYPE="spaces"  # or "s3"
-export LAUNCHPAD_STORAGE_REGION="nyc3"  # or "us-east-1"
+export LAUNCHPAD_STORAGE_REGION="nyc3"  # or "us-east-1", or "us-1" for UpCloud
+export LAUNCHPAD_STORAGE_HOST=""        # UpCloud Managed Object Storage hostname
 export LAUNCHPAD_STORAGE_ACCESS_KEY_ID="your_key"
 export LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY="your_secret"
 ```
 
-Use `spaces` for DigitalOcean Spaces (`S3_HOST={region}.digitaloceanspaces.com`) and `s3` for AWS (`S3_HOST` empty). After creation, edit the Tutor keys in `config.yml` if needed; Launchpad derives the workflow provider from whether `S3_HOST` contains `digitaloceanspaces.com`. See [Object Storage](configuration.md#object-storage).
+Use `spaces` for DigitalOcean Spaces (`S3_HOST={region}.digitaloceanspaces.com`) and `s3` for AWS (`S3_HOST` empty). For UpCloud, use `s3`, set `LAUNCHPAD_STORAGE_REGION` to the object storage region, and set `LAUNCHPAD_STORAGE_HOST` to the Terraform output `object_storage_endpoint_hostname`. After creation, edit the Tutor keys in `config.yml` if needed; Launchpad derives the workflow provider from whether `S3_HOST` contains `digitaloceanspaces.com`. See [Object Storage](configuration.md#object-storage).
 
 ### Provisioning Process
 
@@ -118,14 +123,14 @@ The workflows execute the following operations:
 **MongoDB Provisioning**:
 - Detects the MongoDB provider (DigitalOcean API, Atlas, or direct connection)
 - Creates the main database and forum database
-- Creates a user with appropriate permissions
+- Creates a user with `readWrite` on both `MONGODB_DATABASE` and `FORUM_MONGODB_DATABASE`
 - For API-based providers, uses the provider's API to manage users
 
 **Storage Provisioning**:
 - Creates an S3-compatible storage bucket named from `S3_STORAGE_BUCKET` in the instance config
 - Derives provider from `S3_HOST` (`spaces` if the host contains `digitaloceanspaces.com`, otherwise AWS `s3`)
 - Uses a custom endpoint built from `S3_HOST` / `S3_PORT` / `S3_USE_SSL` when a host is set; AWS with an empty host uses default endpoints
-- Enables versioning for AWS S3 when possible; skips versioning for Spaces
+- Enables versioning for AWS S3 when the endpoint is empty; skips versioning and public-bucket API calls when a custom endpoint is set
 - Leaves the bucket private by default
 
 #### 4. Workflow Completion
@@ -166,12 +171,71 @@ kubectl logs -n <instance-name> workflow/<workflow-name>
 - **Network Issues**: Check that the Kubernetes cluster can reach the database servers
 - **Provider API Errors**: For MongoDB Atlas or DigitalOcean, verify API credentials and permissions
 
+### Forum index creation is unauthorized
+
+Open edX startup can print warnings for `pkg_resources`, `imghdr`, the Django 6 URL scheme change, Swagger renderers, and `embargo.GlobalRestrictedCountry`. Those warnings leave initialization running.
+
+The forum init job fails when `forum_create_mongodb_indexes` returns MongoDB code 13 (`Unauthorized`) for `createIndexes` on `FORUM_MONGODB_DATABASE`. On Atlas, that means the instance user has `readWrite` on the Open edX database and lacks it on the forum database. DigitalOcean provisioning already grants both databases. AWS and UpCloud use the Atlas provider, so they need both roles.
+
+Add the forum role to an existing user. Use `MONGODB_USERNAME`, `MONGODB_DATABASE`, and `FORUM_MONGODB_DATABASE` from that instance's `config.yml`. Omit `--password` so the password already stored in `config.yml` stays valid. The Atlas `--role` flag replaces the user's full role list, so include both databases:
+
+```bash
+set -euo pipefail
+
+export ATLAS_PROJECT_ID="your-atlas-project-id"
+export MONGODB_USERNAME="launchpad-demo"
+export MONGODB_DATABASE="launchpad-demo-openedx"
+export FORUM_MONGODB_DATABASE="launchpad-demo-forum"
+
+atlas dbusers update "$MONGODB_USERNAME" \
+  --projectId "$ATLAS_PROJECT_ID" \
+  --role "readWrite@${MONGODB_DATABASE},readWrite@${FORUM_MONGODB_DATABASE}"
+
+atlas dbusers describe "$MONGODB_USERNAME" \
+  --projectId "$ATLAS_PROJECT_ID"
+```
+
+Confirm the description lists `readWrite` for both database names. Then delete the failed Drydock init job, the one whose logs contain `forum_create_mongodb_indexes`, and sync the Argo CD application so it recreates that job. The recreated job should finish successfully. `forum_create_mongodb_indexes` can still log the MySQL forum setup line `Forum indices initialized successfully` before it creates the MongoDB indexes; success means that command exits without MongoDB code 13.
+
+For later instances, install the updated workflow template with `launchpad_install_argo --workflows-only` before provisioning. That template grants both roles when it creates or updates the Atlas user.
+
 ### Partial Provisioning
 
 If provisioning partially succeeds (some workflows succeed, others fail):
 
 1. **Check Dependencies**: Ensure all required services (databases, storage) are available
 2. **Retry**: Re-run `launchpad_create_instance` without deleting the instance config. Existing matching config is reused; failed provision workflows are deleted and re-run.
+
+### Init jobs not starting
+
+In some rare cases when a deployment initially failed, init jobs may stuck.
+
+To restart them, use the following script from the repo root:
+
+```shell
+set -euo pipefail
+
+export namespace=demo
+export rendered="$(kubectl kustomize instances/demo/env)"
+
+for job in \
+  drydock-lms-job-0 \
+  drydock-lms-job-3 \
+  drydock-lms-job-4 \
+  drydock-cms-job-5 \
+  drydock-lms-job-6 \
+  drydock-lms-job-7
+do
+  echo "Starting ${job}"
+  kubectl -n "${namespace}" delete job "${job}" --ignore-not-found
+  printf '%s\n' "${rendered}" | awk -v name="${job}" '
+    BEGIN { RS = "\n---\n" }
+    $0 ~ "\n  name: " name "\n" { print "---\n" $0 }
+  ' | kubectl apply -n "${namespace}" -f -
+  kubectl -n "${namespace}" wait --for=condition=complete "job/${job}" --timeout=30m
+  kubectl -n "${namespace}" logs "job/${job}"
+done
+```
 
 ### Getting Help
 

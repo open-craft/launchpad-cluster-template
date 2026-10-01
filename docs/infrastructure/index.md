@@ -11,9 +11,11 @@ Kubernetes serves as the foundation of the infrastructure, providing container o
 - **Configuration Management**: ConfigMaps and Secrets for application configuration and sensitive data
 - **Persistent Storage**: Volume management for file storage (for services like Redis)
 
-The infrastructure supports multiple cloud providers, including AWS (EKS) and DigitalOcean (DOKS), allowing organizations to choose the platform that best fits their requirements.
+The infrastructure supports AWS (EKS), DigitalOcean (DOKS), and UpCloud (UKS).
 
-Other providers can be used if the external dependencies (mainly Harmony) are supporting them.
+UpCloud clusters use Harmony's UpCloud modules for the private network, UKS, Managed MySQL, and Managed Object Storage. MongoDB is a MongoDB Atlas cluster reached through the NAT gateway. The workers group starts at `worker_node_count`, and Cluster Autoscaler resizes it between `worker_node_min_count` and `worker_node_max_count`. Set `upcloud_token` or `upcloud_autoscaler_token` in Terraform; the autoscaler does not read `UPCLOUD_TOKEN`.
+
+AWS clusters use the same MongoDB Atlas module. The Atlas region is derived from the AWS region, and `atlas_cidr_block` is peered to the VPC.
 
 ## ArgoCD
 

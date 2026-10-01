@@ -4,6 +4,7 @@ Utility functions to support working with Kubernetes.
 
 import io
 import json
+import re
 import subprocess
 from typing import Dict, List, Optional, Sequence
 
@@ -16,6 +17,7 @@ from launchpad.exceptions import KubernetesError, ManifestError
 from launchpad.utils import get_logger
 
 DEFAULT_DOCKER_PULL_SECRET_NAME = "launchpad-docker-registry"
+_SERVER_SIDE_APPLY_CONFLICT = re.compile(r"Apply failed with \d+ conflicts?:")
 
 
 def build_dockerconfigjson(registry: str, auth: str) -> str:
@@ -40,6 +42,24 @@ def build_dockerconfigjson(registry: str, auth: str) -> str:
     return json.dumps({"auths": {registry: {"auth": auth}}}, separators=(",", ":"))
 
 
+def is_server_side_apply_conflict(stderr: str) -> bool:
+    """
+    Return whether kubectl stderr is a server-side apply field-manager conflict.
+
+    Kubectl uses ``Apply failed with 1 conflict:`` for a single field and
+    ``Apply failed with N conflicts:`` when more than one field conflicts.
+    Callers retry those applies once with ``--force-conflicts``.
+
+    Args:
+        stderr: Standard error from a failed ``kubectl apply --server-side``
+
+    Returns:
+        True when stderr reports a server-side apply conflict
+    """
+
+    return _SERVER_SIDE_APPLY_CONFLICT.search(stderr or "") is not None
+
+
 class KubernetesClient:
     """
     Kubernetes client with encapsulated API access.
@@ -58,23 +78,74 @@ class KubernetesClient:
         self._rbac_v1 = client.RbacAuthorizationV1Api()
         self._logger = get_logger(__name__)
 
-    def get_api_bearer_token(self) -> str:
+    def get_api_bearer_token(self, namespace: str | None = None) -> str:
         """
-        Get a valid kuberetes API bearer token
+        Get a Kubernetes API bearer token, including the ``Bearer`` prefix.
+
+        Kubeconfigs that authenticate with a token return that token. Client
+        certificate kubeconfigs have no token, so this requests a short-lived
+        token for the ``workflow-executor`` service account in ``namespace``.
+
+        Args:
+            namespace: Namespace of the service account used when the kubeconfig
+                has no bearer token.
 
         Raises:
-            KubernetesError: If bearer token not present in auth settings
+            KubernetesError: If no token can be obtained
 
         Returns:
-            str: The API bearer token
+            str: Authorization header value (``Bearer <token>``)
         """
+
         auth_settings = self._api_client.configuration.auth_settings()
-        try:
-            return auth_settings.get("BearerToken")["value"]
-        except Exception as e:
+        bearer = auth_settings.get("BearerToken") if auth_settings else None
+        if isinstance(bearer, dict) and bearer.get("value"):
+            return bearer["value"]
+
+        if not namespace:
             raise KubernetesError(
-                f"Failed to get bearer token from auth settings: {e}"
-            ) from e
+                "Failed to get bearer token from auth settings: "
+                "kubeconfig has no bearer token"
+            )
+
+        return self._service_account_bearer_token(namespace, "workflow-executor")
+
+    def _service_account_bearer_token(self, namespace: str, name: str) -> str:
+        """
+        Request a short-lived token for a service account.
+
+        Args:
+            namespace: Service account namespace
+            name: Service account name
+
+        Returns:
+            Authorization header value (``Bearer <token>``)
+
+        Raises:
+            KubernetesError: If the API server does not return a token
+        """
+
+        try:
+            token_request = self._core_v1.create_namespaced_service_account_token(
+                name=name,
+                namespace=namespace,
+                body=client.AuthenticationV1TokenRequest(
+                    spec=client.V1TokenRequestSpec(expiration_seconds=3600),
+                ),
+            )
+        except Exception as error:
+            raise KubernetesError(
+                f"Failed to request a token for service account {namespace}/{name}: "
+                f"{error}"
+            ) from error
+
+        token = token_request.status.token if token_request.status else None
+        if not token:
+            raise KubernetesError(
+                f"Service account {namespace}/{name} did not return a token"
+            )
+
+        return f"Bearer {token}"
 
     def __get_manifest_from_url(self, url: str) -> str:
         """
@@ -199,10 +270,7 @@ class KubernetesClient:
                 )
             except subprocess.CalledProcessError as e:
                 stderr = e.stderr or ""
-                has_apply_conflict = (
-                    "Apply failed with" in stderr and "conflict with" in stderr
-                )
-                if not has_apply_conflict:
+                if not is_server_side_apply_conflict(stderr):
                     raise KubernetesError(
                         f"Failed to apply {resource_kind} '{resource_name}': {stderr}"
                     ) from e
