@@ -40,14 +40,18 @@ export LAUNCHPAD_MYSQL_ROOT_USER="root"
 export LAUNCHPAD_MYSQL_ROOT_PASSWORD="secure_password"
 ```
 
-**MongoDB Database** (DigitalOcean):
+**MongoDB Database** (Required for all):
 ```bash
 export LAUNCHPAD_MONGODB_HOST="mongodb.cluster.domain"
 export LAUNCHPAD_MONGODB_PORT="27017"
 export LAUNCHPAD_MONGODB_ADMIN_USER="admin"
 export LAUNCHPAD_MONGODB_ADMIN_PASSWORD="secure_password"
-export LAUNCHPAD_MONGODB_CLUSTER_ID="abc12345-xyz67890"
 export LAUNCHPAD_MONGODB_AUTH_SOURCE="admin"
+```
+
+**MongoDB Database** (DigitalOcean):
+```bash
+export LAUNCHPAD_MONGODB_CLUSTER_ID="abc12345-xyz67890"
 export LAUNCHPAD_DIGITALOCEAN_TOKEN="dop_v1_your_token"
 ```
 
