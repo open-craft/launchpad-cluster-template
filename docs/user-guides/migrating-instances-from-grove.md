@@ -11,7 +11,7 @@
 - make sure the new instance's `application.yml` has `spec.syncPolicy.automated.enabled` set to `false` (after create generates it, or on a copied file before enabling auto-sync later)
 > TODO: Clarify when this step is supposed to be done? application.yml doesn't exist until running "create instance". But once it is run, it already has this set to "true".
 
-- create the instance using the **Create Instance** GitHub workflow (or running `launchpad_create_instance` from [Launchpad CLI](../cli.md) locally):
+- create the instance using the "create instance" GitHub workflow (or `launchpad_create_instance` locally):
 
 > **TODO** - Clarify the following
 >
