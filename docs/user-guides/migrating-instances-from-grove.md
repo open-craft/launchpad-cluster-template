@@ -1,80 +1,148 @@
 # Migrating Instances from Grove
 
-## Configure the new instance
-
-- set the DNS record TTL to 300s
-- copy the old instance `config.yml` into `instances/<name>/` on the new cluster repo. Grove instances have no ArgoCD `application.yml`; create workflow generates that file when it is missing
-- make sure the new instance's `application.yml` has `spec.syncPolicy.automated.enabled` set to `false` (after create generates it, or on a copied file before enabling auto-sync later)
-- create the instance using the "create instance" GitHub workflow (or `launchpad_create_instance` locally):
-    - **Same instance name**: create reuses the copied `config.yml` as-is, including database credentials and bucket name, only if `K8S_NAMESPACE` or `TUTOR_APP_NAME` matches the instance slug. Missing `application.yml` is generated. Ensure both set to the instance slug **before** running create, otherwise identity and credentials are rewritten
-    - **New name**: use `--from-instance <old-name>` (or copy `config.yml` first). Extra Tutor/plugin settings are kept; identity fields and credentials are rewritten (`TUTOR_APP_NAME` and `K8S_NAMESPACE` are added automatically). Pointing at old databases/storage remains a later manual step (see below)
-- create any necessary infrastructure resources for the new instance (used by plugins)
-- configure theming and branding for the new instance
-- build the new instance's images using the "build all images" GitHub workflow
-- deploy the new instance using ArgoCD and wait for it to be ready (~20 minutes for the first deployment)
-- check that the new instance looks as expected
-- proceed with the instance test checklist in Listaflow to verify the instance is working as expected
-- turn off the init jobs for the new instance by setting `DRYDOCK_INIT_JOBS` to `false` in the `config.yml`
-
-## Point the new instance to the old instance data
-
 We are going to simplify the migration by making the new instance to use the old instance data. This allows us to avoid data migration, but requires careful configuration of the new instance. Both instances will be using the same database and storage for some time!
 
-- get the application configuration from the old instance
+## Preparation
 
-   ```shell
-   # List all configmaps
-   ./kubectl -n <instance-name> get cm
+1. Set the DNS records of the instance TTL to 300s.
+2. In the Grove cluster repository, use `control/tutor.sh config save` to generate the full Tutor config for the instance.
+3. This guide covers the steps to migrate an instance using an external database. If the instance uses PVCs on the cluster to store any data (Aspects for example), plan a migration path for it before starting.
+4. Get access to the Launchpad cluster's ArgoCD UI. OPTIONALLY, get the `kubeconfig` file to access the cluster for debugging.
+5. Get the `kubeconfig` for the Grove cluster.
+5. Clone the cluster repository locally.
 
-   # LMS configuration
-   ./kubectl -n <instance-name> get cm openedx-settings-lms-<latest id> \
-     -o jsonpath='{.data.production\.py}' > <instance-name>-settings-lms.py
+## Migration
 
-   # CMS configuration
-   ./kubectl -n <instance-name> get cm openedx-settings-cms-<latest id> \
-     -o jsonpath='{.data.production\.py}' > <instance-name>-settings-cms.py
+!!! note
 
-   # if other configuration is needed, get it from the old instance
-   # -- recommended to get from instance settings using Django shell
-   # ./kubectl -n <instance-name> exec -it deployments/lms -- ./manage.py lms shell
-   ```
+    The Launchpad cluster operates fully on Gitops principles via ArgoCD. This guide presents the steps for performing the migration in a dedicated Git branch, allowing full PR review workflow. It is not a hard requirement, all of these steps can be done directly on the `main` branch of the cluster if required.
 
-- update the MySQL, MongoDB, S3 and other configuration in the new instance config to use the old instance data (i.e. the same database and storage)
-- enable the new cluster access for old databases (MongoDB and MySQL)
-- build the new instance using the "build instance" GitHub workflow
-- make a backup of the old instance data (in MySQL, MongoDB, S3, etc.)
-- deploy the new instance using ArgoCD and wait for it to be ready
-- proceed with the instance test checklist in Listaflow to verify the old instance is still working as expected
-- check instance specific configuration and make sure non-generic configuration is working as expected (e.g., LTI, OAuth, etc.)
+### Stage 1 - Deploy the target instance
 
-## DNS changes
+1. Create a new instance using the [Create Instance](../instances/provisioning.md) workflow.
+1. Pull the changes to the repo locally, create a new branch.
+1. If the Tutor version and the plugin versions don't match the migrating instance, update them.
+
+    !!! tip
+
+        Tutor plugins are installed via `PICASSO_EXTRA_COMMANDS` using `pip install`. *pip*'s dependency resolution could cause unintended versions of dependencies to be installed. Create `tutor-plugins.txt` in the pip requirements.txt format and install all the plugins using a single `pip install -r tutor-plugins.txt` for a cleaner dependency resolution.
+
+1. Copy default values like Django Secret, OAuth Client Secret..etc., of the LMS and CMS from the Grove's `config.yml`.
+1. Push the changes to Github and create a PR.
+1. Build and deploy the instance with **Build all images** Github Workflow. Use the custom branch name for both **Use workflow from** and **Branch to clone the strain from** fields.
+1. Login to ArgoCD, verify that the instance is being deployed. Wait until both "Sync" and "Health" states to be green. (~20 mins for the first deployment)
+
+**:material-flag: Checkpoint:** The instance should be live at `instance-name.<cluster-domain>` domain.
+
+### Stage 2 - Apply customizations
+
+#### 2.1 Plugins
+
+1. Add custom plugins used by the instance to `tutor-plugins.txt`.
+1. Create the `instances/<my-instance>/plugins` directory and copy the local plugins used by the instance from Grove cluster's `plugins` directory.
+1. Update `config.yml`
+    * Add the plugins to `PLUGINS` list
+    * Add the plugins to `tutor plugins enable ...` command under `PICASSO_EXTRA_COMMANDS`
+1. Copy any plugin specific config from the Grove instances `config.yml`.
+
+!!! warning
+
+    Take special care when copying database related values to avoid overwriting existing data. When it doubt use provided by the plugins or use new values.
+
+#### 2.2 Theming
+
+Follow the [Theming](../instances/theming.md) docs and configure the comprehensive and MFE themes. Make sure to migrate theming config from `grove.yml` of the instance to appropriate values.
+
+#### 2.3 Update the instance
+
+1. Commit, push the changes.
+1. Run the **Build all images** workflow again for the instance to be updated.
+1. Verify the changes take effect and instances is healthy in ArgoCD.
+1. Create a test user and check the customizations are applied correctly.
+
+!!! tip
+
+    ArgoCD's lms, cms, lms-worker, cms-worker pods provide a **Terminal** tab for running management commands. This is extremely useful if kubeconfig is not available for direct cluster access.
+
+**:material-flag:Checkpoint:** Theme and other customizations are applied and the instace mirrors the Grove instance.
+
+### Stage 3 - Point the new instance to the old instance data
+
+#### 3.1 Stop auto-sync
+
+1. Turn off the init jobs for the new instance by setting `DRYDOCK_INIT_JOBS` to `false` in `config.yml`
+1. Turn off ArgoCD Auto-Sync by setting `spec.syncPolicy.automated.enabled` to `false` in `application.yml`
+1. Redeploy using the "Build all images" workflow.
+1. Verify Auto Sync is disabled in the ArgoCD UI.
+
+#### 3.2 Remap Database
+
+1. Get the application configuration from the old instance
+
+    ```shell
+    # List all configmaps
+    kubectl get cm -n psu-ag-stage --sort-by='{.metadata.creationTimestamp}'
+
+    # LMS configuration
+    ./kubectl -n <instance-name> get cm openedx-settings-lms-<latest id> \
+      -o jsonpath='{.data.production\.py}' > <instance-name>-settings-lms.py
+
+    ./kubectl -n <instance-name> get cm openedx-config-<latest id> \
+      -o jsonpath='{.data.lms\.env\.yml}' > <instance-name>-lms.env.yml
+
+    # CMS configuration
+    ./kubectl -n <instance-name> get cm openedx-settings-cms-<latest id> \
+      -o jsonpath='{.data.production\.py}' > <instance-name>-settings-cms.py
+
+    # if other configuration is needed, get it from the old instance
+    # -- recommended to get from instance settings using Django shell
+    # ./kubectl -n <instance-name> exec -it deployments/lms -- ./manage.py lms shell
+    ```
+
+1. Update the MySQL, MongoDB, S3 and other configuration in the new instance config to use the old instance data (i.e. the same database and storage)
+1. Enable the new cluster access for old databases (MongoDB and MySQL)
+1. Update the instance config and images using the **Build all images** GitHub workflow
+1. Make a backup of the old instance data (in MySQL, MongoDB, S3, etc.)
+1. Deploy the new instance using ArgoCD's *Refresh* and *Sync*. Wait for it to be healthy. **Now both instances are sharing the same database**
+1. If Meilisearch of the instance is backed by a PVC, update *Meilisearch indices*. Open a terminal on the CMS pod,
+
+    ```sh
+    ./manage.py cms reindex_studio
+    ./manage.py cms reindex_course --active
+    ```
+
+1. Login using an user account from the old instance. Check instance specific configuration and make sure non-generic configuration is working as expected (e.g., LTI, OAuth, etc.)
+
+**:material-flag: Checkpoint:** LMS and Studio work with an account from the old instance. ArgoCD is in Sync and Healthy.
+
+### Stage 4 - DNS Changes
 
 We need to update the DNS records to point to the new instance. This may lead to a 0-7 minutes outage while the Let's Encrypt certificates are (re-)generated. This section is split into 2 sections: safe and unsafe operations. Proceed in order.
 
-Safe operations:
+#### Safe operations
 
-- update the instance config with the expected FQDNs for LMS, CMS, etc.
-- build the new instance using the "build instance" GitHub workflow
+1. Change the domain names from `<instance>.cluster.domain` to the actual domain.
+1. Prepare the image and configuration by running the **Build all images** workflow.
 
-Unsafe operations:
+#### Unsafe operations
 
-- change the DNS record to point to the new cluster, and wait about a minute for DNS propagation (monitor DNS at [https://dnschecker.org/]). For CNAME aliased record, the propagation may take a bit longer.
-- (optional -- only if a must) destroy ingress controllers and TLS secrets:
+1. Change the DNS record to point to the new cluster, and wait about a minute for DNS propagation (monitor DNS at [https://dnschecker.org/]). For CNAME aliased record, the propagation may take a bit longer.
+1. From ArgoCD UI, click **Refresh** and then **Sync**.
+1. Wait for the sync to finish and the instance to be healthy.
+1. Proceed with the instance test checklist on Listaflow to verify the new instance is working as expected
+1. check the logs for errors
+1. update the DNS record TTL to 3600s once confirmed that the instance is OK
+1. Once everything is verified - In the ArgoCD UI, click **Sync** and check **Prune** to clear out all the outdated resources like old configmaps and ingresses.
 
-  ```shell
-  kubectl -n courses delete ing --all
-  kubectl -n courses delete secrets cms-host-tls lms-host-tls meilisearch-host-tls mfe-host-tls
-  ```
+**:material-flag:Checkpoint:** The instance is live and healthy in the instances original URL.
 
-- (optional -- only if a must) deploy the new instance using ArgoCD and wait for it to be ready
-- proceed with the instance test checklist on Listaflow to verify the new instance is working as expected
-- check the logs for errors
-- update the DNS record TTL to 3600s once confirmed that the instance is OK
+#### Enable ArgoCD automated sync
 
+Enable ArgoCD automated sync for the new instance by setting `spec.syncPolicy.automated.enabled` to `true` in the `application.yml`
 
-## Enable ArgoCD automated sync
+!!! tip
 
-- enable ArgoCD automated sync for the new instance by setting `spec.syncPolicy.automated.enabled` to `true` in the `application.yml`
+    If the migration was done from a custom branch, this is a good stage to review and merge the PR to the `main` branch.
 
 ## Swap Terraform resources
 
