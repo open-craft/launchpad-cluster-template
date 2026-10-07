@@ -2,15 +2,13 @@
 
 The Launchpad stack is designed to be driven via Github Actions. However, it can be convenient to do certain things in a local machine. The Launchpad CLI is useful in such usecases.
 
-The CLI is made up of Python scripts and can be run using [uv](https://docs.astral.sh/uv/).
+## Prerequisites
 
-Install uv (if needed)
+* [uv](https://docs.astral.sh/uv/)
 
-```sh
-curl -LsSf https://astral.sh/uv/install.sh | sh
-``````
+## Installation
 
-Install Launchpad CLI as a tool
+Install Launchpad CLI as an uv tool
 
 ```sh
 uv tool install git+https://github.com/open-craft/launchpad-cluster-template.git#subdirectory=tooling

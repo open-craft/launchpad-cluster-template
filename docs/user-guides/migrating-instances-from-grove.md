@@ -1,18 +1,39 @@
 # Migrating Instances from Grove
 
+## Create the instance
+
+Create the instance using the **Create Instance** GitHub workflow (or running `launchpad_create_instance` from [Launchpad CLI](../cli.md) locally):
+
+> **TODO** - Clarify the following
+>
+> - What are the parameters to use in the Github Action?
+> - Should we use a new branch name or just commit directly to main? 
+
+- **Same instance name**: create reuses the copied `config.yml` as-is, including database credentials and bucket name, only if `K8S_NAMESPACE` or `TUTOR_APP_NAME` matches the instance slug. Missing `application.yml` is generated. Ensure both set to the instance slug **before** running create, otherwise identity and credentials are rewritten
+- **New name**: use `--from-instance <old-name>` (or copy `config.yml` first). Extra Tutor/plugin settings are kept; identity fields and credentials are rewritten (`TUTOR_APP_NAME` and `K8S_NAMESPACE` are added automatically). Pointing at old databases/storage remains a later manual step (see below)
+
 ## Configure the new instance
 
-- set the DNS record TTL to 300s
+- Set the DNS record TTL to 300s
+> TODO: Clarify why this is necessary? and why is this the first step?
+
 - copy the old instance `config.yml` into `instances/<name>/` on the new cluster repo. Grove instances have no ArgoCD `application.yml`; create workflow generates that file when it is missing
+> TODO: Should this be done before running "create instance"?
+
 - make sure the new instance's `application.yml` has `spec.syncPolicy.automated.enabled` set to `false` (after create generates it, or on a copied file before enabling auto-sync later)
-- create the instance using the "create instance" GitHub workflow (or `launchpad_create_instance` locally):
-    - **Same instance name**: create reuses the copied `config.yml` as-is, including database credentials and bucket name, only if `K8S_NAMESPACE` or `TUTOR_APP_NAME` matches the instance slug. Missing `application.yml` is generated. Ensure both set to the instance slug **before** running create, otherwise identity and credentials are rewritten
-    - **New name**: use `--from-instance <old-name>` (or copy `config.yml` first). Extra Tutor/plugin settings are kept; identity fields and credentials are rewritten (`TUTOR_APP_NAME` and `K8S_NAMESPACE` are added automatically). Pointing at old databases/storage remains a later manual step (see below)
+> TODO: Clarify when this step is supposed to be done?
+
 - create any necessary infrastructure resources for the new instance (used by plugins)
-- configure theming and branding for the new instance
-- build the new instance's images using the "build all images" GitHub workflow
-- deploy the new instance using ArgoCD and wait for it to be ready (~20 minutes for the first deployment)
-- check that the new instance looks as expected
+> TODO: Clarify how to do this.
+
+- Configure [theming and branding](../instances/theming.md) for the new instance
+- Build the new instance's images using the **Build All Images** GitHub workflow
+- Deploy the new instance using ArgoCD and wait for it to be ready (~20 minutes for the first deployment)
+> TODO: How? Should the `spec.syncPolicy.automated.enabled` be set to true and committed? Or should we log into ArgoCD and manually sync for deployment?
+
+- Check that the new instance looks as expected.
+> TODO: How? Where would I find the URL to access this instance? The domain being migrated is still served from the Grove cluster.
+
 - proceed with the instance test checklist in Listaflow to verify the instance is working as expected
 - turn off the init jobs for the new instance by setting `DRYDOCK_INIT_JOBS` to `false` in the `config.yml`
 
