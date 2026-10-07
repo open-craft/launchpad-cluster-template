@@ -29,6 +29,7 @@ nav:
     - Logging: instances/logging.md
     - Monitoring: instances/monitoring.md
     - Debugging: instances/debugging.md
+  - Lauchpad CLI: cli.md
   - User Guides:
     - Overview: user-guides/index.md
     - Using AWS WAF and ALB: user-guides/using-aws-waf-and-alb.md
