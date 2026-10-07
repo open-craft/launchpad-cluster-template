@@ -9,14 +9,15 @@
 > TODO: Should this be done before running "create instance"?
 
 - make sure the new instance's `application.yml` has `spec.syncPolicy.automated.enabled` set to `false` (after create generates it, or on a copied file before enabling auto-sync later)
-> TODO: Clarify when this step is supposed to be done?
+> TODO: Clarify when this step is supposed to be done? application.yml doesn't exist until running "create instance". But once it is run, it already has this set to "true".
 
 - create the instance using the **Create Instance** GitHub workflow (or running `launchpad_create_instance` from [Launchpad CLI](../cli.md) locally):
 
 > **TODO** - Clarify the following
 >
 > - What are the parameters to use in the Github Action?
-> - Should we use a new branch name or just commit directly to main? 
+> - Should we use a new branch name or just commit directly to main? If the answer is "depends on ...", what's the expectation for OpenCraft's shared cluster?
+> - Should this be done only after copying Grove's config.yml?
 
     - **Same instance name**: create reuses the copied `config.yml` as-is, including database credentials and bucket name, only if `K8S_NAMESPACE` or `TUTOR_APP_NAME` matches the instance slug. Missing `application.yml` is generated. Ensure both set to the instance slug **before** running create, otherwise identity and credentials are rewritten
     - **New name**: use `--from-instance <old-name>` (or copy `config.yml` first). Extra Tutor/plugin settings are kept; identity fields and credentials are rewritten (`TUTOR_APP_NAME` and `K8S_NAMESPACE` are added automatically). Pointing at old databases/storage remains a later manual step (see below)
