@@ -55,7 +55,7 @@ jobs:
 
   update-env-dir:
     name: Update env directory
-    uses: open-craft/launchpad-cluster-template/.github/workflows/generate-env-dir.yml@main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/generate-env-dir.yml@tecoholic/BB-11080-generate-env-from-instance-dir
     needs:
       - build
     secrets:
