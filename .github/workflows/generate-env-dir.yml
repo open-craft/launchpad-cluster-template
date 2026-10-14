@@ -82,9 +82,9 @@ jobs:
           tutor plugins enable picasso
 
       - name: Update config and generate env directory
+        working-directory: instances/${{ inputs.INSTANCE_NAME }}
         run: |
-          rm -rf "instances/${{ inputs.INSTANCE_NAME }}/env"
-          mkdir -p "instances/${{ inputs.INSTANCE_NAME }}/env"
+          rm -rf env && mkdir env
           tutor picasso run-extra-commands
           tutor config save
 
