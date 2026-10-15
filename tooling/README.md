@@ -60,7 +60,7 @@ launchpad_create_cluster "My Production Cluster" "cluster.cluster.domain" \
 
 **Options:**
 - `--environment`: Environment name (default: production)
-- `--cloud-provider`: Cloud provider - aws or digitalocean (default: aws)
+- `--cloud-provider`: Cloud provider - aws, digitalocean, or upcloud (default: aws)
 - `--harmony-module-version`: Harmony module version/commit hash
 - `--opencraft-module-version`: OpenCraft module version
 - `--picasso-version`: Picasso version

@@ -305,8 +305,11 @@ spec:
           apt-get update -y
           apt-get install -y curl ca-certificates
 
-          # Detect architecture
           ARCH=$(dpkg --print-architecture)
+          # MongoDB publishes amd64 builds as linux_x86_64.
+          if [ "$ARCH" = "amd64" ]; then
+            ARCH=x86_64
+          fi
           VERSION="1.28.0"
           DEB_URL="https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_${VERSION}_linux_${ARCH}.deb"
 
@@ -345,8 +348,13 @@ spec:
           USERNAME="{{workflow.parameters.username}}"
           PASSWORD="{{workflow.parameters.password}}"
           DATABASE_NAME="{{workflow.parameters.database-name}}"
+          FORUM_DATABASE_NAME="{{workflow.parameters.forum-database-name}}"
           PROJECT_ID="{{workflow.parameters.atlas-project-id}}"
           K8s_API_BEARER_TOKEN="{{workflow.parameters.k8s-api-bearer-token}}"
+          ROLES="readWrite@${DATABASE_NAME}"
+          if [ -n "$FORUM_DATABASE_NAME" ]; then
+            ROLES="${ROLES},readWrite@${FORUM_DATABASE_NAME}"
+          fi
 
           # Install Atlas CLI from official MongoDB package
           echo "Installing MongoDB Atlas CLI..."
@@ -355,6 +363,10 @@ spec:
           apt-get install -y curl ca-certificates
 
           ARCH=$(dpkg --print-architecture)
+          # MongoDB publishes amd64 builds as linux_x86_64. arm64 already matches.
+          if [ "$ARCH" = "amd64" ]; then
+            ARCH=x86_64
+          fi
           VERSION="1.28.0"
           DEB_URL="https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_${VERSION}_linux_${ARCH}.deb"
 
@@ -365,11 +377,12 @@ spec:
           echo ""
           echo "Creating Atlas database user: $USERNAME"
 
-          # Try to create the user
+          # Atlas CLI --role replaces the full role list. Include every database
+          # the instance user must write, including the forum database.
           if atlas dbusers create \
             --username "$USERNAME" \
             --password "$PASSWORD" \
-            --role "readWrite@$DATABASE_NAME" \
+            --role "$ROLES" \
             --projectId "$PROJECT_ID" \
             --output json 2>&1; then
             echo "User $USERNAME created successfully"
@@ -378,7 +391,7 @@ spec:
             echo "User may exist, attempting update..."
             if atlas dbusers update "$USERNAME" \
               --password "$PASSWORD" \
-              --role "readWrite@$DATABASE_NAME" \
+              --role "$ROLES" \
               --projectId "$PROJECT_ID" \
               --output json 2>&1; then
               echo "User $USERNAME updated successfully"
@@ -407,5 +420,5 @@ spec:
           echo ""
           echo "MongoDB Atlas provisioning completed"
           echo "- Project: $PROJECT_ID"
-          echo "- Database: $DATABASE_NAME"
-          echo "- User: $USERNAME (readWrite)"
+          echo "- Databases: $DATABASE_NAME $FORUM_DATABASE_NAME"
+          echo "- User: $USERNAME ($ROLES)"

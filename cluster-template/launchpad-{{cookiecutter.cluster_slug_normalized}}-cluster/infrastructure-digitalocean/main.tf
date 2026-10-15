@@ -14,8 +14,8 @@ locals {
   opencraft_terraform_module_version = "{{ cookiecutter.opencraft_module_version }}"
 
   # Velero plugin versions
-  velero_aws_plugin_tag          = "v1.9.0" # https://github.com/vmware-tanzu/velero-plugin-for-aws/releases
-  velero_digitalocean_plugin_tag = "v1.1.0" # https://github.com/digitalocean/velero-plugin/releases
+  velero_aws_plugin_tag          = "v1.14.4" # https://github.com/vmware-tanzu/velero-plugin-for-aws/releases
+  velero_digitalocean_plugin_tag = "v1.1.0"  # https://github.com/digitalocean/velero-plugin/releases
 
   # MySQL
   mysql_version           = "8"
