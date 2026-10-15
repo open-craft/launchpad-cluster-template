@@ -52,6 +52,8 @@ jobs:
       LAUNCHPAD_CLI_VERSION: ${{ inputs.LAUNCHPAD_CLI_VERSION }}
       RUNNER_WORKFLOW_LABEL: ${{ inputs.RUNNER_WORKFLOW_LABEL }}
       UPDATE_ENV_DIR: false
+      GIT_COMMIT_USER_NAME: ${{ github.actor }}
+      GIT_COMMIT_USER_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
 
   update-env-dir:
     name: Update env directory

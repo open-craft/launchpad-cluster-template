@@ -75,6 +75,8 @@ jobs:
       PYTHON_VERSION: 3.12
       UPDATE_IMAGE_TAG_IN_REPO: true
       RUNNER_WORKFLOW_LABEL: ${{ inputs.RUNNER_WORKFLOW_LABEL }}
+      GIT_COMMIT_USER_NAME: ${{ github.actor }}
+      GIT_COMMIT_USER_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
 
   update-env-dir:
     if: ${{ inputs.UPDATE_ENV_DIR }}
