@@ -37,6 +37,16 @@ on:
         required: false
         type: boolean
         default: true
+      GIT_COMMIT_USER_NAME:
+        description: "The name of the user used to do commit changes."
+        required: false
+        type: string
+        default: "GitHub Actions"
+      GIT_COMMIT_USER_EMAIL:
+        description: "The email address of the user used to do commit changes."
+        required: false
+        type: string
+        default: "actions@github.com"
     outputs:
       image_name:
         description: "Full image name (repo/name:tag)"
