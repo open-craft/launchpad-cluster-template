@@ -8,7 +8,7 @@ variable "upcloud_token" {
 variable "upcloud_autoscaler_token" {
   type        = string
   sensitive   = true
-  description = "UpCloud API token used only by Cluster Autoscaler. Null uses upcloud_token. Prefer a token that can manage only this cluster.The autoscaler does not read UPCLOUD_TOKEN."
+  description = "UpCloud API token used only by Cluster Autoscaler."
 }
 
 variable "zone" {

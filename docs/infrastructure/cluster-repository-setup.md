@@ -42,37 +42,37 @@ Workflows read sensitive values from **repository secrets**. Configure them befo
 
 ### Required Secrets
 
-| Secret                            | Required for                                                        | Description                                                           |
-| --------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `TERRAFORM_SECRETS`               | Create Instance, Delete Instance                                    | HCL content for `secrets.auto.tfvars` (see below)                     |
-| `LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS` | Create Instance                                                     | Base64-encoded `username:token` for pulling images                    |
-| `LAUNCHPAD_MYSQL_HOST`                  | Create Instance, Delete Instance                                    | MySQL server hostname                                                 |
-| `LAUNCHPAD_MYSQL_PORT`                  | Create Instance, Delete Instance                                    | MySQL port (default: `3306`)                                          |
-| `LAUNCHPAD_MYSQL_ROOT_USER`             | Create Instance, Delete Instance                                    | MySQL admin username                                                  |
-| `LAUNCHPAD_MYSQL_ROOT_PASSWORD`         | Create Instance, Delete Instance                                    | MySQL admin password                                                  |
-| `LAUNCHPAD_MYSQL_PROVIDER`              | Delete Instance                                                     | MySQL deprovision provider: `direct_sql` or `digitalocean_api`       |
-| `LAUNCHPAD_MYSQL_CLUSTER_ID`            | Delete Instance                                                     | DigitalOcean MySQL cluster UUID (required when provider is `digitalocean_api`) |
-| `LAUNCHPAD_MONGODB_HOST`                | Create Instance, Delete Instance                                    | MongoDB hostname. On AWS and UpCloud, the Atlas SRV address from output `mongodb_host`. |
-| `LAUNCHPAD_MONGODB_PORT`                | Create Instance, Delete Instance                                    | MongoDB port (default: `27017`)                                       |
-| `LAUNCHPAD_MONGODB_PROVIDER`            | Create Instance, Delete Instance                                    | `digitalocean_api` or `atlas`                                         |
-| `LAUNCHPAD_MONGODB_CLUSTER_ID`          | Create Instance, Delete Instance                                    | DigitalOcean MongoDB cluster ID. Required only when `LAUNCHPAD_MONGODB_PROVIDER=digitalocean_api`. |
-| `LAUNCHPAD_MONGODB_REPLICA_SET`         | Create Instance, Delete Instance                                    | MongoDB replica set name                                              |
-| `LAUNCHPAD_MONGODB_AUTH_SOURCE`         | Create Instance, Delete Instance                                    | MongoDB auth source (default: `admin`)                                 |
-| `LAUNCHPAD_DIGITALOCEAN_TOKEN`          | Create Instance, Delete Instance                                    | DigitalOcean API token for provider-managed database cleanup. Leave empty on UpCloud. |
-| `LAUNCHPAD_ATLAS_PUBLIC_KEY`            | Create Instance, Delete Instance                                    | Atlas public API key. Required when `LAUNCHPAD_MONGODB_PROVIDER=atlas`. |
-| `LAUNCHPAD_ATLAS_PRIVATE_KEY`           | Create Instance, Delete Instance                                    | Atlas private API key. Required when `LAUNCHPAD_MONGODB_PROVIDER=atlas`. |
-| `LAUNCHPAD_ATLAS_PROJECT_ID`            | Create Instance, Delete Instance                                    | Atlas project ID. AWS and UpCloud Terraform output `atlas_project_id`. |
-| `LAUNCHPAD_ATLAS_CLUSTER_NAME`          | Create Instance, Delete Instance                                    | Atlas cluster name. AWS and UpCloud Terraform output `atlas_cluster_name`. |
-| `LAUNCHPAD_STORAGE_TYPE`                | Create Instance, Delete Instance                                    | `s3` or `spaces`. UpCloud uses `s3` with `LAUNCHPAD_STORAGE_HOST`.   |
-| `LAUNCHPAD_STORAGE_REGION`              | Create Instance, Delete Instance                                    | Region written to `S3_REGION`. UpCloud uses the object storage region, for example `us-1`, not the zone. |
-| `LAUNCHPAD_STORAGE_HOST`                | Create Instance, Delete Instance                                    | Optional S3 hostname. Set to Terraform output `object_storage_endpoint_hostname` for UpCloud. |
-| `LAUNCHPAD_STORAGE_ACCESS_KEY_ID`       | Create Instance, Delete Instance                                    | Written to `OPENEDX_AWS_ACCESS_KEY` (also used by bucket workflows)   |
-| `LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY`   | Create Instance, Delete Instance                                    | Written to `OPENEDX_AWS_SECRET_ACCESS_KEY`                            |
+| Secret                                  | Required for                                                        | Description                                                                                                |
+| --------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `TERRAFORM_SECRETS`                     | Create Instance, Delete Instance                                    | HCL content for `secrets.auto.tfvars` (see below)                                                          |
+| `LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS` | Create Instance                                                     | Base64-encoded `username:token` for pulling images                                                         |
+| `LAUNCHPAD_MYSQL_HOST`                  | Create Instance, Delete Instance                                    | MySQL server hostname                                                                                      |
+| `LAUNCHPAD_MYSQL_PORT`                  | Create Instance, Delete Instance                                    | MySQL port (default: `3306`)                                                                               |
+| `LAUNCHPAD_MYSQL_ROOT_USER`             | Create Instance, Delete Instance                                    | MySQL admin username                                                                                       |
+| `LAUNCHPAD_MYSQL_ROOT_PASSWORD`         | Create Instance, Delete Instance                                    | MySQL admin password                                                                                       |
+| `LAUNCHPAD_MYSQL_PROVIDER`              | Delete Instance                                                     | MySQL deprovision provider: `direct_sql` or `digitalocean_api`                                             |
+| `LAUNCHPAD_MYSQL_CLUSTER_ID`            | Delete Instance                                                     | DigitalOcean MySQL cluster UUID (required when provider is `digitalocean_api`)                             |
+| `LAUNCHPAD_MONGODB_HOST`                | Create Instance, Delete Instance                                    | MongoDB hostname. On AWS and UpCloud, the Atlas SRV address from output `mongodb_host`.                    |
+| `LAUNCHPAD_MONGODB_PORT`                | Create Instance, Delete Instance                                    | MongoDB port (default: `27017`)                                                                            |
+| `LAUNCHPAD_MONGODB_PROVIDER`            | Create Instance, Delete Instance                                    | `digitalocean_api` or `atlas`                                                                              |
+| `LAUNCHPAD_MONGODB_CLUSTER_ID`          | Create Instance, Delete Instance                                    | DigitalOcean MongoDB cluster ID. Required only when `LAUNCHPAD_MONGODB_PROVIDER=digitalocean_api`.         |
+| `LAUNCHPAD_MONGODB_REPLICA_SET`         | Create Instance, Delete Instance                                    | MongoDB replica set name                                                                                   |
+| `LAUNCHPAD_MONGODB_AUTH_SOURCE`         | Create Instance, Delete Instance                                    | MongoDB auth source (default: `admin`)                                                                     |
+| `LAUNCHPAD_DIGITALOCEAN_TOKEN`          | Create Instance, Delete Instance                                    | DigitalOcean API token for provider-managed database cleanup. Leave empty on UpCloud.                      |
+| `LAUNCHPAD_ATLAS_PUBLIC_KEY`            | Create Instance, Delete Instance                                    | Atlas public API key. Required when `LAUNCHPAD_MONGODB_PROVIDER=atlas`.                                    |
+| `LAUNCHPAD_ATLAS_PRIVATE_KEY`           | Create Instance, Delete Instance                                    | Atlas private API key. Required when `LAUNCHPAD_MONGODB_PROVIDER=atlas`.                                   |
+| `LAUNCHPAD_ATLAS_PROJECT_ID`            | Create Instance, Delete Instance                                    | Atlas project ID. AWS and UpCloud Terraform output `atlas_project_id`.                                     |
+| `LAUNCHPAD_ATLAS_CLUSTER_NAME`          | Create Instance, Delete Instance                                    | Atlas cluster name. AWS and UpCloud Terraform output `atlas_cluster_name`.                                 |
+| `LAUNCHPAD_STORAGE_TYPE`                | Create Instance, Delete Instance                                    | `s3` or `spaces`. UpCloud uses `s3` with `LAUNCHPAD_STORAGE_HOST`.                                         |
+| `LAUNCHPAD_STORAGE_REGION`              | Create Instance, Delete Instance                                    | Region written to `S3_REGION`. UpCloud uses the object storage region, for example `us-1`, not the zone.   |
+| `LAUNCHPAD_STORAGE_HOST`                | Create Instance, Delete Instance                                    | Optional S3 hostname. Set to Terraform output `object_storage_endpoint_hostname` for UpCloud.              |
+| `LAUNCHPAD_STORAGE_ACCESS_KEY_ID`       | Create Instance, Delete Instance                                    | Written to `OPENEDX_AWS_ACCESS_KEY` (also used by bucket workflows)                                        |
+| `LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY`   | Create Instance, Delete Instance                                    | Written to `OPENEDX_AWS_SECRET_ACCESS_KEY`                                                                 |
 | `TERRAFORM_BACKEND_CONFIG`              | Create Instance, Delete Instance                                    | Optional `backend.hcl` contents. Required for UpCloud, whose state endpoint is not in the Terraform files. |
-| `SSH_PRIVATE_KEY`                 | Create Instance, Build, Build All, Delete Instance, Update Instance | Private SSH key for cloning the cluster repo and private dependencies |
+| `SSH_PRIVATE_KEY`                       | Create Instance, Build, Build All, Delete Instance, Update Instance | Private SSH key for cloning the cluster repo and private dependencies                                      |
 
 !!! note "Storage secrets seed tutor-contrib-s3 config"
-    `LAUNCHPAD_STORAGE_*` populate Tutor `S3_*` / `OPENEDX_AWS_*` keys in the instance `config.yml` at create time. After that, those Tutor keys are the source of truth for Open edX and for bucket create/delete (provider is Spaces when `S3_HOST` contains `digitaloceanspaces.com`). Set `LAUNCHPAD_STORAGE_HOST` to the Managed Object Storage hostname on UpCloud. Bucket workflows use `--endpoint-url` whenever `S3_HOST` is set, and they skip versioning and public-bucket API calls for that endpoint. See [Object Storage](../instances/configuration.md#object-storage).
+`LAUNCHPAD_STORAGE_*` populate Tutor `S3_*` / `OPENEDX_AWS_*` keys in the instance `config.yml` at create time. After that, those Tutor keys are the source of truth for Open edX and for bucket create/delete (provider is Spaces when `S3_HOST` contains `digitaloceanspaces.com`). Set `LAUNCHPAD_STORAGE_HOST` to the Managed Object Storage hostname on UpCloud. Bucket workflows use `--endpoint-url` whenever `S3_HOST` is set, and they skip versioning and public-bucket API calls for that endpoint. See [Object Storage](../instances/configuration.md#object-storage).
 
 ### TERRAFORM_SECRETS Format
 
@@ -102,17 +102,17 @@ atlas_private_key     = "atlas-private-key"
 **UpCloud**:
 
 ```hcl
-upcloud_token     = "your-upcloud-token"
-atlas_region_name = "US_EAST_1"
-atlas_project_id  = "atlas-project-id"
-atlas_public_key  = "atlas-public-key"
-atlas_private_key = "atlas-private-key"
+upcloud_token            = "your-upcloud-token"
+upcloud_autoscaler_token = "your-token-for-autoscaling"
+atlas_region_name        = "US_EAST_1"
+atlas_project_id         = "atlas-project-id"
+atlas_public_key         = "atlas-public-key"
+atlas_private_key        = "atlas-private-key"
 ```
 
 `object_storage_region` is optional. Zone `us-nyc1` uses `us-1`. Zone `de-fra1` uses `europe-1`. Set `object_storage_region` only to choose `europe-2` or `europe-3` instead of `europe-1`. Use Atlas region `EU_CENTRAL_1` for zone `de-fra1`. MySQL deprovision uses `LAUNCHPAD_MYSQL_PROVIDER=direct_sql` with the MySQL host, port, and root credentials from Terraform outputs. MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. `LAUNCHPAD_MONGODB_CLUSTER_ID` is only for `digitalocean_api`. `LAUNCHPAD_MONGODB_HOST` is the Atlas SRV address from output `mongodb_host`. `LAUNCHPAD_ATLAS_CLUSTER_NAME` is output `atlas_cluster_name`, and `LAUNCHPAD_ATLAS_PROJECT_ID` is output `atlas_project_id`.
 
 UpCloud `tofu init` in GitHub Actions reads `TERRAFORM_BACKEND_CONFIG`. Store the same `backend.hcl` contents there, including `endpoints.s3`, `bucket`, `region`, `access_key`, and `secret_key`. The state bucket must exist before the first init.
-
 
 ### Generating Common Secrets
 
@@ -166,19 +166,19 @@ The cluster repository includes reusable workflows that you trigger manually.
 
 ### Common Workflow Inputs
 
-| Input                               | Workflows                                | Description                                                                                                                       |
-| ----------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **INSTANCE_NAME**                   | Create, Build, Build All, Delete, Update | Instance identifier (DNS-compliant, e.g. `my-instance`)                                                                           |
-| **STRAIN_REPOSITORY_BRANCH**        | Build, Build All                         | Branch to use for the strain (default: `main`). The strain is the cluster repo; this is the branch containing `instances/<name>/` |
-| **SERVICE**                         | Build                                    | Service to build: `openedx` or `mfe`                                                                                              |
-| **LAUNCHPAD_CLI_VERSION**                 | Create, Build, Build All, Delete         | Git ref (branch/tag/SHA) of launchpad-cluster-template for the CLI (default: `main`)                                                    |
-| **RUNNER_WORKFLOW_LABEL**           | All                                      | GitHub Actions runner label (default: `ubuntu-latest`). Use `self-hosted` for self-hosted runners                                 |
-| **PICASSO_VERSION**                 | Build, Build All                         | Git ref of Picasso for image builds                                                                                               |
+| Input                                     | Workflows                                | Description                                                                                                                       |
+| ----------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **INSTANCE_NAME**                         | Create, Build, Build All, Delete, Update | Instance identifier (DNS-compliant, e.g. `my-instance`)                                                                           |
+| **STRAIN_REPOSITORY_BRANCH**              | Build, Build All                         | Branch to use for the strain (default: `main`). The strain is the cluster repo; this is the branch containing `instances/<name>/` |
+| **SERVICE**                               | Build                                    | Service to build: `openedx` or `mfe`                                                                                              |
+| **LAUNCHPAD_CLI_VERSION**                 | Create, Build, Build All, Delete         | Git ref (branch/tag/SHA) of launchpad-cluster-template for the CLI (default: `main`)                                              |
+| **RUNNER_WORKFLOW_LABEL**                 | All                                      | GitHub Actions runner label (default: `ubuntu-latest`). Use `self-hosted` for self-hosted runners                                 |
+| **PICASSO_VERSION**                       | Build, Build All                         | Git ref of Picasso for image builds                                                                                               |
 | **LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION** | Delete                                   | Git ref for OpenCraft manifests (default: `main`)                                                                                 |
-| **EDX_PLATFORM_VERSION**            | Create                                   | edX Platform branch/tag (default: `release/teak.3`)                                                                               |
-| **TUTOR_VERSION**                   | Create                                   | Tutor version (default from cluster template)                                                                                     |
-| **INSTANCE_TEMPLATE_VERSION**       | Create                                   | Instance template version (default: `main`)                                                                                       |
-| **CONFIG**                          | Update                                   | JSON object to merge into instance config (e.g. `{"KEY": "value"}`)                                                               |
+| **EDX_PLATFORM_VERSION**                  | Create                                   | edX Platform branch/tag (default: `release/teak.3`)                                                                               |
+| **TUTOR_VERSION**                         | Create                                   | Tutor version (default from cluster template)                                                                                     |
+| **INSTANCE_TEMPLATE_VERSION**             | Create                                   | Instance template version (default: `main`)                                                                                       |
+| **CONFIG**                                | Update                                   | JSON object to merge into instance config (e.g. `{"KEY": "value"}`)                                                               |
 
 ### Strain and Repository
 
