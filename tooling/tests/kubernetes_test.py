@@ -10,7 +10,45 @@ import requests
 from kubernetes import client
 
 from launchpad.exceptions import KubernetesError, ManifestError
-from launchpad.kubernetes import KubernetesClient, build_dockerconfigjson
+from launchpad.kubernetes import (
+    KubernetesClient,
+    build_dockerconfigjson,
+    is_server_side_apply_conflict,
+)
+
+
+class TestIsServerSideApplyConflict:
+    """
+    Test suite for server-side apply conflict detection.
+    """
+
+    @pytest.mark.parametrize(
+        "stderr",
+        [
+            'Apply failed with 1 conflict: conflict with "kubectl-patch"',
+            (
+                "error: Apply failed with 2 conflicts: conflicts with "
+                '"kubectl-patch" using apps/v1:\n'
+                '- .spec.template.spec.containers[name="argo-server"].args\n'
+                '- .spec.template.spec.containers[name="argo-server"]'
+                ".readinessProbe.httpGet.scheme"
+            ),
+        ],
+    )
+    def test_detects_singular_and_plural_conflict_messages(self, stderr):
+        """
+        Test both kubectl conflict wordings count as apply conflicts.
+        """
+
+        assert is_server_side_apply_conflict(stderr)
+
+    def test_ignores_other_apply_failures(self):
+        """
+        Test unrelated kubectl errors are not treated as field conflicts.
+        """
+
+        assert not is_server_side_apply_conflict("error: the server rejected the apply")
+        assert not is_server_side_apply_conflict("")
 
 
 class TestKubernetesClient:
@@ -50,6 +88,92 @@ class TestKubernetesClient:
         assert k8s_client._core_v1 is not None
         assert k8s_client._apps_v1 is not None
         assert k8s_client._rbac_v1 is not None
+
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    def test_get_api_bearer_token_uses_kubeconfig_token(
+        self,
+        _mock_get_logger,
+        _mock_load_config,
+        mock_api_client,
+        _mock_apps_v1,
+        _mock_core_v1,
+        _mock_rbac_v1,
+    ):
+        """
+        Test a kubeconfig bearer token is returned unchanged.
+        """
+
+        mock_api_client.return_value.configuration.auth_settings.return_value = {
+            "BearerToken": {"value": "Bearer static-token"}
+        }
+
+        assert KubernetesClient().get_api_bearer_token() == "Bearer static-token"
+
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    def test_get_api_bearer_token_requests_service_account_token(
+        self,
+        _mock_get_logger,
+        _mock_load_config,
+        mock_api_client,
+        _mock_apps_v1,
+        mock_core_v1,
+        _mock_rbac_v1,
+    ):
+        """
+        Test client-certificate kubeconfigs mint a workflow-executor token.
+        """
+
+        mock_api_client.return_value.configuration.auth_settings.return_value = {
+            "BearerToken": None
+        }
+        token_request = mock.Mock()
+        token_request.status.token = "minted-token"
+        create_token = mock_core_v1.return_value.create_namespaced_service_account_token
+        create_token.return_value = token_request
+
+        assert KubernetesClient().get_api_bearer_token("demo") == "Bearer minted-token"
+
+        create_token.assert_called_once_with(
+            name="workflow-executor",
+            namespace="demo",
+            body=mock.ANY,
+        )
+        body = create_token.call_args.kwargs["body"]
+        assert body.spec.expiration_seconds == 3600
+
+    @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
+    @mock.patch("launchpad.kubernetes.client.CoreV1Api")
+    @mock.patch("launchpad.kubernetes.client.AppsV1Api")
+    @mock.patch("launchpad.kubernetes.client.ApiClient")
+    @mock.patch("launchpad.kubernetes.config.load_kube_config")
+    @mock.patch("launchpad.kubernetes.get_logger", return_value=mock.Mock())
+    def test_get_api_bearer_token_requires_namespace_without_kubeconfig_token(
+        self,
+        _mock_get_logger,
+        _mock_load_config,
+        mock_api_client,
+        _mock_apps_v1,
+        _mock_core_v1,
+        _mock_rbac_v1,
+    ):
+        """
+        Test client-certificate auth without a namespace cannot invent a token.
+        """
+
+        mock_api_client.return_value.configuration.auth_settings.return_value = {}
+
+        with pytest.raises(KubernetesError, match="no bearer token"):
+            KubernetesClient().get_api_bearer_token()
 
     @mock.patch("launchpad.kubernetes.client.RbacAuthorizationV1Api")
     @mock.patch("launchpad.kubernetes.client.CoreV1Api")
@@ -378,7 +502,7 @@ class TestKubernetesClient:
         _mock_rbac_v1,
     ):
         """
-        Test server-side apply conflict retries once with --force-conflicts.
+        Test a multi-field apply conflict retries once with --force-conflicts.
         """
 
         mock_api_client_instance = mock.Mock()
@@ -395,7 +519,13 @@ class TestKubernetesClient:
         conflict_error = subprocess.CalledProcessError(
             1,
             ["kubectl", "apply"],
-            stderr='Apply failed with 1 conflict: conflict with "kubectl-patch"',
+            stderr=(
+                "error: Apply failed with 2 conflicts: conflicts with "
+                '"kubectl-patch" using apps/v1:\n'
+                '- .spec.template.spec.containers[name="argo-server"].args\n'
+                '- .spec.template.spec.containers[name="argo-server"]'
+                ".readinessProbe.httpGet.scheme"
+            ),
         )
         success_result = mock.Mock()
         success_result.returncode = 0

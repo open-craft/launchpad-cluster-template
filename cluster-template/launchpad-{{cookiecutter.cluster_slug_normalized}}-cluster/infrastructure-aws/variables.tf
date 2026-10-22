@@ -115,3 +115,32 @@ variable "grafana_enabled" {
   default     = true
   description = "Whether to enable Grafana monitoring."
 }
+
+variable "atlas_project_id" {
+  type        = string
+  description = "The ID of the MongoDB Atlas project."
+}
+
+variable "atlas_cidr_block" {
+  type        = string
+  description = "CIDR block Atlas uses for the peered network container."
+
+  validation {
+    condition     = can(cidrhost(var.atlas_cidr_block, 0))
+    error_message = "atlas_cidr_block must be a valid CIDR block."
+  }
+}
+
+variable "atlas_public_key" {
+  type        = string
+  default     = null
+  sensitive   = true
+  description = "MongoDB Atlas public API key. Null uses the MONGODB_ATLAS_PUBLIC_KEY environment variable."
+}
+
+variable "atlas_private_key" {
+  type        = string
+  default     = null
+  sensitive   = true
+  description = "MongoDB Atlas private API key. Null uses the MONGODB_ATLAS_PRIVATE_KEY environment variable."
+}

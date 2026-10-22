@@ -7,14 +7,15 @@
   "short_description": "Kubernetes cluster to host Open edX instances",
   "cloud_provider": [
     "aws",
-    "digitalocean"
+    "digitalocean",
+    "upcloud"
   ],
-  "cloud_region": "{{ 'us-east-1' if cookiecutter.cloud_provider=='aws' else 'nyc3' }}",
-  "harmony_module_version": "c48d973f068af30ad75147c09e5cf03d919d01bb",
-  "opencraft_module_version": "e2630dd6da5d5460560700888c73048fb144df04",
+  "cloud_region": "{{ 'us-east-1' if cookiecutter.cloud_provider=='aws' else ('nyc3' if cookiecutter.cloud_provider=='digitalocean' else 'us-nyc1') }}",
+  "harmony_module_version": "d490648ce1fac3d06d097b21eaae37ad0a742d08",
+  "opencraft_module_version": "f251b2c0c67b761dfc44b46ea4e1c33b419d0b11",
   "picasso_version": "kaustav/new_ghcr_test",
   "launchpad_cluster_template_version": "main",
-  "tutor_version": "v22.0.2",
+  "tutor_version": "v21.0.9",
   "github_organization": "open-craft",
   "github_repository": "git@github.com:{{ cookiecutter.github_organization }}/launchpad-{{ cookiecutter.cluster_slug_normalized }}-cluster.git",
   "runner_workflow_label": [

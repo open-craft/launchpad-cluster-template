@@ -57,15 +57,16 @@ OPENEDX_AWS_ACCESS_KEY: "{{ env('LAUNCHPAD_STORAGE_ACCESS_KEY_ID', '') }}"
 OPENEDX_AWS_SECRET_ACCESS_KEY: "{{ env('LAUNCHPAD_STORAGE_SECRET_ACCESS_KEY', '') }}"
 S3_STORAGE_BUCKET: "launchpad-{{ cookiecutter.instance_slug }}-{{ generate_password() | truncate(7, True, '', 0) }}"
 S3_REGION: "{{ env('LAUNCHPAD_STORAGE_REGION') }}"
-S3_HOST: "{{ s3_host(env('LAUNCHPAD_STORAGE_TYPE'), env('LAUNCHPAD_STORAGE_REGION')) }}"
+S3_HOST: "{{ s3_host(env('LAUNCHPAD_STORAGE_TYPE'), env('LAUNCHPAD_STORAGE_REGION'), env('LAUNCHPAD_STORAGE_HOST', '')) }}"
 S3_USE_SSL: true
 
 # Picasso configuration
 PICASSO_EXTRA_COMMANDS:
-  - pip install tutor-contrib-drydock
-  - pip install git+https://github.com/cleura/tutor-contrib-s3@verawood
-  - pip install 'git+https://github.com/openedx/openedx-k8s-harmony.git@harmony-chart-0.14.0#egg=tutor-contrib-harmony&subdirectory=tutor-contrib-harmony-plugin'
-  - tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-plugin-indexes/verawood/
-  - tutor plugins install forum mfe mfe-extensions
-  - tutor plugins enable drydock forum mfe mfe-extensions s3
+  - pip install tutor-contrib-drydock==21.2.2
+  - pip install git+https://github.com/cleura/tutor-contrib-s3@v2.5.0
+  - pip install 'git+https://github.com/openedx/openedx-k8s-harmony.git@harmony-chart-0.16.0#egg=tutor-contrib-harmony&subdirectory=tutor-contrib-harmony-plugin'
+  - pip install git+https://gitlab.com/opencraft/dev/tutor-contrib-grove@d04daba96b9c19a79653695c78863eef2f21c8e4
+  - pip install 'tutor-mfe<22.0.0'
+  - pip install 'tutor-forum<22.0.0'
+  - tutor plugins enable drydock forum mfe s3 k8s_harmony mfe_bookworm
   - tutor picasso enable-private-packages
