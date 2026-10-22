@@ -1,2 +1,4 @@
+{% raw %}
 [env]
 KUBECONFIG = "{{config_root}}/.kubeconfig"
+{% endraw %}

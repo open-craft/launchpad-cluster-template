@@ -307,6 +307,10 @@ spec:
 
           # Detect architecture
           ARCH=$(dpkg --print-architecture)
+          # dpkg returns amd64, but mongodb expects x86_64
+          if [ "$ARCH" = "amd64" ]; then
+            ARCH=x86_64
+          fi
           VERSION="1.28.0"
           DEB_URL="https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_${VERSION}_linux_${ARCH}.deb"
 
@@ -355,6 +359,10 @@ spec:
           apt-get install -y curl ca-certificates
 
           ARCH=$(dpkg --print-architecture)
+          # dpkg returns amd64, but mongodb expects x86_64
+          if [ "$ARCH" = "amd64" ]; then
+            ARCH=x86_64
+          fi
           VERSION="1.28.0"
           DEB_URL="https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_${VERSION}_linux_${ARCH}.deb"
 
