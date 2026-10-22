@@ -1,12 +1,19 @@
 """
 Configuration defined for Launchpad split across configuration layers.
+
+Individual settings fields are declared once each, as single-field mixins
+(``*Field`` classes below), and composed into the settings classes that
+actually use them. This lets a command-specific settings class (e.g.
+``ArgoInstallSettings`` in ``launchpad.cli.argo_install``) reuse exactly the
+fields it needs from ``ClusterConfig`` without inheriting fields it doesn't
+use, and without redeclaring shared fields.
 """
 
 import json
 import tempfile
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,100 +29,66 @@ class LaunchpadBaseSettings(BaseSettings):
     )
 
 
-class ClusterConfig(LaunchpadBaseSettings):
+def _load_cluster_domain_from_context() -> str:
     """
-    Cluster configuration.
-    """
+    Load cluster domain from context.json file in the current directory.
 
-    # Cluster domain
+    Returns:
+        Cluster domain from context.json, or empty string if not found
+    """
+    try:
+        context_file = Path.cwd() / "context.json"
+        if context_file.exists():
+            with open(context_file, "r", encoding="utf-8") as f:
+                context = json.load(f)
+                return context.get("cluster_domain", "")
+    except (json.JSONDecodeError, KeyError, OSError):
+        pass
+    return ""
+
+
+# --- Single-field mixins ----------------------------------------------------
+#
+# Each mixin declares exactly one field. Settings classes compose only the
+# mixins for the fields they actually use (see ClusterConfig and
+# ArgoInstallSettings below).
+
+
+class ClusterDomainField(BaseModel):
+    """Cluster domain field."""
+
     cluster_domain: str = Field(
-        # pylint: disable=unnecessary-lambda
-        default_factory=lambda: ClusterConfig._load_cluster_domain_from_context(),
+        default_factory=_load_cluster_domain_from_context,
         description="Cluster domain (e.g., cluster.domain)",
     )
 
-    # Environment
+
+class EnvironmentField(BaseModel):
+    """Environment field."""
+
     environment: str = Field(
         default="production", description="Environment (production, staging, etc.)"
     )
 
-    # Argo versions
+
+class ArgocdVersionField(BaseModel):
+    """ArgoCD version field."""
+
     argocd_version: str = Field(
         default="stable", description="ArgoCD version to install"
     )
+
+
+class ArgoWorkflowsVersionField(BaseModel):
+    """Argo Workflows version field."""
+
     argo_workflows_version: str = Field(
         default="stable", description="Argo Workflows version to install"
     )
 
-    # OpenCraft manifests configuration
-    opencraft_manifests_version: str = Field(
-        default="main", description="OpenCraft manifests version"
-    )
 
-    # Instance configuration
-    instances_directory: str = Field(
-        default="instances", description="Directory where instances are stored"
-    )
-
-    # Docker registry (for pulling private images)
-    docker_registry: str = Field(
-        default="ghcr.io",
-        description="Docker registry hostname (e.g., ghcr.io)",
-    )
-    docker_registry_credentials: str = Field(
-        default="",
-        description=(
-            "Base64-encoded '<username>:<token>' auth for Docker registry "
-            "(used to create imagePullSecrets)"
-        ),
-    )
-
-    # Admin password configuration (optional - will be generated if not provided)
-    argo_admin_password: str = Field(
-        default="", description="Argo admin password (plaintext)"
-    )
-
-    # Optional ArgoCD GitHub SSO configuration via Dex
-    argocd_github_sso_enabled: bool = Field(
-        default=False, description="Enable ArgoCD GitHub SSO via Dex"
-    )
-    argocd_github_oauth_client_id: str = Field(
-        default="", description="GitHub OAuth app client ID for ArgoCD Dex connector"
-    )
-    argocd_github_oauth_client_secret: str = Field(
-        default="",
-        description="GitHub OAuth app client secret for ArgoCD Dex connector",
-    )
-    argocd_github_orgs: str = Field(
-        default="",
-        description="Comma-separated GitHub org slugs allowed to sign in via Dex",
-    )
-
-    @staticmethod
-    def _load_cluster_domain_from_context() -> str:
-        """
-        Load cluster domain from context.json file in the current directory.
-
-        Returns:
-            Cluster domain from context.json, or empty string if not found
-        """
-        try:
-            context_file = Path.cwd() / "context.json"
-            if context_file.exists():
-                with open(context_file, "r", encoding="utf-8") as f:
-                    context = json.load(f)
-                    return context.get("cluster_domain", "")
-        except (json.JSONDecodeError, KeyError, OSError):
-            pass
-        return ""
-
-    @property
-    def opencraft_manifests_url(self) -> str:
-        """
-        Get the OpenCraft manifests URL.
-        """
-
-        return f"https://raw.githubusercontent.com/open-craft/launchpad-cluster-template/{self.opencraft_manifests_version}/manifests"
+class ArgocdInstallUrlMixin(ArgocdVersionField):
+    """Adds the derived ArgoCD install manifest URL to ArgocdVersionField."""
 
     @property
     def argocd_install_url(self) -> str:
@@ -125,6 +98,10 @@ class ClusterConfig(LaunchpadBaseSettings):
 
         return f"https://raw.githubusercontent.com/argoproj/argo-cd/{self.argocd_version}/manifests/install.yaml"
 
+
+class ArgoWorkflowsInstallUrlMixin(ArgoWorkflowsVersionField):
+    """Adds the derived Argo Workflows install manifest URL to ArgoWorkflowsVersionField."""
+
     @property
     def argo_workflows_install_url(self) -> str:
         """
@@ -132,6 +109,122 @@ class ClusterConfig(LaunchpadBaseSettings):
         """
 
         return f"https://raw.githubusercontent.com/argoproj/argo-workflows/{self.argo_workflows_version}/manifests/install.yaml"
+
+
+class OpencraftManifestsVersionField(BaseModel):
+    """OpenCraft manifests version field."""
+
+    opencraft_manifests_version: str = Field(
+        default="main", description="OpenCraft manifests version"
+    )
+
+
+class OpencraftManifestsUrlMixin(OpencraftManifestsVersionField):
+    """Adds the derived OpenCraft manifests URL to OpencraftManifestsVersionField."""
+
+    @property
+    def opencraft_manifests_url(self) -> str:
+        """
+        Get the OpenCraft manifests URL.
+        """
+
+        return f"https://raw.githubusercontent.com/open-craft/launchpad-cluster-template/{self.opencraft_manifests_version}/manifests"
+
+
+class InstancesDirectoryField(BaseModel):
+    """Instances directory field."""
+
+    instances_directory: str = Field(
+        default="instances", description="Directory where instances are stored"
+    )
+
+
+class DockerRegistryField(BaseModel):
+    """Docker registry hostname field."""
+
+    docker_registry: str = Field(
+        default="ghcr.io",
+        description="Docker registry hostname (e.g., ghcr.io)",
+    )
+
+
+class DockerRegistryCredentialsField(BaseModel):
+    """Docker registry credentials field."""
+
+    docker_registry_credentials: str = Field(
+        default="",
+        description=(
+            "Base64-encoded '<username>:<token>' auth for Docker registry "
+            "(used to create imagePullSecrets)"
+        ),
+    )
+
+
+class ArgoAdminPasswordField(BaseModel):
+    """Argo admin password field."""
+
+    argo_admin_password: str = Field(
+        default="", description="Argo admin password (plaintext)"
+    )
+
+
+class ArgocdGithubSsoEnabledField(BaseModel):
+    """ArgoCD GitHub SSO enabled field."""
+
+    argocd_github_sso_enabled: bool = Field(
+        default=False, description="Enable ArgoCD GitHub SSO via Dex"
+    )
+
+
+class ArgocdGithubOauthClientIdField(BaseModel):
+    """ArgoCD GitHub OAuth client ID field."""
+
+    argocd_github_oauth_client_id: str = Field(
+        default="", description="GitHub OAuth app client ID for ArgoCD Dex connector"
+    )
+
+
+class ArgocdGithubOauthClientSecretField(BaseModel):
+    """ArgoCD GitHub OAuth client secret field."""
+
+    argocd_github_oauth_client_secret: str = Field(
+        default="",
+        description="GitHub OAuth app client secret for ArgoCD Dex connector",
+    )
+
+
+class ArgocdGithubOrgsField(BaseModel):
+    """ArgoCD GitHub allowed orgs field."""
+
+    argocd_github_orgs: str = Field(
+        default="",
+        description="Comma-separated GitHub org slugs allowed to sign in via Dex",
+    )
+
+
+class ClusterConfig(
+    LaunchpadBaseSettings,
+    ClusterDomainField,
+    EnvironmentField,
+    ArgocdInstallUrlMixin,
+    ArgoWorkflowsInstallUrlMixin,
+    OpencraftManifestsUrlMixin,
+    InstancesDirectoryField,
+    DockerRegistryField,
+    DockerRegistryCredentialsField,
+    ArgoAdminPasswordField,
+    ArgocdGithubSsoEnabledField,
+    ArgocdGithubOauthClientIdField,
+    ArgocdGithubOauthClientSecretField,
+    ArgocdGithubOrgsField,
+):
+    """
+    Cluster configuration.
+
+    Composed from single-field mixins declared above so that command-specific
+    settings classes (e.g. ArgoInstallSettings) can reuse individual fields
+    without inheriting this whole class.
+    """
 
 
 class InstanceConfig(LaunchpadBaseSettings):
