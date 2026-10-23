@@ -56,61 +56,34 @@ data "aws_eks_cluster" "cluster" {
   depends_on = [module.kubernetes_cluster]
 }
 
+# Uses the AWS provider credentials. A token lasts about 15 minutes, so a new
+# apply refreshes .kubeconfig.
+data "aws_eks_cluster_auth" "cluster" {
+  name = data.aws_eks_cluster.cluster.name
+}
+
 locals {
-  eks_token_args = [
-    "eks",
-    "get-token",
-    "--cluster-name",
-    data.aws_eks_cluster.cluster.name,
-    "--region",
-    local.region,
-  ]
-
-  # Provider auth uses the Terraform keys. The kubeconfig file does not.
-  eks_token_env = {
-    AWS_ACCESS_KEY_ID     = var.aws_access_key_id
-    AWS_SECRET_ACCESS_KEY = var.aws_secret_access_key
-    AWS_DEFAULT_REGION    = local.region
-  }
-
-  kubeconfig = yamlencode({
-    apiVersion        = "v1"
-    kind              = "Config"
-    "current-context" = data.aws_eks_cluster.cluster.name
-
-    clusters = [
-      {
-        name = data.aws_eks_cluster.cluster.name
-        cluster = {
-          server                       = data.aws_eks_cluster.cluster.endpoint
-          "certificate-authority-data" = data.aws_eks_cluster.cluster.certificate_authority[0].data
-        }
-      }
-    ]
-
-    contexts = [
-      {
-        name = data.aws_eks_cluster.cluster.name
-        context = {
-          cluster = data.aws_eks_cluster.cluster.name
-          user    = data.aws_eks_cluster.cluster.name
-        }
-      }
-    ]
-
-    users = [
-      {
-        name = data.aws_eks_cluster.cluster.name
-        user = {
-          exec = {
-            apiVersion = "client.authentication.k8s.io/v1beta1"
-            command    = "aws"
-            args       = local.eks_token_args
-          }
-        }
-      }
-    ]
-  })
+  # Plain YAML. yamlencode quotes every key, and the Launchpad CLI requires
+  # the document to start with "apiVersion:" and contain "kind: Config".
+  kubeconfig = <<-EOT
+    apiVersion: v1
+    kind: Config
+    current-context: ${data.aws_eks_cluster.cluster.name}
+    clusters:
+    - name: ${data.aws_eks_cluster.cluster.name}
+      cluster:
+        server: ${data.aws_eks_cluster.cluster.endpoint}
+        certificate-authority-data: ${data.aws_eks_cluster.cluster.certificate_authority[0].data}
+    contexts:
+    - name: ${data.aws_eks_cluster.cluster.name}
+      context:
+        cluster: ${data.aws_eks_cluster.cluster.name}
+        user: ${data.aws_eks_cluster.cluster.name}
+    users:
+    - name: ${data.aws_eks_cluster.cluster.name}
+      user:
+        token: ${data.aws_eks_cluster_auth.cluster.token}
+  EOT
 }
 
 provider "aws" {
@@ -127,38 +100,20 @@ provider "mongodbatlas" {
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.cluster.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args        = local.eks_token_args
-    env         = local.eks_token_env
-  }
+  token                  = data.aws_eks_cluster_auth.cluster.token
 }
 
 provider "helm" {
   kubernetes = {
     host                   = data.aws_eks_cluster.cluster.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-
-    exec = {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args        = local.eks_token_args
-      env         = local.eks_token_env
-    }
+    token                  = data.aws_eks_cluster_auth.cluster.token
   }
 }
 
 provider "kubectl" {
   host                   = data.aws_eks_cluster.cluster.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
   load_config_file       = false
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args        = local.eks_token_args
-    env         = local.eks_token_env
-  }
 }
