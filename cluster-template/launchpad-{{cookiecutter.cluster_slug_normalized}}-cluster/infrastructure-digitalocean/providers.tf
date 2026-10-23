@@ -22,24 +22,32 @@ terraform {
     region                      = "us-east-1"
   }
 
+  required_version = ">= 1.5.7"
 
   required_providers {
     digitalocean = {
       source  = "digitalocean/digitalocean"
-      version = ">=2.67"
+      version = ">= 2.67"
     }
 
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = ">=2.38"
+      version = ">= 2.38"
     }
+
     kubectl = {
       source  = "gavinbunney/kubectl"
-      version = ">=1.19"
+      version = ">= 1.19"
     }
+
     helm = {
       source  = "hashicorp/helm"
-      version = "2.17.0"
+      version = "3.3.0"
+    }
+
+    local = {
+      source  = "hashicorp/local"
+      version = ">= 2.5.0"
     }
   }
 }
@@ -66,7 +74,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = data.digitalocean_kubernetes_cluster.cluster.endpoint
     token                  = data.digitalocean_kubernetes_cluster.cluster.kube_config[0].token
     cluster_ca_certificate = base64decode(data.digitalocean_kubernetes_cluster.cluster.kube_config[0].cluster_ca_certificate)

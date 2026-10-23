@@ -1,46 +1,18 @@
-locals {
-  context_file = jsondecode(file("${path.module}/../context.json"))
-
-  # Kubernetes cluster nodes
-  kubernetes_worker_node_size       = "m-4vcpu-32gb"
-  kubernetes_cluster_min_node_count = 2
-  kubernetes_cluster_max_node_count = 8
-
-  # Kubernetes cluster environment
-  kubernetes_cluster_domain      = local.context_file.cluster_domain
-  kubernetes_cluster_environment = local.context_file.environment
-
-  harmony_terraform_module_version   = "{{ cookiecutter.harmony_module_version }}"
-  opencraft_terraform_module_version = "{{ cookiecutter.opencraft_module_version }}"
-
-  # Velero plugin versions
-  velero_aws_plugin_tag = "v1.14.4" # https://github.com/vmware-tanzu/velero-plugin-for-aws/releases
-
-  # MySQL
-  mysql_version           = "8"
-  mysql_instance_size     = "db.t3.micro"
-  mysql_cluster_instances = 1
-
-  atlas_region_name     = upper(replace(var.region, "-", "_"))
-  atlas_ip_access_cidrs = [module.main_vpc.vpc_cidr_block]
-}
-
 data "aws_caller_identity" "current" {}
 data "aws_availability_zones" "available" {}
 
 module "main_vpc" {
   source = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/aws/vpc?ref=${local.harmony_terraform_module_version}"
 
-  availability_zones     = data.aws_availability_zones.available.names
-  one_nat_gateway_per_az = false
+  environment        = local.kubernetes_cluster_environment
+  availability_zones = slice(data.aws_availability_zones.available.names, 0, 3)
+
   single_nat_gateway     = true
+  one_nat_gateway_per_az = false
 
-  region      = var.region
-  environment = local.kubernetes_cluster_environment
-
-  vpc_ip_range    = var.vpc_cidr
-  private_subnets = var.private_subnets
-  public_subnets  = var.public_subnets
+  cidr            = local.vpc_cidr
+  private_subnets = local.private_subnets
+  public_subnets  = local.public_subnets
 
   public_subnet_tags = {
     "Tier"                   = "Public"
@@ -58,36 +30,23 @@ module "kubernetes_cluster" {
 
   environment = local.kubernetes_cluster_environment
   vpc_id      = module.main_vpc.vpc_id
+  subnet_ids  = module.main_vpc.private_subnets
 
-  cluster_name       = var.kubernetes_cluster_name
-  kubernetes_version = var.kubernetes_version
+  cluster_name         = local.kubernetes_cluster_name
+  kubernetes_version   = local.kubernetes_version
+  ubuntu_version       = local.ubuntu_version
+  registry_credentials = "" # Registry credentials are installed outside separately.
 
-  worker_node_size      = local.kubernetes_worker_node_size
-  min_worker_node_count = local.kubernetes_cluster_min_node_count
-  max_worker_node_count = local.kubernetes_cluster_max_node_count
-}
-
-module "kubernetes_cert_manager" {
-  depends_on = [module.kubernetes_cluster]
-
-  source = "git::https://gitlab.com/opencraft/ops/terraform-modules.git//modules/k8s-cert-manager?ref=${local.opencraft_terraform_module_version}"
-
-  namespace                       = "kube-system"
-  lets_encrypt_notification_inbox = var.lets_encrypt_notification_inbox
-}
-
-module "kubernetes_ingress" {
-  depends_on = [module.kubernetes_cluster]
-
-  source = "git::https://gitlab.com/opencraft/ops/terraform-modules.git//modules/k8s-nginx-ingress?ref=${local.opencraft_terraform_module_version}"
-
-  ingress_namespace = "kube-system"
+  worker_node_instance_types = local.worker_node_instance_types
+  worker_node_count          = local.worker_node_count
+  min_worker_node_count      = local.worker_node_min_count
+  max_worker_node_count      = local.worker_node_max_count
 }
 
 module "velero_backups" {
   source = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/aws/s3?ref=${local.harmony_terraform_module_version}"
 
-  bucket_prefix = "backup-${var.kubernetes_cluster_name}"
+  bucket_prefix = "backup-${local.kubernetes_cluster_name}"
   environment   = local.kubernetes_cluster_environment
 
   is_versioning_enabled    = false
@@ -95,66 +54,56 @@ module "velero_backups" {
 }
 
 module "harmony" {
-  depends_on = [module.kubernetes_cluster.cluster_id]
+  depends_on = [module.kubernetes_cluster]
 
   source = "git::https://gitlab.com/opencraft/ops/terraform-modules.git//modules/harmony?ref=${local.opencraft_terraform_module_version}"
 
-  cluster_id                      = module.kubernetes_cluster.cluster_id
+  cluster_id                      = module.kubernetes_cluster.cluster_name
   cluster_domain                  = local.kubernetes_cluster_domain
   cluster_provider                = "aws"
-  lets_encrypt_notification_inbox = var.lets_encrypt_notification_inbox
-  ingress_resource_quota          = lookup(yamldecode(var.kubernetes_resource_quotas), "nginx", {})
-  prometheus_enabled              = var.prometheus_enabled
-  prometheus_additional_alerts    = var.additional_prometheus_alerts
-  grafana_enabled                 = var.grafana_enabled
+  lets_encrypt_notification_inbox = local.lets_encrypt_notification_inbox
+  ingress_resource_quota          = lookup(yamldecode(local.kubernetes_resource_quotas), "traefik", {})
+  prometheus_enabled              = local.prometheus_enabled
+  prometheus_additional_alerts    = local.additional_prometheus_alerts
+  grafana_enabled                 = local.grafana_enabled
   grafana_host                    = "grafana.${local.kubernetes_cluster_domain}"
-  alertmanager_enabled            = var.prometheus_enabled
-  alertmanager_config             = var.alertmanager_config
-  velero_enabled                  = var.velero_enabled
+  alertmanager_enabled            = local.prometheus_enabled
+  alertmanager_config             = local.alertmanager_config
+  velero_enabled                  = local.velero_enabled
   velero_backup_bucket            = module.velero_backups.bucket_name
-  velero_backup_region            = var.region
-  velero_backup_access_key_id     = var.access_key_id
-  velero_backup_secret_access_key = var.secret_access_key
+  velero_backup_region            = local.region
+  velero_backup_access_key_id     = var.aws_access_key_id
+  velero_backup_secret_access_key = var.aws_secret_access_key
   velero_plugin_aws_version       = local.velero_aws_plugin_tag
   velero_volume_snapshot_provider = "aws"
-  velero_schedules                = var.velero_schedules
+  velero_schedules                = local.velero_schedules
 }
 
 module "mysql_database" {
-  source = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/digitalocean/database?ref=${local.harmony_terraform_module_version}"
+  source     = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/aws/rds?ref=${local.harmony_terraform_module_version}"
+  depends_on = [module.main_vpc]
 
-  region                  = var.region
-  environment             = local.kubernetes_cluster_environment
-  access_token            = var.access_token
-  vpc_id                  = module.main_vpc.vpc_id
-  kubernetes_cluster_name = var.kubernetes_cluster_name
+  environment = local.kubernetes_cluster_environment
+  vpc_id      = module.main_vpc.vpc_id
+  subnet_ids  = module.main_vpc.private_subnets
 
-  database_engine                  = "mysql"
-  database_engine_version          = local.mysql_version
-  database_cluster_instances       = local.mysql_cluster_instances
-  database_cluster_instance_size   = local.mysql_instance_size
-  database_maintenance_window_day  = "sunday"
-  database_maintenance_window_time = "01:00:00"
-
-  # Database cluster firewalls cannot use VPC CIDR, therefore the access is
-  # limited to the k8s cluster
-  firewall_rules = [
-    {
-      type  = "k8s"
-      value = module.kubernetes_cluster.cluster_id
-    },
-  ]
+  database_cluster_name          = "${module.kubernetes_cluster.cluster_name}-mysql"
+  database_engine_version        = local.mysql_version
+  database_cluster_instance_size = local.mysql_instance_size
 }
 
 module "atlas_network" {
   source = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/aws/atlas-network?ref=${local.harmony_terraform_module_version}"
 
-  region            = var.region
-  aws_account_id    = data.aws_caller_identity.current.account_id
-  atlas_project_id  = var.atlas_project_id
+  region         = local.region
+  aws_account_id = data.aws_caller_identity.current.account_id
+
+  atlas_project_id  = local.atlas_project_id
   atlas_region_name = local.atlas_region_name
-  atlas_cidr_block  = var.atlas_cidr_block
-  vpc_id            = module.main_vpc.vpc_id
+  atlas_cidr_block  = local.atlas_cidr_block
+
+  vpc_id                  = module.main_vpc.vpc_id
+  private_route_table_ids = module.main_vpc.private_route_table_ids
 }
 
 module "mongodb_database" {
@@ -162,10 +111,17 @@ module "mongodb_database" {
 
   depends_on = [module.atlas_network]
 
-  environment           = local.kubernetes_cluster_environment
-  database_cluster_name = "${var.kubernetes_cluster_name}-mongodb"
-  atlas_project_id      = var.atlas_project_id
-  atlas_region_name     = local.atlas_region_name
-  atlas_provider_name   = "AWS"
-  ip_access_cidrs       = local.atlas_ip_access_cidrs
+  environment              = local.kubernetes_cluster_environment
+  database_cluster_name    = "${local.kubernetes_cluster_name}-mongodb"
+  atlas_project_id         = local.atlas_project_id
+  atlas_region_name        = local.atlas_region_name
+  atlas_provider_name      = "AWS"
+  database_cluster_version = local.mongodb_version
+  ip_access_cidrs          = local.atlas_ip_access_cidrs
+}
+
+resource "local_sensitive_file" "kubeconfig" {
+  filename        = "${path.module}/.kubeconfig"
+  content         = local.kubeconfig
+  file_permission = "0400"
 }
