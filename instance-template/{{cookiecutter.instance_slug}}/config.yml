@@ -11,6 +11,9 @@ DRYDOCK_INIT_JOBS_EXCLUDED:
 - mysql-job
 - mongodb-job
 DRYDOCK_REGISTRY_CREDENTIALS: '{ "auths": { "{{ cookiecutter.docker_registry }}": { "auth": "{{ cookiecutter.docker_registry_credentials }}" } } }'
+# Harmony already publishes Traefik routes to Caddy. Drydock's own Ingresses
+# default to nginx and would add a second controller.
+DRYDOCK_INGRESS: false
 
 # Tutor configuration
 K8S_HARMONY_NAMESPACE: "harmony"
