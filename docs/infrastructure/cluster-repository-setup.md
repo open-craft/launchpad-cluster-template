@@ -91,26 +91,26 @@ secret_access_key = "your_spaces_secret_access_key"
 ```hcl
 aws_access_key_id     = "AKIA..."
 aws_secret_access_key = "your_aws_secret_key"
-atlas_project_id      = "atlas-project-id"
-atlas_cidr_block      = "192.168.248.0/21"
 atlas_public_key      = "atlas-public-key"
 atlas_private_key     = "atlas-private-key"
 ```
 
-`atlas_cidr_block` is the Atlas network container and must not overlap the VPC (`10.0.0.0/16` by default). The Atlas region is the AWS region with hyphens replaced by underscores and uppercased, so `us-east-1` becomes `US_EAST_1`. MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. `LAUNCHPAD_MONGODB_HOST` is the Atlas SRV address from output `mongodb_host`. `LAUNCHPAD_ATLAS_CLUSTER_NAME` is output `atlas_cluster_name`, and `LAUNCHPAD_ATLAS_PROJECT_ID` is output `atlas_project_id`.
+Set `atlas_project_id` in `infrastructure/config.tf`. It is not a credential.
+
+`atlas_cidr_block` in `config.tf` is the Atlas network container (`192.168.248.0/21`) and must not overlap the VPC (`10.0.0.0/16`). The Atlas region is the AWS region with hyphens replaced by underscores and uppercased, so `us-east-1` becomes `US_EAST_1`. Peering adds that CIDR to the VPC private route tables. MySQL is Amazon RDS. Deprovision uses `LAUNCHPAD_MYSQL_PROVIDER=direct_sql` with `mysql_host`, `mysql_port`, `mysql_root_user`, and `mysql_root_password`. MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. `LAUNCHPAD_MONGODB_HOST` is the Atlas SRV address from output `mongodb_host`. `LAUNCHPAD_ATLAS_CLUSTER_NAME` is output `atlas_cluster_name`, and `LAUNCHPAD_ATLAS_PROJECT_ID` is output `atlas_project_id`. The same AWS keys are used for Velero, so they must be allowed to use the backup bucket and its KMS key. `kubeconfig_content` contains a short-lived EKS token from the AWS provider. Run `tofu apply` again to refresh it. It expires after about 15 minutes.
 
 **UpCloud**:
 
 ```hcl
 upcloud_token            = "your-upcloud-token"
 upcloud_autoscaler_token = "your-token-for-autoscaling"
-atlas_region_name        = "US_EAST_1"
-atlas_project_id         = "atlas-project-id"
 atlas_public_key         = "atlas-public-key"
 atlas_private_key        = "atlas-private-key"
 ```
 
-`object_storage_region` is optional. Zone `us-nyc1` uses `us-1`. Zone `de-fra1` uses `europe-1`. Set `object_storage_region` only to choose `europe-2` or `europe-3` instead of `europe-1`. Use Atlas region `EU_CENTRAL_1` for zone `de-fra1`. MySQL deprovision uses `LAUNCHPAD_MYSQL_PROVIDER=direct_sql` with the MySQL host, port, and root credentials from Terraform outputs. MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. `LAUNCHPAD_MONGODB_CLUSTER_ID` is only for `digitalocean_api`. `LAUNCHPAD_MONGODB_HOST` is the Atlas SRV address from output `mongodb_host`. `LAUNCHPAD_ATLAS_CLUSTER_NAME` is output `atlas_cluster_name`, and `LAUNCHPAD_ATLAS_PROJECT_ID` is output `atlas_project_id`.
+Set `atlas_project_id` in `infrastructure/config.tf`. `atlas_region_name` follows the zone: `US_EAST_1` for US zones, `EU_CENTRAL_1` for European zones, `AP_SOUTHEAST_2` for `au-syd1`, and `AP_SOUTHEAST_1` for `sg-sin1`.
+
+Zone `us-nyc1` uses object storage region `us-1`. Zone `de-fra1` uses `europe-1`. Set `object_storage_region_override` in `config.tf` to `europe-2` or `europe-3` to override that European default. European zones use Atlas region `EU_CENTRAL_1`. MySQL deprovision uses `LAUNCHPAD_MYSQL_PROVIDER=direct_sql` with the MySQL host, port, and root credentials from Terraform outputs. MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. `LAUNCHPAD_MONGODB_CLUSTER_ID` is only for `digitalocean_api`. `LAUNCHPAD_MONGODB_HOST` is the Atlas SRV address from output `mongodb_host`. `LAUNCHPAD_ATLAS_CLUSTER_NAME` is output `atlas_cluster_name`, and `LAUNCHPAD_ATLAS_PROJECT_ID` is output `atlas_project_id`.
 
 UpCloud `tofu init` in GitHub Actions reads `TERRAFORM_BACKEND_CONFIG`. Store the same `backend.hcl` contents there, including `endpoints.s3`, `bucket`, `region`, `access_key`, and `secret_key`. The state bucket must exist before the first init.
 
@@ -175,7 +175,7 @@ The cluster repository includes reusable workflows that you trigger manually.
 | **RUNNER_WORKFLOW_LABEL**                 | All                                      | GitHub Actions runner label (default: `ubuntu-latest`). Use `self-hosted` for self-hosted runners                                 |
 | **PICASSO_VERSION**                       | Build, Build All                         | Git ref of Picasso for image builds                                                                                               |
 | **LAUNCHPAD_OPENCRAFT_MANIFESTS_VERSION** | Delete                                   | Git ref for OpenCraft manifests (default: `main`)                                                                                 |
-| **EDX_PLATFORM_VERSION**                  | Create                                   | edX Platform branch/tag (default: `release/teak.3`)                                                                               |
+| **EDX_PLATFORM_VERSION**                  | Create                                   | edX Platform branch/tag (default: `release/ulmo.4`)                                                                               |
 | **TUTOR_VERSION**                         | Create                                   | Tutor version (default from cluster template)                                                                                     |
 | **INSTANCE_TEMPLATE_VERSION**             | Create                                   | Instance template version (default: `main`)                                                                                       |
 | **CONFIG**                                | Update                                   | JSON object to merge into instance config (e.g. `{"KEY": "value"}`)                                                               |

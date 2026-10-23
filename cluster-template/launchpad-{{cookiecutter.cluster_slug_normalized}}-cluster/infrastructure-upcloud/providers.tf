@@ -22,6 +22,8 @@ terraform {
     use_path_style              = true
   }
 
+  required_version = ">= 1.5.7"
+
   required_providers {
     upcloud = {
       source  = "UpCloudLtd/upcloud"
@@ -30,7 +32,7 @@ terraform {
 
     mongodbatlas = {
       source  = "mongodb/mongodbatlas"
-      version = ">= 2.17.0"
+      version = "~> 2.17"
     }
 
     kubernetes = {
@@ -45,7 +47,7 @@ terraform {
 
     helm = {
       source  = "hashicorp/helm"
-      version = "2.17.0"
+      version = "3.3.0"
     }
 
     local = {
@@ -78,10 +80,10 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = local.kubeconfig_cluster["server"]
-    client_certificate     = base64decode(local.kubeconfig_user["client-certificate-data"])
     client_key             = base64decode(local.kubeconfig_user["client-key-data"])
+    client_certificate     = base64decode(local.kubeconfig_user["client-certificate-data"])
     cluster_ca_certificate = base64decode(local.kubeconfig_cluster["certificate-authority-data"])
   }
 }

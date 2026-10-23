@@ -25,7 +25,7 @@ on:
         type: string
       EDX_PLATFORM_VERSION:
         description: "Version of the edx-platform to use"
-        default: "release/teak.3"
+        default: "release/ulmo.4"
         type: string
       TUTOR_VERSION:
         description: "Version of the tutor to use"

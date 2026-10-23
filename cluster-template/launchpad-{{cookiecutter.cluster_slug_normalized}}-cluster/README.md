@@ -26,7 +26,7 @@ access_key = "<ACCESS KEY ID>"
 secret_key = "<SECRET ACCESS KEY>"
 ```
 
-Zone `us-nyc1` uses object storage region `us-1`. Zone `de-fra1` uses `europe-1`. `object_storage_region` can be omitted; set it only to choose `europe-2` or `europe-3`. Set `atlas_region_name`, `atlas_project_id`, `atlas_public_key`, and `atlas_private_key` in `secrets.auto.tfvars` as well. For `us-nyc1`, a nearby Atlas region is `US_EAST_1`. For `de-fra1`, Harmony uses `EU_CENTRAL_1`. `atlas_public_key` and `atlas_private_key` may be omitted when `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` are set.
+Zone `us-nyc1` uses object storage region `us-1`. Zone `de-fra1` uses `europe-1`. Set `object_storage_region_override` in `config.tf` to `europe-2` or `europe-3` to override that European default. Set `atlas_project_id` in `config.tf`. `atlas_region_name` follows the zone: `US_EAST_1` for US zones, `EU_CENTRAL_1` for European zones, `AP_SOUTHEAST_2` for `au-syd1`, and `AP_SOUTHEAST_1` for `sg-sin1`. Set `atlas_public_key` and `atlas_private_key` in `secrets.auto.tfvars`. `atlas_public_key` and `atlas_private_key` may be omitted when `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` are set.
 {% else -%}
 Create `infrastructure/backend.hcl`:
 
@@ -35,7 +35,7 @@ access_key = "<ACCESS KEY ID>"
 secret_key = "<SECRET ACCESS KEY>"
 ```
 {% if cookiecutter.cloud_provider == "aws" %}
-MongoDB is a MongoDB Atlas cluster peered to the VPC. Set `atlas_project_id`, `atlas_cidr_block`, `atlas_public_key`, and `atlas_private_key` in `secrets.auto.tfvars`. `atlas_cidr_block` must not overlap the VPC. `atlas_public_key` and `atlas_private_key` may be omitted when `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` are set. The Atlas region is the AWS region with hyphens replaced by underscores and uppercased.
+MySQL is Amazon RDS in the private subnets, while MongoDB is a MongoDB Atlas cluster peered to the VPC, with routes on the private route tables. Set `atlas_project_id` in `config.tf`. Set `atlas_public_key` and `atlas_private_key` in `secrets.auto.tfvars`. The peered CIDR is `atlas_cidr_block` in `config.tf` and must not overlap the VPC. `atlas_public_key` and `atlas_private_key` may be omitted when `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` are set. The Atlas region is the AWS region with hyphens replaced by underscores and uppercased. The AWS keys in `secrets.auto.tfvars` are also used for Velero, so they must be allowed to use the backup bucket and its KMS key. `.kubeconfig` contains a short-lived EKS token from the AWS provider. Run `tofu apply` again to refresh it. It expires after about 15 minutes.
 {% endif %}
 {% endif %}
 

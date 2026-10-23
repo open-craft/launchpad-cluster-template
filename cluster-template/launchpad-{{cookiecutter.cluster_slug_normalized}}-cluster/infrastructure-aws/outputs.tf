@@ -1,6 +1,6 @@
 output "kubeconfig_content" {
   description = "Kubernetes configuration content for cluster access"
-  value       = module.kubernetes_cluster.kubeconfig
+  value       = local.kubeconfig
   sensitive   = true
 }
 
@@ -29,14 +29,20 @@ output "mysql_port" {
   value       = module.mysql_database.cluster_port
 }
 
+output "mysql_cluster_id" {
+  description = "MySQL database cluster ID"
+  value       = module.mysql_database.database_cluster_id
+}
+
 output "mysql_root_user" {
   description = "MySQL root username"
-  value       = module.mysql_database.cluster_root_user
+  value       = module.mysql_database.database_cluster_root_user
+  sensitive   = true
 }
 
 output "mysql_root_password" {
   description = "MySQL root password"
-  value       = module.mysql_database.cluster_root_password
+  value       = module.mysql_database.database_cluster_root_password
   sensitive   = true
 }
 
@@ -52,5 +58,17 @@ output "atlas_cluster_name" {
 
 output "atlas_project_id" {
   description = "MongoDB Atlas project ID. Set this as LAUNCHPAD_ATLAS_PROJECT_ID."
-  value       = var.atlas_project_id
+  value       = local.atlas_project_id
+}
+
+output "grafana_admin_password" {
+  description = "Grafana admin password"
+  value       = module.harmony.grafana_admin_password
+  sensitive   = true
+}
+
+output "elasticsearch_ca_cert" {
+  description = "Elasticsearch CA certificate"
+  value       = module.harmony.elasticsearch_ca_cert
+  sensitive   = true
 }
