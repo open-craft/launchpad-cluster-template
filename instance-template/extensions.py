@@ -4,6 +4,37 @@ import secrets
 from jinja2.ext import Extension
 
 
+def env(name, default=""):
+    """
+    Return an environment variable, treating a blank value as unset.
+
+    GitHub Actions exports empty secrets as empty strings. ``os.getenv`` then
+    returns that empty string instead of the default.
+    """
+
+    value = os.getenv(name)
+    if value is None or str(value).strip() == "":
+        return default
+    return value
+
+
+def mongodb_port(host, explicit_port=""):
+    """
+    Return the MongoDB port Tutor should write into Python settings.
+
+    Tutor emits ``"port": {{ MONGODB_PORT }}`` without quotes, so the value
+    must be a Python expression. Atlas SRV URIs cannot also carry a numeric
+    port, so that case renders as ``None``.
+    """
+
+    port = str(explicit_port or "").strip()
+    if port:
+        return port
+    if str(host or "").startswith("mongodb+srv://"):
+        return "None"
+    return "27017"
+
+
 class EnvVarExtension(Extension):
     """
     Provides access to environment variables in templates.
@@ -11,7 +42,8 @@ class EnvVarExtension(Extension):
 
     def __init__(self, environment):
         super(EnvVarExtension, self).__init__(environment)
-        environment.globals["env"] = os.getenv
+        environment.globals["env"] = env
+        environment.globals["mongodb_port"] = mongodb_port
 
 
 class PasswordExtension(Extension):

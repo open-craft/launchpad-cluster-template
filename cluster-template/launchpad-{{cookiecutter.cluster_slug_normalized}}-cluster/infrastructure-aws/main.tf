@@ -43,6 +43,44 @@ module "kubernetes_cluster" {
   max_worker_node_count      = local.worker_node_max_count
 }
 
+resource "kubernetes_storage_class_v1" "gp3" {
+  depends_on = [module.kubernetes_cluster]
+
+  metadata {
+    name = "gp3"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+
+  storage_provisioner    = "ebs.csi.aws.com"
+  reclaim_policy         = "Delete"
+  volume_binding_mode    = "WaitForFirstConsumer"
+  allow_volume_expansion = true
+
+  parameters = {
+    type      = "gp3"
+    fsType    = "ext4"
+    encrypted = "true"
+  }
+}
+
+resource "kubernetes_annotations" "gp2" {
+  depends_on = [module.kubernetes_cluster]
+
+  api_version = "storage.k8s.io/v1"
+  kind        = "StorageClass"
+  force       = true
+
+  metadata {
+    name = "gp2"
+  }
+
+  annotations = {
+    "storageclass.kubernetes.io/is-default-class" = "false"
+  }
+}
+
 module "velero_backups" {
   source = "git::https://github.com/openedx/openedx-k8s-harmony.git//terraform/modules/aws/s3?ref=${local.harmony_terraform_module_version}"
 

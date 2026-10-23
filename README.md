@@ -189,7 +189,7 @@ launchpad_create_instance my-instance \
   "https://github.com/your-org/your-cluster.git" \
   "My Open edX Platform" \
   --edx-platform-repository "https://github.com/openedx/edx-platform.git" \
-  --edx-platform-version "release/teak.3" \
+  --edx-platform-version "release/ulmo.4" \
   --tutor-version "v20.0.1"
 ```
 
