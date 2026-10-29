@@ -110,7 +110,7 @@ access_key = "access-key"
 secret_key = "secret-key"
 ```
 
-`--cloud-region us-nyc1` is the UKS zone. Object storage is chosen from that zone: `us-1` for `us-nyc1`, and `europe-1` for `de-fra1`. Set `object_storage_region` only to override the European default with `europe-2` or `europe-3`. Atlas is a separate region: set `atlas_region_name` to `US_EAST_1` for `us-nyc1`, or `EU_CENTRAL_1` for `de-fra1`. Put those values in `secrets.auto.tfvars` with the UpCloud token, `atlas_project_id`, and the Atlas API keys. MySQL instance cleanup uses `direct_sql`. Instance MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. The workers group starts at `worker_node_count` and Cluster Autoscaler resizes it between `worker_node_min_count` and `worker_node_max_count`. `secrets.auto.tfvars` must set `upcloud_autoscaler_token`.
+`--cloud-region us-nyc1` is the UKS zone. Object storage is chosen from that zone: `us-1` for `us-nyc1`, and `europe-1` for `de-fra1`. Set `object_storage_region_override` in `config.tf` to `europe-2` or `europe-3` to override that European default. Atlas is a separate region chosen from the zone in `config.tf`: `US_EAST_1` for US zones and `EU_CENTRAL_1` for European zones. Set `atlas_project_id` in that file. Put the UpCloud token and Atlas API keys in `secrets.auto.tfvars`. MySQL instance cleanup uses `direct_sql`. Instance MongoDB uses `LAUNCHPAD_MONGODB_PROVIDER=atlas`. The workers group starts at `worker_node_count` and Cluster Autoscaler resizes it between `worker_node_min_count` and `worker_node_max_count`. `secrets.auto.tfvars` must set `upcloud_autoscaler_token`.
 
 **Initialize and Deploy**:
 

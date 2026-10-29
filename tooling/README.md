@@ -77,7 +77,7 @@ Creates a new Open edX instance with all required resources.
 ```bash
 launchpad_create_instance my-instance \
   --platform-name "My Learning Platform" \
-  --edx-platform-version "release/teak.3" \
+  --edx-platform-version "release/ulmo.4" \
   --tutor-version "v20.0.1"
 ```
 

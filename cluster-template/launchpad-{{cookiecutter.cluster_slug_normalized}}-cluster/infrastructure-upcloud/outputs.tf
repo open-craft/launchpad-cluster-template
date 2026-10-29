@@ -80,7 +80,7 @@ output "atlas_cluster_name" {
 
 output "atlas_project_id" {
   description = "MongoDB Atlas project ID. Set this as LAUNCHPAD_ATLAS_PROJECT_ID."
-  value       = var.atlas_project_id
+  value       = local.atlas_project_id
 }
 
 output "grafana_admin_password" {

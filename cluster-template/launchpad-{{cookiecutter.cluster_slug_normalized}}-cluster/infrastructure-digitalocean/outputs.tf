@@ -6,12 +6,12 @@ output "kubeconfig_content" {
 
 output "cluster_endpoint" {
   description = "Kubernetes cluster endpoint"
-  value       = data.digitalocean_kubernetes_cluster.cluster.endpoint
+  value       = module.kubernetes_cluster.cluster_endpoint
 }
 
 output "cluster_name" {
   description = "Kubernetes cluster name"
-  value       = data.digitalocean_kubernetes_cluster.cluster.name
+  value       = module.kubernetes_cluster.cluster_name
 }
 
 output "velero_backups_bucket" {
@@ -69,16 +69,13 @@ output "mongodb_admin_password" {
 }
 
 output "grafana_admin_password" {
-  value     = module.harmony.grafana_admin_password
-  sensitive = true
-}
-
-output "openfaas_admin_password" {
-  value     = module.harmony.openfaas_admin_password
-  sensitive = true
+  description = "Grafana admin password"
+  value       = module.harmony.grafana_admin_password
+  sensitive   = true
 }
 
 output "elasticsearch_ca_cert" {
-  value     = module.harmony.elasticsearch_ca_cert
-  sensitive = true
+  description = "Elasticsearch CA certificate"
+  value       = module.harmony.elasticsearch_ca_cert
+  sensitive   = true
 }
