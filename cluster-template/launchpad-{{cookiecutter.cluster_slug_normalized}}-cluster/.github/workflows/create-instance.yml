@@ -51,7 +51,7 @@ jobs:
     permissions:
       contents: write
     name: Create Instance
-    uses: open-craft/launchpad-cluster-template/.github/workflows/create-instance.yml@4ddfea956f0fa3250f56d3ce040855a7041271fe # main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/create-instance.yml@6b7250fb3f7c211d71102fbf5061d690e696247a # main
     secrets:
       TERRAFORM_SECRETS: "{% raw %}${{ secrets.TERRAFORM_SECRETS }}{% endraw %}"
       LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS: "{% raw %}${{ secrets.LAUNCHPAD_DOCKER_REGISTRY_CREDENTIALS }}{% endraw %}"
