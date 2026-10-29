@@ -28,7 +28,7 @@ on:
 jobs:
   build-all:
     name: Build all services
-    uses: open-craft/launchpad-cluster-template/.github/workflows/build-all.yml@4ddfea956f0fa3250f56d3ce040855a7041271fe # main
+    uses: open-craft/launchpad-cluster-template/.github/workflows/build-all.yml@6b7250fb3f7c211d71102fbf5061d690e696247a # main
     secrets:
       SSH_PRIVATE_KEY: {% raw %}${{ secrets.SSH_PRIVATE_KEY }}{% endraw %}
     with:
