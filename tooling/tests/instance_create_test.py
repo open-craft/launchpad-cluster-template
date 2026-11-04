@@ -98,7 +98,6 @@ def _generated_config(slug: str) -> dict:
         "MFE_DOCKER_IMAGE": f"ghcr.io/org/repo:{slug}-mfe",
         "DOCKER_IMAGE_OPENEDX": f"ghcr.io/org/repo:{slug}-openedx",
         "DOCKER_IMAGE_OPENEDX_DEV": f"ghcr.io/org/repo:{slug}-openedx-dev",
-        "DOCKER_REGISTRY": "ghcr.io",
         "DRYDOCK_REGISTRY_CREDENTIALS": "generated-creds",
         "OPENEDX_AWS_ACCESS_KEY": "generated-key",
         "OPENEDX_AWS_SECRET_ACCESS_KEY": "generated-secret",

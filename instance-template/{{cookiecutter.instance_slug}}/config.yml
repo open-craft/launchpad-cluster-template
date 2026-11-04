@@ -5,7 +5,6 @@
 MFE_DOCKER_IMAGE: "{{ cookiecutter.docker_registry }}/{{ cookiecutter.cluster_repository_owner }}/{{ cookiecutter.cluster_repository_name }}:{{ cookiecutter.instance_slug }}-mfe"
 DOCKER_IMAGE_OPENEDX: "{{ cookiecutter.docker_registry }}/{{ cookiecutter.cluster_repository_owner }}/{{ cookiecutter.cluster_repository_name }}:{{ cookiecutter.instance_slug }}-openedx"
 DOCKER_IMAGE_OPENEDX_DEV: "{{ cookiecutter.docker_registry }}/{{ cookiecutter.cluster_repository_owner }}/{{ cookiecutter.cluster_repository_name }}:{{ cookiecutter.instance_slug }}-openedx-dev"
-DOCKER_REGISTRY: "{{ cookiecutter.docker_registry }}"
 DRYDOCK_INIT_JOBS: true
 DRYDOCK_INIT_JOBS_EXCLUDED:
 - mysql-job
