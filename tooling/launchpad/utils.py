@@ -345,6 +345,22 @@ def build_instance_config(  # pylint: disable=too-many-locals,too-many-positiona
         }
     )
 
+    # MySQL Database for Superset
+    if "aspects" in config_data.get("PLUGINS", []):
+        instance_config.update(
+            {
+                "LAUNCHPAD_INSTANCE_SUPERSET_DATABASE": config_data.get(
+                    "SUPERSET_DB_NAME", ""
+                ),
+                "LAUNCHPAD_INSTANCE_SUPERSET_USERNAME": config_data.get(
+                    "SUPERSET_DB_USERNAME", ""
+                ),
+                "LAUNCHPAD_INSTANCE_SUPERSET_PASSWORD": config_data.get(
+                    "SUPERSET_DB_PASSWORD", ""
+                ),
+            }
+        )
+
     # MongoDB connection parameters
     instance_config.update(
         {

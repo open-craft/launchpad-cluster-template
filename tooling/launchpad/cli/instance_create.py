@@ -370,12 +370,14 @@ def _setup_instance_rbac(
     log_success(logger, f"Instance RBAC configured for namespace '{instance_name}'")
 
 
-def _provision_workflows(instance_name: str) -> list[tuple[str, str, str]]:
+def _provision_workflows(
+    instance_name: str, instance_config: dict
+) -> list[tuple[str, str, str]]:
     """
     Return (type, manifest file, workflow name) for instance provision workflows.
     """
 
-    return [
+    workflows = [
         (
             "MySQL",
             "launchpad-mysql-provision-workflow.yml",
@@ -393,13 +395,24 @@ def _provision_workflows(instance_name: str) -> list[tuple[str, str, str]]:
         ),
     ]
 
+    if instance_config.get("LAUNCHPAD_INSTANCE_SUPSERSET_DATABASE"):
+        workflows.append(
+            (
+                "MySQL",
+                "launchpad-superset-provision-workflow.yml",
+                f"superset-provision-{instance_name}",
+            ),
+        )
 
-def _delete_provision_workflows(instance_name: str) -> None:
+    return workflows
+
+
+def _delete_provision_workflows(instance_name: str, instance_config: dict) -> None:
     """
     Delete existing provision workflows so a retry can re-run them.
     """
 
-    for _, _, workflow_name in _provision_workflows(instance_name):
+    for _, _, workflow_name in _provision_workflows(instance_name, instance_config):
         subprocess.run(
             [
                 "kubectl",
@@ -436,10 +449,10 @@ def _create_provision_workflows(  # pylint: disable=duplicate-code
 
     logger.info("Creating parameterized workflows for instance '%s'", instance_name)
 
-    workflows = _provision_workflows(instance_name)
+    workflows = _provision_workflows(instance_name, instance_config)
 
     logger.info("Deleting existing provision workflows if present...")
-    _delete_provision_workflows(instance_name)
+    _delete_provision_workflows(instance_name, instance_config)
 
     for workflow_type, manifest_file, _workflow_name in workflows:
         run_command_with_logging(
@@ -471,7 +484,7 @@ def _create_provision_workflows(  # pylint: disable=duplicate-code
         )
 
     logger.warning("Cleaning up workflows to save resources...")
-    _delete_provision_workflows(instance_name)
+    _delete_provision_workflows(instance_name, instance_config)
 
     log_success(
         logger,
