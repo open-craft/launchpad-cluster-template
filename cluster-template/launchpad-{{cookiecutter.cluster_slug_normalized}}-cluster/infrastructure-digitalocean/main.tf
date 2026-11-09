@@ -88,7 +88,7 @@ module "velero_backups" {
 module "harmony" {
   depends_on = [module.kubernetes_cluster]
 
-  source = "git::https://gitlab.com/opencraft/ops/terraform-modules.git//modules/harmony?ref=${local.opencraft_terraform_module_version}"
+  source = "git::https://gitlab.com/opencraft/ops/terraform-modules.git//modules/openedx/harmony?ref=${local.opencraft_terraform_module_version}"
 
   cluster_id                         = module.kubernetes_cluster.cluster_id
   cluster_domain                     = local.kubernetes_cluster_domain
